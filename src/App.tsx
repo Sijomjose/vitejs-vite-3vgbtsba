@@ -1183,8 +1183,9 @@ export default function App() {
               </button>
               <button
                 onClick={() => {
-                  addTest(testModal.id);
-                }}
+  addTest(testModal.id);
+  setTestModal(null);
+}}
                 style={{
                   flex: 1,
                   padding: 10,
