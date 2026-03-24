@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 
 const SUPABASE_URL = "https://mlfgdutctvbvqwebqajp.supabase.co";
-const SUPABASE_KEY = "sb_publishable_ZJBsKweWuI8zweKjhvpN5A_dGWXqV3r";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1sZmdkdXRjdHZidnF3ZWJxYWpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMzQ2MDIsImV4cCI6MjA4OTgxMDYwMn0.TPBeT6y-fFGAgcME_mmKqBUYHFUMVB1FO3wrAhneKW4";
 
 
 async function sbGet() {
