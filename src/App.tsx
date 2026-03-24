@@ -7,47 +7,25 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 
 async function sbGet() {
   try {
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/tracker_data?select=*&limit=1`, {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/tracker_data?id=eq.savio&select=data`, {
       headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
     });
     const d = await r.json();
-    if (d && d[0]) {
-      return d[0]["data"] || d[0]["Data"] || null;
-    }
-    return null;
+    return d && d[0] && d[0].data ? d[0].data : null;
   } catch { return null; }
 }
 
 async function sbSet(payload) {
   try {
-    // First check if a row exists
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/tracker_data?select=id&limit=1`, {
-      headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
+    await fetch(`${SUPABASE_URL}/rest/v1/tracker_data?id=eq.savio`, {
+      method: "PATCH",
+      headers: {
+        "apikey": SUPABASE_KEY,
+        "Authorization": `Bearer ${SUPABASE_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ data: payload })
     });
-    const rows = await r.json();
-    if (rows && rows.length > 0) {
-      // Update existing row
-      await fetch(`${SUPABASE_URL}/rest/v1/tracker_data?id=eq.${rows[0].id}`, {
-        method: "PATCH",
-        headers: {
-          "apikey": SUPABASE_KEY,
-          "Authorization": `Bearer ${SUPABASE_KEY}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ "data": payload })
-      });
-    } else {
-      // Insert new row
-      await fetch(`${SUPABASE_URL}/rest/v1/tracker_data`, {
-        method: "POST",
-        headers: {
-          "apikey": SUPABASE_KEY,
-          "Authorization": `Bearer ${SUPABASE_KEY}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ "data": payload })
-      });
-    }
   } catch {}
 }
 
