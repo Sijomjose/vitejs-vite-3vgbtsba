@@ -191,6 +191,8 @@ export default function App(){
   const delTest=(cid,tid)=>{ const c=cd(cid); persist({...data,[cid]:{...c,tests:c.tests.filter(t=>t.id!==tid)}}); };
   const saveNote=(id,note)=>{ const c=cd(id); persist({...data,[id]:{...c,notes:note}}); };
   const savePapers=(id,papers)=>{ const c=cd(id); persist({...data,[id]:{...c,papers}}); };
+  const hasPapers=(p)=>p&&(p.qp?.some(x=>x)||p.ma?.some(x=>x)||p.as?.some(x=>x));
+  const initPapers=(p)=>({ qp:p?.qp?.length?p.qp:[""], ma:p?.ma?.length?p.ma:[""], as:p?.as?.length?p.as:[""] });
 
   const stats = useMemo(()=>{
     const ss = SUBJECTS.map(sub=>{
@@ -338,7 +340,7 @@ export default function App(){
                     <div style={{display:"flex",gap:5,flexShrink:0}}>
                       <button onClick={()=>toggleRev(ch.id)} style={{background:cdata.revision?"#fef2f2":"white",border:`1px solid ${cdata.revision?"#fca5a5":"#e5e7eb"}`,borderRadius:7,padding:"4px 8px",cursor:"pointer",fontSize:13}}>{cdata.revision?"🚩":"🏳️"}</button>
                       <button onClick={()=>setNoteModal({id:ch.id,name:ch.name,note:cdata.notes||""})} style={{background:cdata.notes?"#eff6ff":"white",border:`1px solid ${cdata.notes?"#93c5fd":"#e5e7eb"}`,borderRadius:7,padding:"4px 8px",cursor:"pointer",fontSize:13}}>{cdata.notes?"📝":"📄"}</button>
-                      <button onClick={()=>setPaperModal({id:ch.id,name:ch.name,papers:cdata.papers||{qp:"",ma:"",as:""}})} style={{background:(cdata.papers&&(cdata.papers.qp||cdata.papers.ma||cdata.papers.as))?"#f0fdf4":"white",border:`1px solid ${(cdata.papers&&(cdata.papers.qp||cdata.papers.ma||cdata.papers.as))?"#86efac":"#e5e7eb"}`,borderRadius:7,padding:"4px 8px",cursor:"pointer",fontSize:13}}>📎</button>
+                      <button onClick={()=>setPaperModal({id:ch.id,name:ch.name,papers:initPapers(cdata.papers)})} style={{background:hasPapers(cdata.papers)?"#f0fdf4":"white",border:`1px solid ${hasPapers(cdata.papers)?"#86efac":"#e5e7eb"}`,borderRadius:7,padding:"4px 8px",cursor:"pointer",fontSize:13}}>📎</button>
                       <button onClick={()=>{setTestModal({id:ch.id,name:ch.name});setTf({type:"Class Test",date:new Date().toISOString().slice(0,10),obtained:"",max:"",notes:""});}} style={{background:"white",border:"1px solid #e5e7eb",borderRadius:7,padding:"4px 10px",cursor:"pointer",fontSize:12,fontWeight:700,color:"#374151"}}>+ Test</button>
                     </div>
                   </div>
@@ -416,34 +418,48 @@ export default function App(){
       </div>}
       {/* PAPERS MODAL */}
       {paperModal&&<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:16}}>
-        <div style={{background:"white",borderRadius:16,padding:22,width:"100%",maxWidth:420,boxShadow:"0 20px 60px rgba(0,0,0,.3)"}}>
+        <div style={{background:"white",borderRadius:16,padding:22,width:"100%",maxWidth:440,maxHeight:"92vh",overflowY:"auto",boxShadow:"0 20px 60px rgba(0,0,0,.3)"}}>
           <div style={{fontWeight:800,fontSize:17,color:"#111827"}}>📎 Papers & Resources</div>
-          <div style={{color:"#6b7280",fontSize:13,marginBottom:16,marginTop:2}}>{paperModal.name}</div>
-          <div style={{fontSize:12,color:"#9ca3af",marginBottom:14,background:"#f8fafc",borderRadius:8,padding:"8px 12px"}}>
-            Upload files to Google Drive → Right click → Share → Copy link → Paste below
+          <div style={{color:"#6b7280",fontSize:13,marginBottom:12,marginTop:2}}>{paperModal.name}</div>
+          <div style={{fontSize:12,color:"#9ca3af",marginBottom:16,background:"#f8fafc",borderRadius:8,padding:"8px 12px"}}>
+            Upload to Google Drive → Right click → Share → Copy link → Paste below
           </div>
           {[
-            {key:"qp", label:"📄 Question Paper", placeholder:"Paste Google Drive link for Question Paper"},
-            {key:"ma", label:"✅ Model Answer",    placeholder:"Paste Google Drive link for Model Answer"},
-            {key:"as", label:"📝 Answer Sheet",    placeholder:"Paste Google Drive link for Answer Sheet"},
-          ].map(({key,label,placeholder})=>(
-            <div key={key} style={{marginBottom:14}}>
-              <div style={{fontSize:13,fontWeight:600,marginBottom:5,color:"#374151"}}>{label}</div>
-              <div style={{display:"flex",gap:6,alignItems:"center"}}>
-                <input
-                  type="url"
-                  placeholder={placeholder}
-                  value={paperModal.papers[key]||""}
-                  onChange={e=>setPaperModal({...paperModal,papers:{...paperModal.papers,[key]:e.target.value}})}
-                  style={inp({flex:1})}
-                />
-                {paperModal.papers[key]&&
-                  <a href={paperModal.papers[key]} target="_blank" rel="noreferrer"
-                    style={{background:"#eff6ff",border:"1px solid #93c5fd",borderRadius:7,padding:"6px 10px",fontSize:13,textDecoration:"none",color:"#2563eb",whiteSpace:"nowrap"}}>
-                    Open 🔗
-                  </a>
-                }
-              </div>
+            {key:"qp", label:"📄 Question Paper",  color:"#2563eb", bg:"#eff6ff", border:"#93c5fd"},
+            {key:"ma", label:"✅ Model Answer",     color:"#059669", bg:"#f0fdf4", border:"#86efac"},
+            {key:"as", label:"📝 Answer Sheet",     color:"#d97706", bg:"#fffbeb", border:"#fcd34d"},
+          ].map(({key,label,color,bg,border})=>(
+            <div key={key} style={{marginBottom:18,background:bg,border:`1px solid ${border}`,borderRadius:10,padding:"12px 14px"}}>
+              <div style={{fontSize:13,fontWeight:700,marginBottom:8,color}}>{label}</div>
+              {(paperModal.papers[key]||[""]).map((link,i)=>(
+                <div key={i} style={{display:"flex",gap:6,alignItems:"center",marginBottom:6}}>
+                  <input
+                    type="url"
+                    placeholder={`Paste Google Drive link ${i+1}`}
+                    value={link}
+                    onChange={e=>{
+                      const arr=[...(paperModal.papers[key]||[""])];
+                      arr[i]=e.target.value;
+                      setPaperModal({...paperModal,papers:{...paperModal.papers,[key]:arr}});
+                    }}
+                    style={inp({flex:1,background:"white",fontSize:13})}
+                  />
+                  {link&&<a href={link} target="_blank" rel="noreferrer"
+                    style={{background:"white",border:`1px solid ${border}`,borderRadius:7,padding:"6px 8px",fontSize:12,textDecoration:"none",color,whiteSpace:"nowrap"}}>🔗</a>}
+                  {(paperModal.papers[key]||[""]).length>1&&
+                    <button onClick={()=>{
+                      const arr=(paperModal.papers[key]||[""]).filter((_,j)=>j!==i);
+                      setPaperModal({...paperModal,papers:{...paperModal.papers,[key]:arr}});
+                    }} style={{background:"#fee2e2",border:"none",borderRadius:7,padding:"6px 8px",cursor:"pointer",color:"#dc2626",fontSize:12,fontWeight:700}}>✕</button>
+                  }
+                </div>
+              ))}
+              <button onClick={()=>{
+                const arr=[...(paperModal.papers[key]||[""]), ""];
+                setPaperModal({...paperModal,papers:{...paperModal.papers,[key]:arr}});
+              }} style={{background:"white",border:`1px dashed ${border}`,borderRadius:7,padding:"5px 12px",cursor:"pointer",fontSize:12,color,fontWeight:600,marginTop:2}}>
+                + Add another link
+              </button>
             </div>
           ))}
           <div style={{display:"flex",gap:10,marginTop:4}}>
