@@ -3,30 +3,51 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 
 const SUPABASE_URL = "https://mlfgdutctvbvqwebqajp.supabase.co";
 const SUPABASE_KEY = "sb_publishable_ZJBsKweWuI8zweKjhvpN5A_dGWXqV3r";
-const ROW_ID = 1;
+
 
 async function sbGet() {
   try {
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/tracker_data?id=eq.${ROW_ID}&select=*`, {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/tracker_data?select=*&limit=1`, {
       headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
     });
     const d = await r.json();
-    return d && d[0] ? d[0]["Data"] : null;
+    if (d && d[0]) {
+      return d[0]["data"] || d[0]["Data"] || null;
+    }
+    return null;
   } catch { return null; }
 }
 
-async function sbSet(data) {
+async function sbSet(payload) {
   try {
-    await fetch(`${SUPABASE_URL}/rest/v1/tracker_data`, {
-      method: "POST",
-      headers: {
-        "apikey": SUPABASE_KEY,
-        "Authorization": `Bearer ${SUPABASE_KEY}`,
-        "Content-Type": "application/json",
-        "Prefer": "resolution=merge-duplicates"
-      },
-      body: JSON.stringify({ id: ROW_ID, "Data": data })
+    // First check if a row exists
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/tracker_data?select=id&limit=1`, {
+      headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
     });
+    const rows = await r.json();
+    if (rows && rows.length > 0) {
+      // Update existing row
+      await fetch(`${SUPABASE_URL}/rest/v1/tracker_data?id=eq.${rows[0].id}`, {
+        method: "PATCH",
+        headers: {
+          "apikey": SUPABASE_KEY,
+          "Authorization": `Bearer ${SUPABASE_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ "data": payload })
+      });
+    } else {
+      // Insert new row
+      await fetch(`${SUPABASE_URL}/rest/v1/tracker_data`, {
+        method: "POST",
+        headers: {
+          "apikey": SUPABASE_KEY,
+          "Authorization": `Bearer ${SUPABASE_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ "data": payload })
+      });
+    }
   } catch {}
 }
 
