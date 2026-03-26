@@ -153,10 +153,11 @@ const PAPER_TYPES = [
 
 function pct(o,m) { return m>0 ? Math.round((o/m)*100) : 0; }
 function pctColor(p) { return p>=80?"#059669":p>=60?"#d97706":"#dc2626"; }
-function hasPapers(p) { return p && PAPER_TYPES.some(({key}) => p[key] && p[key].some(x=>x)); }
+function toArr(v) { if (!v) return [""]; if (Array.isArray(v)) return v.length ? v : [""]; return v ? [v] : [""]; }
+function hasPapers(p) { return p && PAPER_TYPES.some(({key}) => { const a=toArr(p[key]); return a.some(x=>x); }); }
 function initPapers(p) {
   const out = {};
-  PAPER_TYPES.forEach(({key}) => { out[key] = p && p[key] && p[key].length ? p[key] : [""]; });
+  PAPER_TYPES.forEach(({key}) => { out[key] = toArr(p ? p[key] : null); });
   return out;
 }
 
@@ -474,14 +475,14 @@ export default function App() {
             {PAPER_TYPES.map(({key,label,color,bg,border}) => (
               <div key={key} style={{marginBottom:16,background:bg,border:`1px solid ${border}`,borderRadius:10,padding:"12px 14px"}}>
                 <div style={{fontSize:13,fontWeight:700,marginBottom:8,color}}>{label}</div>
-                {(paperModal.papers[key]||[""]).map((link,i) => (
+                {(toArr(paperModal.papers[key])).map((link,i) => (
                   <div key={i} style={{display:"flex",gap:6,alignItems:"center",marginBottom:6}}>
                     <input
                       type="url"
                       placeholder={`Paste Google Drive link ${i+1}`}
                       value={link}
                       onChange={e => {
-                        const arr = [...(paperModal.papers[key]||[""])];
+                        const arr = [...toArr(paperModal.papers[key])];
                         arr[i] = e.target.value;
                         setPaperModal({...paperModal, papers:{...paperModal.papers,[key]:arr}});
                       }}
@@ -493,9 +494,9 @@ export default function App() {
                         🔗
                       </a>
                     )}
-                    {(paperModal.papers[key]||[""]).length > 1 && (
+                    {toArr(paperModal.papers[key]).length > 1 && (
                       <button onClick={() => {
-                        const arr = (paperModal.papers[key]||[""]).filter((_,j)=>j!==i);
+                        const arr = toArr(paperModal.papers[key]).filter((_,j)=>j!==i);
                         setPaperModal({...paperModal, papers:{...paperModal.papers,[key]:arr}});
                       }} style={{background:"#fee2e2",border:"none",borderRadius:7,padding:"6px 8px",cursor:"pointer",color:"#dc2626",fontSize:12,fontWeight:700}}>✕</button>
                     )}
