@@ -3,6 +3,8 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 
 const SUPABASE_URL = "https://mlfgdutctvbvqwebqajp.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1sZmdkdXRjdHZidnF3ZWJxYWpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMzQ2MDIsImV4cCI6MjA4OTgxMDYwMn0.TPBeT6y-fFGAgcME_mmKqBUYHFUMVB1FO3wrAhneKW4";
+const EXAM_DATE = new Date("2027-02-15T00:00:00");
+const START_DATE = new Date("2026-03-27T00:00:00");
 
 async function sbGet() {
   try {
@@ -18,14 +20,34 @@ async function sbSet(payload) {
   try {
     await fetch(`${SUPABASE_URL}/rest/v1/tracker_data?id=eq.savio`, {
       method: "PATCH",
-      headers: {
-        "apikey": SUPABASE_KEY,
-        "Authorization": `Bearer ${SUPABASE_KEY}`,
-        "Content-Type": "application/json"
-      },
+      headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({ data: payload })
     });
   } catch {}
+}
+
+function getTimeLeft() {
+  const now = new Date();
+  const diff = EXAM_DATE - now;
+  if (diff <= 0) return { days:0, hrs:0, mins:0, secs:0, pct:100 };
+  const total = EXAM_DATE - START_DATE;
+  const used  = now - START_DATE;
+  return {
+    days: Math.floor(diff / 86400000),
+    hrs:  Math.floor((diff % 86400000) / 3600000),
+    mins: Math.floor((diff % 3600000) / 60000),
+    secs: Math.floor((diff % 60000) / 1000),
+    pct:  Math.max(0, Math.min(100, Math.round((used / total) * 100)))
+  };
+}
+
+function useCountdown() {
+  const [time, setTime] = useState(getTimeLeft);
+  useEffect(() => {
+    const t = setInterval(() => setTime(getTimeLeft()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  return time;
 }
 
 const SUBJECTS = [
@@ -63,14 +85,12 @@ const SUBJECTS = [
       { name: "First Flight – Poetry", chapters: [
         "Dust of Snow","Fire and Ice","A Tiger in the Zoo",
         "How to Tell Wild Animals","The Ball Poem","Amanda!",
-        "Animals","The Trees","Fog",
-        "The Tale of Custard the Dragon","For Anne Gregory"
+        "Animals","The Trees","Fog","The Tale of Custard the Dragon","For Anne Gregory"
       ]},
       { name: "Footprints Without Feet", chapters: [
         "A Triumph of Surgery","The Thief's Story","The Midnight Visitor",
         "A Question of Trust","Footprints without Feet",
-        "The Making of a Scientist","The Necklace","Bholi",
-        "The Book That Saved the Earth"
+        "The Making of a Scientist","The Necklace","Bholi","The Book That Saved the Earth"
       ]}
     ]
   },
@@ -86,17 +106,12 @@ const SUBJECTS = [
         "Mangalesh Dabral – Sangatkar"
       ]},
       { name: "Kshitij – Gadya Khand (Prose)", chapters: [
-        "Swayam Prakash – Netaji ka Chashma",
-        "Ram Vriksh Benipuri – Balgobin Bhagat",
-        "Yashpal – Lakhnavi Andaaz",
-        "Mannu Bhandari – Ek Kahani Yeh Bhi",
-        "Sarveshwar Dayal Saxena – Manoj",
-        "Hazari Prasad Dwivedi – Sanskriti",
-        "Habib Tanvir – Kartoos"
+        "Swayam Prakash – Netaji ka Chashma","Ram Vriksh Benipuri – Balgobin Bhagat",
+        "Yashpal – Lakhnavi Andaaz","Mannu Bhandari – Ek Kahani Yeh Bhi",
+        "Sarveshwar Dayal Saxena – Manoj","Hazari Prasad Dwivedi – Sanskriti","Habib Tanvir – Kartoos"
       ]},
       { name: "Kritika", chapters: [
-        "Mata ka Anchal – Shivpujan Sahay",
-        "George Pancham ki Naak – Kamleshwar",
+        "Mata ka Anchal – Shivpujan Sahay","George Pancham ki Naak – Kamleshwar",
         "Sana-Sana Haath Jodi – Madhu Kankariya",
         "Ehi Thaiya Jhulni Herani Ho Rama – Shivprasad Mishra 'Rudra'",
         "Main Kyun Likhta Hoon – Nirmal Verma"
@@ -108,30 +123,25 @@ const SUBJECTS = [
     sections: [
       { name: "History – India & the Contemporary World II", chapters: [
         "The Rise of Nationalism in Europe","Nationalism in India",
-        "The Making of a Global World","The Age of Industrialisation",
-        "Print Culture and the Modern World"
+        "The Making of a Global World","The Age of Industrialisation","Print Culture and the Modern World"
       ]},
       { name: "Geography – Contemporary India II", chapters: [
-        "Resources and Development","Forest and Wildlife Resources",
-        "Water Resources","Agriculture",
-        "Minerals and Energy Resources","Manufacturing Industries",
-        "Lifelines of National Economy"
+        "Resources and Development","Forest and Wildlife Resources","Water Resources","Agriculture",
+        "Minerals and Energy Resources","Manufacturing Industries","Lifelines of National Economy"
       ]},
       { name: "Political Science – Democratic Politics II", chapters: [
-        "Power Sharing","Federalism","Gender, Religion and Caste",
-        "Political Parties","Outcomes of Democracy"
+        "Power Sharing","Federalism","Gender, Religion and Caste","Political Parties","Outcomes of Democracy"
       ]},
       { name: "Economics – Understanding Economic Development", chapters: [
-        "Development","Sectors of the Indian Economy",
-        "Money and Credit","Globalisation and the Indian Economy",
-        "Consumer Rights"
+        "Development","Sectors of the Indian Economy","Money and Credit",
+        "Globalisation and the Indian Economy","Consumer Rights"
       ]}
     ]
   }
 ];
 
 function flattenChapters(sub) {
-  if (sub.chapters) return sub.chapters.map((c,i) => ({ id:`${sub.id}__${i}`, name:c, section:null }));
+  if (sub.chapters) return sub.chapters.map((c,i) => ({ id:`${sub.id}__${i}`, name:c }));
   const out = [];
   sub.sections.forEach(sec => sec.chapters.forEach((c,i) => out.push({ id:`${sub.id}__${sec.name}__${i}`, name:c, section:sec.name })));
   return out;
@@ -146,15 +156,15 @@ const S_CFG = {
 };
 const TEST_TYPES = ["Class Test","Unit Test","Half Yearly Exam","Annual Exam","Practice Test","Mock Test","Oral Test","Assignment","Other"];
 const PAPER_TYPES = [
-  { key:"qp", label:"📄 Question Paper",  color:"#2563eb", bg:"#eff6ff", border:"#93c5fd" },
-  { key:"ma", label:"✅ Model Answer",     color:"#059669", bg:"#f0fdf4", border:"#86efac" },
-  { key:"as", label:"📝 Answer Sheet",     color:"#d97706", bg:"#fffbeb", border:"#fcd34d" },
+  { key:"qp", label:"📄 Question Paper", color:"#2563eb", bg:"#eff6ff", border:"#93c5fd" },
+  { key:"ma", label:"✅ Model Answer",   color:"#059669", bg:"#f0fdf4", border:"#86efac" },
+  { key:"as", label:"📝 Answer Sheet",   color:"#d97706", bg:"#fffbeb", border:"#fcd34d" },
 ];
 
 function pct(o,m) { return m>0 ? Math.round((o/m)*100) : 0; }
 function pctColor(p) { return p>=80?"#059669":p>=60?"#d97706":"#dc2626"; }
-function toArr(v) { if (!v) return [""]; if (Array.isArray(v)) return v.length ? v : [""]; return v ? [v] : [""]; }
-function hasPapers(p) { return p && PAPER_TYPES.some(({key}) => { const a=toArr(p[key]); return a.some(x=>x); }); }
+function toArr(v) { if (!v) return [""]; if (Array.isArray(v)) return v.length ? v : [""]; return [v]; }
+function hasPapers(p) { return p && PAPER_TYPES.some(({key}) => toArr(p[key]).some(x=>x)); }
 function initPapers(p) {
   const out = {};
   PAPER_TYPES.forEach(({key}) => { out[key] = toArr(p ? p[key] : null); });
@@ -162,22 +172,25 @@ function initPapers(p) {
 }
 
 export default function App() {
-  const [data, setData]         = useState({});
-  const [loading, setLoading]   = useState(true);
-  const [syncing, setSyncing]   = useState(false);
-  const [tab, setTab]           = useState("dashboard");
+  const [data, setData]             = useState({});
+  const [loading, setLoading]       = useState(true);
+  const [syncing, setSyncing]       = useState(false);
+  const [tab, setTab]               = useState("dashboard");
   const [testModal, setTestModal]   = useState(null);
   const [noteModal, setNoteModal]   = useState(null);
   const [paperModal, setPaperModal] = useState(null);
   const [tf, setTf] = useState({ type:"Class Test", date:new Date().toISOString().slice(0,10), obtained:"", max:"", notes:"" });
+  const countdown = useCountdown();
+
+  const examColor  = countdown.days > 60 ? "#059669" : countdown.days > 30 ? "#d97706" : "#dc2626";
+  const examGlow   = countdown.days > 60 ? "rgba(5,150,105,.2)" : countdown.days > 30 ? "rgba(217,119,6,.2)" : "rgba(220,38,38,.2)";
+  const examBorder = countdown.days > 60 ? "rgba(5,150,105,.35)" : countdown.days > 30 ? "rgba(217,119,6,.35)" : "rgba(220,38,38,.35)";
 
   useEffect(() => {
     (async () => {
       const d = await sbGet();
       if (d) setData(d);
-      else {
-        try { const s = localStorage.getItem("savio_v3"); if(s) setData(JSON.parse(s)); } catch {}
-      }
+      else { try { const s = localStorage.getItem("savio_v3"); if(s) setData(JSON.parse(s)); } catch {} }
       setLoading(false);
     })();
   }, []);
@@ -199,9 +212,9 @@ export default function App() {
     persist({...data,[id]:{...c,tests:[...(c.tests||[]),{...tf,id:Date.now()}]}});
     setTf({type:"Class Test",date:new Date().toISOString().slice(0,10),obtained:"",max:"",notes:""});
   };
-  const delTest = (cid,tid) => { const c=cd(cid); persist({...data,[cid]:{...c,tests:c.tests.filter(t=>t.id!==tid)}}); };
-  const saveNote   = (id,note)   => { const c=cd(id); persist({...data,[id]:{...c,notes:note}}); };
-  const savePapers = (id,papers) => { const c=cd(id); persist({...data,[id]:{...c,papers}}); };
+  const delTest    = (cid,tid)   => { const c=cd(cid); persist({...data,[cid]:{...c,tests:c.tests.filter(t=>t.id!==tid)}}); };
+  const saveNote   = (id,note)   => { const c=cd(id);  persist({...data,[id]:{...c,notes:note}}); };
+  const savePapers = (id,papers) => { const c=cd(id);  persist({...data,[id]:{...c,papers}}); };
 
   const stats = useMemo(() => {
     const ss = SUBJECTS.map(sub => {
@@ -224,11 +237,14 @@ export default function App() {
     </div>
   );
 
+  const pad2 = n => String(n).padStart(2,"0");
+  const pad3 = n => String(n).padStart(3,"0");
+
   return (
     <div style={{fontFamily:"'Segoe UI',system-ui,sans-serif",maxWidth:860,margin:"0 auto",padding:14,minHeight:"100vh",background:"#f1f5f9"}}>
 
       {/* HEADER */}
-      <div style={{background:"linear-gradient(135deg,#1e3a8a,#6d28d9)",borderRadius:16,padding:"18px 22px",marginBottom:14,color:"white"}}>
+      <div style={{background:"linear-gradient(135deg,#1e3a8a,#6d28d9)",borderRadius:16,padding:"18px 22px",marginBottom:12,color:"white"}}>
         <div style={{display:"flex",alignItems:"center",gap:10}}>
           <span style={{fontSize:32}}>📚</span>
           <div>
@@ -242,6 +258,47 @@ export default function App() {
         </div>
         <div style={{marginTop:12,background:"rgba(255,255,255,.25)",borderRadius:20,height:8}}>
           <div style={{background:"white",borderRadius:20,height:8,width:`${stats.pct}%`,transition:"width .6s ease"}}/>
+        </div>
+      </div>
+
+      {/* COUNTDOWN */}
+      <div style={{background:"linear-gradient(135deg,#0f172a,#1e1b4b)",borderRadius:16,padding:"16px 20px",marginBottom:14,border:`1px solid ${examBorder}`,boxShadow:`0 0 24px ${examGlow}`}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:12}}>
+          <div>
+            <div style={{fontSize:10,fontWeight:700,letterSpacing:2,color:"#94a3b8",textTransform:"uppercase",marginBottom:3}}>🎯 CBSE Board Exam Countdown</div>
+            <div style={{fontSize:13,color:"#cbd5e1"}}>Class 10 • February 15, 2027</div>
+          </div>
+          <div style={{display:"flex",gap:6,alignItems:"flex-start",flexWrap:"wrap"}}>
+            {[
+              { val: pad3(countdown.days), label:"Days" },
+              { val: pad2(countdown.hrs),  label:"Hours" },
+              { val: pad2(countdown.mins), label:"Mins" },
+              { val: pad2(countdown.secs), label:"Secs" },
+            ].map(({val,label},idx) => (
+              <div key={label} style={{display:"flex",alignItems:"flex-start",gap:4}}>
+                {idx>0 && <div style={{color:examColor,fontSize:22,fontWeight:800,lineHeight:"44px",opacity:.6}}>:</div>}
+                <div>
+                  <div style={{display:"flex",gap:2}}>
+                    {val.split("").map((d,j) => (
+                      <div key={j} style={{background:"rgba(255,255,255,.07)",border:`1px solid ${examBorder}`,borderRadius:7,width:28,height:40,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,fontWeight:800,color:examColor,fontFamily:"monospace",boxShadow:`inset 0 1px 0 rgba(255,255,255,.1)`}}>
+                        {d}
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{textAlign:"center",fontSize:9,fontWeight:700,letterSpacing:1,color:"#475569",marginTop:3,textTransform:"uppercase"}}>{label}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div style={{marginTop:12}}>
+          <div style={{display:"flex",justifyContent:"space-between",marginBottom:5}}>
+            <span style={{fontSize:11,color:"#475569"}}>⏳ Prep time used</span>
+            <span style={{fontSize:11,fontWeight:700,color:examColor}}>{countdown.pct}%</span>
+          </div>
+          <div style={{background:"rgba(255,255,255,.07)",borderRadius:20,height:5}}>
+            <div style={{background:`linear-gradient(90deg,${examColor},${examColor}99)`,borderRadius:20,height:5,width:`${countdown.pct}%`,transition:"width 1s ease",boxShadow:`0 0 6px ${examColor}`}}/>
+          </div>
         </div>
       </div>
 
@@ -286,17 +343,15 @@ export default function App() {
             <div style={{background:"#fef2f2",border:"1px solid #fca5a5",borderRadius:8,padding:"4px 10px",fontSize:12,color:"#dc2626",fontWeight:600}}>🚩 Flagged</div>
             <div style={{background:"#f0fdf4",border:"1px solid #86efac",borderRadius:8,padding:"4px 10px",fontSize:12,color:"#059669",fontWeight:600}}>📎 Has Papers</div>
           </div>
-          <div style={{marginTop:8,fontSize:12,color:"#6b7280"}}>Click status badge to cycle progress. Use "+ Test" for scores. 📎 for question papers & answer sheets.</div>
         </div>
 
         <div style={{background:"white",borderRadius:12,padding:"14px 16px",boxShadow:"0 1px 4px rgba(0,0,0,.07)"}}>
           <div style={{fontWeight:700,fontSize:15,marginBottom:12,color:"#111827"}}>📝 Recent Test Scores</div>
           {(() => {
-            const all = SUBJECTS.flatMap(sub => flattenChapters(sub).flatMap(ch => (cd(ch.id).tests||[]).map(t => ({...t,cName:ch.name,sIcon:sub.icon,sColor:sub.color}))));
+            const all = SUBJECTS.flatMap(sub => flattenChapters(sub).flatMap(ch => (cd(ch.id).tests||[]).map(t => ({...t,cName:ch.name,sIcon:sub.icon}))));
             all.sort((a,b) => new Date(b.date)-new Date(a.date));
-            const recent = all.slice(0,10);
-            if (!recent.length) return <div style={{color:"#9ca3af",fontSize:14,textAlign:"center",padding:"18px 0"}}>No test scores yet — go to a subject and tap "+ Test" on any chapter!</div>;
-            return recent.map((t,i) => {
+            if (!all.length) return <div style={{color:"#9ca3af",fontSize:14,textAlign:"center",padding:"18px 0"}}>No test scores yet!</div>;
+            return all.slice(0,10).map((t,i) => {
               const p = pct(t.obtained, t.max);
               return (
                 <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 0",borderBottom:"1px solid #f3f4f6"}}>
@@ -337,7 +392,7 @@ export default function App() {
               <span style={{fontSize:30}}>{sub.icon}</span>
               <div style={{flex:1}}>
                 <div style={{fontWeight:800,fontSize:18}}>{sub.name}</div>
-                <div style={{fontSize:13,opacity:.9}}>{done}/{allCh.length} chapters complete • {Math.round(done/allCh.length*100)}%</div>
+                <div style={{fontSize:13,opacity:.9}}>{done}/{allCh.length} complete • {Math.round(done/allCh.length*100)}%</div>
               </div>
               <div style={{background:"rgba(255,255,255,.2)",borderRadius:10,padding:"6px 12px",textAlign:"center"}}>
                 <div style={{fontSize:22,fontWeight:800}}>{Math.round(done/allCh.length*100)}%</div>
@@ -345,43 +400,32 @@ export default function App() {
             </div>
             {sections.map(sec => (
               <div key={sec.name||"m"} style={{marginBottom:20}}>
-                {sec.name && (
-                  <div style={{fontWeight:700,color:sub.color,fontSize:13,marginBottom:8,paddingBottom:6,borderBottom:`2px solid ${sub.color}33`,display:"flex",alignItems:"center",gap:6}}>
-                    <span>📌</span>{sec.name}
-                  </div>
-                )}
+                {sec.name && <div style={{fontWeight:700,color:sub.color,fontSize:13,marginBottom:8,paddingBottom:6,borderBottom:`2px solid ${sub.color}33`,display:"flex",alignItems:"center",gap:6}}><span>📌</span>{sec.name}</div>}
                 {sec.chs.map(ch => {
-                  const cdata = cd(ch.id);
-                  const sc    = S_CFG[cdata.status];
-                  const tests = cdata.tests || [];
-                  const avg   = tests.length ? Math.round(tests.reduce((a,t)=>a+pct(t.obtained,t.max),0)/tests.length) : null;
-                  const hasP  = hasPapers(cdata.papers);
+                  const cdata = cd(ch.id), sc = S_CFG[cdata.status], tests = cdata.tests||[];
+                  const avg = tests.length ? Math.round(tests.reduce((a,t)=>a+pct(t.obtained,t.max),0)/tests.length) : null;
+                  const hasP = hasPapers(cdata.papers);
                   return (
                     <div key={ch.id} style={{background:sc.bg,border:`1px solid ${sc.border}`,borderRadius:10,padding:"10px 13px",marginBottom:7}}>
                       <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
-                        <button onClick={()=>cycleStatus(ch.id)} style={{background:sc.color,color:"white",border:"none",borderRadius:20,padding:"3px 10px",fontSize:11,fontWeight:700,cursor:"pointer",whiteSpace:"nowrap",flexShrink:0}}>
-                          {sc.dot} {sc.label}
-                        </button>
+                        <button onClick={()=>cycleStatus(ch.id)} style={{background:sc.color,color:"white",border:"none",borderRadius:20,padding:"3px 10px",fontSize:11,fontWeight:700,cursor:"pointer",whiteSpace:"nowrap",flexShrink:0}}>{sc.dot} {sc.label}</button>
                         <div style={{flex:1,fontWeight:600,fontSize:14,color:"#1e293b",minWidth:80}}>{ch.name}</div>
                         <div style={{display:"flex",gap:5,flexShrink:0}}>
-                          <button onClick={()=>toggleRev(ch.id)} title="Flag for revision" style={{background:cdata.revision?"#fef2f2":"white",border:`1px solid ${cdata.revision?"#fca5a5":"#e5e7eb"}`,borderRadius:7,padding:"4px 8px",cursor:"pointer",fontSize:13}}>{cdata.revision?"🚩":"🏳️"}</button>
-                          <button onClick={()=>setNoteModal({id:ch.id,name:ch.name,note:cdata.notes||""})} title="Notes" style={{background:cdata.notes?"#eff6ff":"white",border:`1px solid ${cdata.notes?"#93c5fd":"#e5e7eb"}`,borderRadius:7,padding:"4px 8px",cursor:"pointer",fontSize:13}}>{cdata.notes?"📝":"📄"}</button>
-                          <button onClick={()=>setPaperModal({id:ch.id,name:ch.name,papers:initPapers(cdata.papers)})} title="Papers" style={{background:hasP?"#f0fdf4":"white",border:`1px solid ${hasP?"#86efac":"#e5e7eb"}`,borderRadius:7,padding:"4px 8px",cursor:"pointer",fontSize:13}}>📎</button>
+                          <button onClick={()=>toggleRev(ch.id)} style={{background:cdata.revision?"#fef2f2":"white",border:`1px solid ${cdata.revision?"#fca5a5":"#e5e7eb"}`,borderRadius:7,padding:"4px 8px",cursor:"pointer",fontSize:13}}>{cdata.revision?"🚩":"🏳️"}</button>
+                          <button onClick={()=>setNoteModal({id:ch.id,name:ch.name,note:cdata.notes||""})} style={{background:cdata.notes?"#eff6ff":"white",border:`1px solid ${cdata.notes?"#93c5fd":"#e5e7eb"}`,borderRadius:7,padding:"4px 8px",cursor:"pointer",fontSize:13}}>{cdata.notes?"📝":"📄"}</button>
+                          <button onClick={()=>setPaperModal({id:ch.id,name:ch.name,papers:initPapers(cdata.papers)})} style={{background:hasP?"#f0fdf4":"white",border:`1px solid ${hasP?"#86efac":"#e5e7eb"}`,borderRadius:7,padding:"4px 8px",cursor:"pointer",fontSize:13}}>📎</button>
                           <button onClick={()=>{setTestModal({id:ch.id,name:ch.name});setTf({type:"Class Test",date:new Date().toISOString().slice(0,10),obtained:"",max:"",notes:""}); }} style={{background:"white",border:"1px solid #e5e7eb",borderRadius:7,padding:"4px 10px",cursor:"pointer",fontSize:12,fontWeight:700,color:"#374151"}}>+ Test</button>
                         </div>
                       </div>
                       {tests.length>0 && (
                         <div style={{marginTop:8,display:"flex",flexWrap:"wrap",gap:5,alignItems:"center"}}>
-                          {tests.map(t => {
-                            const p = pct(t.obtained,t.max);
-                            return (
-                              <div key={t.id} style={{background:"white",borderRadius:7,padding:"3px 9px",fontSize:12,border:"1px solid #e5e7eb",display:"flex",gap:5,alignItems:"center"}}>
-                                <span style={{color:"#6b7280"}}>{t.type}</span>
-                                <span style={{fontWeight:700,color:pctColor(p)}}>{t.obtained}/{t.max} ({p}%)</span>
-                                <button onClick={()=>delTest(ch.id,t.id)} style={{background:"none",border:"none",cursor:"pointer",color:"#d1d5db",fontSize:11,padding:"0 0 0 2px"}}>✕</button>
-                              </div>
-                            );
-                          })}
+                          {tests.map(t => { const p=pct(t.obtained,t.max); return (
+                            <div key={t.id} style={{background:"white",borderRadius:7,padding:"3px 9px",fontSize:12,border:"1px solid #e5e7eb",display:"flex",gap:5,alignItems:"center"}}>
+                              <span style={{color:"#6b7280"}}>{t.type}</span>
+                              <span style={{fontWeight:700,color:pctColor(p)}}>{t.obtained}/{t.max} ({p}%)</span>
+                              <button onClick={()=>delTest(ch.id,t.id)} style={{background:"none",border:"none",cursor:"pointer",color:"#d1d5db",fontSize:11}}>✕</button>
+                            </div>
+                          );})}
                           {avg!==null && <span style={{fontSize:12,color:"#6b7280"}}>Avg: <strong style={{color:pctColor(avg)}}>{avg}%</strong></span>}
                         </div>
                       )}
@@ -429,20 +473,17 @@ export default function App() {
             </div>
             {(cd(testModal.id).tests||[]).length>0 && <>
               <div style={{fontWeight:700,fontSize:13,color:"#374151",marginBottom:6}}>Previous Scores</div>
-              {(cd(testModal.id).tests||[]).map(t => {
-                const p = pct(t.obtained,t.max);
-                return (
-                  <div key={t.id} style={{display:"flex",alignItems:"center",gap:8,padding:"7px 10px",background:"#f8fafc",borderRadius:8,marginBottom:5}}>
-                    <div style={{flex:1}}>
-                      <div style={{fontSize:13,fontWeight:600,color:"#1e293b"}}>{t.type} • {t.date}</div>
-                      {t.notes && <div style={{fontSize:11,color:"#6b7280"}}>{t.notes}</div>}
-                    </div>
-                    <div style={{fontWeight:800,color:pctColor(p),fontSize:15}}>{t.obtained}/{t.max}</div>
-                    <div style={{fontWeight:600,color:pctColor(p),fontSize:12}}>{p}%</div>
-                    <button onClick={()=>delTest(testModal.id,t.id)} style={{background:"#fee2e2",border:"none",borderRadius:6,padding:"3px 8px",cursor:"pointer",color:"#dc2626",fontSize:12,fontWeight:700}}>✕</button>
+              {(cd(testModal.id).tests||[]).map(t => { const p=pct(t.obtained,t.max); return (
+                <div key={t.id} style={{display:"flex",alignItems:"center",gap:8,padding:"7px 10px",background:"#f8fafc",borderRadius:8,marginBottom:5}}>
+                  <div style={{flex:1}}>
+                    <div style={{fontSize:13,fontWeight:600,color:"#1e293b"}}>{t.type} • {t.date}</div>
+                    {t.notes && <div style={{fontSize:11,color:"#6b7280"}}>{t.notes}</div>}
                   </div>
-                );
-              })}
+                  <div style={{fontWeight:800,color:pctColor(p),fontSize:15}}>{t.obtained}/{t.max}</div>
+                  <div style={{fontWeight:600,color:pctColor(p),fontSize:12}}>{p}%</div>
+                  <button onClick={()=>delTest(testModal.id,t.id)} style={{background:"#fee2e2",border:"none",borderRadius:6,padding:"3px 8px",cursor:"pointer",color:"#dc2626",fontSize:12,fontWeight:700}}>✕</button>
+                </div>
+              );})}
             </>}
           </div>
         </div>
@@ -454,7 +495,7 @@ export default function App() {
           <div style={{background:"white",borderRadius:16,padding:22,width:"100%",maxWidth:380,boxShadow:"0 20px 60px rgba(0,0,0,.3)"}}>
             <div style={{fontWeight:800,fontSize:17,color:"#111827"}}>📄 Chapter Notes</div>
             <div style={{color:"#6b7280",fontSize:13,marginBottom:12,marginTop:2}}>{noteModal.name}</div>
-            <textarea value={noteModal.note} onChange={e=>setNoteModal({...noteModal,note:e.target.value})} placeholder="Study notes, formulae, reminders, weak areas…" style={inp({minHeight:110,resize:"vertical",marginBottom:14})}/>
+            <textarea value={noteModal.note} onChange={e=>setNoteModal({...noteModal,note:e.target.value})} placeholder="Study notes, formulae, reminders…" style={inp({minHeight:110,resize:"vertical",marginBottom:14})}/>
             <div style={{display:"flex",gap:10}}>
               <button onClick={()=>setNoteModal(null)} style={{flex:1,padding:10,borderRadius:10,border:"1px solid #d1d5db",background:"white",cursor:"pointer",fontWeight:600,fontSize:14}}>Cancel</button>
               <button onClick={()=>{saveNote(noteModal.id,noteModal.note);setNoteModal(null);}} style={{flex:1,padding:10,borderRadius:10,border:"none",background:"#1e3a8a",color:"white",cursor:"pointer",fontWeight:700,fontSize:14}}>Save Note</button>
@@ -475,37 +516,20 @@ export default function App() {
             {PAPER_TYPES.map(({key,label,color,bg,border}) => (
               <div key={key} style={{marginBottom:16,background:bg,border:`1px solid ${border}`,borderRadius:10,padding:"12px 14px"}}>
                 <div style={{fontSize:13,fontWeight:700,marginBottom:8,color}}>{label}</div>
-                {(toArr(paperModal.papers[key])).map((link,i) => (
+                {toArr(paperModal.papers[key]).map((link,i) => (
                   <div key={i} style={{display:"flex",gap:6,alignItems:"center",marginBottom:6}}>
-                    <input
-                      type="url"
-                      placeholder={`Paste Google Drive link ${i+1}`}
-                      value={link}
-                      onChange={e => {
-                        const arr = [...toArr(paperModal.papers[key])];
-                        arr[i] = e.target.value;
-                        setPaperModal({...paperModal, papers:{...paperModal.papers,[key]:arr}});
-                      }}
-                      style={inp({flex:1,background:"white",fontSize:13})}
-                    />
-                    {link && (
-                      <a href={link} target="_blank" rel="noreferrer"
-                        style={{background:"white",border:`1px solid ${border}`,borderRadius:7,padding:"6px 8px",fontSize:12,textDecoration:"none",color,whiteSpace:"nowrap"}}>
-                        🔗
-                      </a>
-                    )}
-                    {toArr(paperModal.papers[key]).length > 1 && (
-                      <button onClick={() => {
-                        const arr = toArr(paperModal.papers[key]).filter((_,j)=>j!==i);
-                        setPaperModal({...paperModal, papers:{...paperModal.papers,[key]:arr}});
-                      }} style={{background:"#fee2e2",border:"none",borderRadius:7,padding:"6px 8px",cursor:"pointer",color:"#dc2626",fontSize:12,fontWeight:700}}>✕</button>
+                    <input type="url" placeholder={`Paste Google Drive link ${i+1}`} value={link}
+                      onChange={e => { const arr=[...toArr(paperModal.papers[key])]; arr[i]=e.target.value; setPaperModal({...paperModal,papers:{...paperModal.papers,[key]:arr}}); }}
+                      style={inp({flex:1,background:"white",fontSize:13})}/>
+                    {link && <a href={link} target="_blank" rel="noreferrer" style={{background:"white",border:`1px solid ${border}`,borderRadius:7,padding:"6px 8px",fontSize:12,textDecoration:"none",color,whiteSpace:"nowrap"}}>🔗</a>}
+                    {toArr(paperModal.papers[key]).length>1 && (
+                      <button onClick={()=>{ const arr=toArr(paperModal.papers[key]).filter((_,j)=>j!==i); setPaperModal({...paperModal,papers:{...paperModal.papers,[key]:arr}}); }}
+                        style={{background:"#fee2e2",border:"none",borderRadius:7,padding:"6px 8px",cursor:"pointer",color:"#dc2626",fontSize:12,fontWeight:700}}>✕</button>
                     )}
                   </div>
                 ))}
-                <button onClick={() => {
-                  const arr = [...(paperModal.papers[key]||[""]), ""];
-                  setPaperModal({...paperModal, papers:{...paperModal.papers,[key]:arr}});
-                }} style={{background:"white",border:`1px dashed ${border}`,borderRadius:7,padding:"5px 12px",cursor:"pointer",fontSize:12,color,fontWeight:600,marginTop:2}}>
+                <button onClick={()=>{ const arr=[...toArr(paperModal.papers[key]),""]; setPaperModal({...paperModal,papers:{...paperModal.papers,[key]:arr}}); }}
+                  style={{background:"white",border:`1px dashed ${border}`,borderRadius:7,padding:"5px 12px",cursor:"pointer",fontSize:12,color,fontWeight:600,marginTop:2}}>
                   + Add another link
                 </button>
               </div>
