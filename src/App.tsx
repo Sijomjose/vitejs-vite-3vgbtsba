@@ -182,9 +182,9 @@ export default function App() {
   const [tf, setTf] = useState({ type:"Class Test", date:new Date().toISOString().slice(0,10), obtained:"", max:"", notes:"" });
   const countdown = useCountdown();
 
-  const examColor  = countdown.days > 60 ? "#059669" : countdown.days > 30 ? "#d97706" : "#dc2626";
-  const examGlow   = countdown.days > 60 ? "rgba(5,150,105,.2)" : countdown.days > 30 ? "rgba(217,119,6,.2)" : "rgba(220,38,38,.2)";
-  const examBorder = countdown.days > 60 ? "rgba(5,150,105,.35)" : countdown.days > 30 ? "rgba(217,119,6,.35)" : "rgba(220,38,38,.35)";
+  const examColor  = countdown.days > 60 ? "#00ffcc" : countdown.days > 30 ? "#ffcc00" : "#ff4444";
+  const examGlow   = countdown.days > 60 ? "rgba(0,255,204,.15)" : countdown.days > 30 ? "rgba(255,204,0,.15)" : "rgba(255,68,68,.15)";
+  const examBorder = countdown.days > 60 ? "rgba(0,255,204,.3)"  : countdown.days > 30 ? "rgba(255,204,0,.3)"  : "rgba(255,68,68,.3)";
 
   useEffect(() => {
     (async () => {
@@ -237,9 +237,6 @@ export default function App() {
     </div>
   );
 
-  const pad2 = n => String(n).padStart(2,"0");
-  const pad3 = n => String(n).padStart(3,"0");
-
   return (
     <div style={{fontFamily:"'Segoe UI',system-ui,sans-serif",maxWidth:860,margin:"0 auto",padding:14,minHeight:"100vh",background:"#f1f5f9"}}>
 
@@ -262,43 +259,98 @@ export default function App() {
       </div>
 
       {/* COUNTDOWN */}
-      <div style={{background:"linear-gradient(135deg,#0f172a,#1e1b4b)",borderRadius:16,padding:"16px 20px",marginBottom:14,border:`1px solid ${examBorder}`,boxShadow:`0 0 24px ${examGlow}`}}>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:12}}>
-          <div>
-            <div style={{fontSize:10,fontWeight:700,letterSpacing:2,color:"#94a3b8",textTransform:"uppercase",marginBottom:3}}>🎯 CBSE Board Exam Countdown</div>
-            <div style={{fontSize:13,color:"#cbd5e1"}}>Class 10 • February 15, 2027</div>
+      <div style={{background:"linear-gradient(135deg,#0a0f1e 0%,#0d1b3e 50%,#0a0f1e 100%)",borderRadius:20,padding:"22px 24px",marginBottom:14,border:`1.5px solid ${examBorder}`,boxShadow:`0 8px 40px ${examGlow}, 0 0 0 1px rgba(255,255,255,.03)`,position:"relative",overflow:"hidden"}}>
+        
+        {/* Background glow orbs */}
+        <div style={{position:"absolute",top:-40,right:80,width:180,height:180,borderRadius:"50%",background:examColor,opacity:.06,filter:"blur(60px)",pointerEvents:"none"}}/>
+        <div style={{position:"absolute",bottom:-40,left:40,width:120,height:120,borderRadius:"50%",background:examColor,opacity:.04,filter:"blur(40px)",pointerEvents:"none"}}/>
+
+        {/* Top label */}
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:18,flexWrap:"wrap",gap:8}}>
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
+            <div style={{width:36,height:36,borderRadius:10,background:`linear-gradient(135deg,${examColor}33,${examColor}11)`,border:`1px solid ${examColor}55`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>🎯</div>
+            <div>
+              <div style={{fontSize:11,fontWeight:800,letterSpacing:3,color:"#64748b",textTransform:"uppercase"}}>Board Exam Countdown</div>
+              <div style={{fontSize:14,fontWeight:700,color:"#e2e8f0",marginTop:1}}>CBSE Class 10 • Feb 15, 2027</div>
+            </div>
           </div>
-          <div style={{display:"flex",gap:6,alignItems:"flex-start",flexWrap:"wrap"}}>
-            {[
-              { val: pad3(countdown.days), label:"Days" },
-              { val: pad2(countdown.hrs),  label:"Hours" },
-              { val: pad2(countdown.mins), label:"Mins" },
-              { val: pad2(countdown.secs), label:"Secs" },
-            ].map(({val,label},idx) => (
-              <div key={label} style={{display:"flex",alignItems:"flex-start",gap:4}}>
-                {idx>0 && <div style={{color:examColor,fontSize:22,fontWeight:800,lineHeight:"44px",opacity:.6}}>:</div>}
-                <div>
-                  <div style={{display:"flex",gap:2}}>
-                    {val.split("").map((d,j) => (
-                      <div key={j} style={{background:"rgba(255,255,255,.07)",border:`1px solid ${examBorder}`,borderRadius:7,width:28,height:40,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,fontWeight:800,color:examColor,fontFamily:"monospace",boxShadow:`inset 0 1px 0 rgba(255,255,255,.1)`}}>
-                        {d}
-                      </div>
-                    ))}
-                  </div>
-                  <div style={{textAlign:"center",fontSize:9,fontWeight:700,letterSpacing:1,color:"#475569",marginTop:3,textTransform:"uppercase"}}>{label}</div>
-                </div>
-              </div>
-            ))}
+          <div style={{background:`linear-gradient(135deg,${examColor}22,${examColor}11)`,border:`1px solid ${examColor}44`,borderRadius:20,padding:"4px 14px"}}>
+            <span style={{fontSize:12,fontWeight:800,color:examColor,letterSpacing:1}}>
+              {countdown.days > 60 ? "🟢 ON TRACK" : countdown.days > 30 ? "🟡 HURRY UP" : "🔴 URGENT"}
+            </span>
           </div>
         </div>
-        <div style={{marginTop:12}}>
-          <div style={{display:"flex",justifyContent:"space-between",marginBottom:5}}>
-            <span style={{fontSize:11,color:"#475569"}}>⏳ Prep time used</span>
-            <span style={{fontSize:11,fontWeight:700,color:examColor}}>{countdown.pct}%</span>
+
+        {/* Big digit tiles */}
+        <div style={{display:"flex",justifyContent:"center",alignItems:"center",gap:6,flexWrap:"wrap",marginBottom:20}}>
+          {[
+            { val: String(countdown.days).padStart(3,"0"), label:"DAYS",  big:true },
+            { val: String(countdown.hrs).padStart(2,"0"),  label:"HOURS" },
+            { val: String(countdown.mins).padStart(2,"0"), label:"MINS"  },
+            { val: String(countdown.secs).padStart(2,"0"), label:"SECS"  },
+          ].map(({val,label,big},idx) => (
+            <div key={label} style={{display:"flex",alignItems:"center",gap:6}}>
+              {idx>0 && (
+                <div style={{display:"flex",flexDirection:"column",gap:8,paddingBottom:28}}>
+                  <div style={{width:7,height:7,borderRadius:"50%",background:examColor,boxShadow:`0 0 10px ${examColor}, 0 0 20px ${examColor}`}}/>
+                  <div style={{width:7,height:7,borderRadius:"50%",background:examColor,boxShadow:`0 0 10px ${examColor}, 0 0 20px ${examColor}`}}/>
+                </div>
+              )}
+              <div style={{textAlign:"center"}}>
+                <div style={{display:"flex",gap:4}}>
+                  {val.split("").map((d,j) => (
+                    <div key={j} style={{
+                      width: big ? 48 : 52,
+                      height: big ? 72 : 76,
+                      background:"linear-gradient(180deg,rgba(255,255,255,.1) 0%,rgba(255,255,255,.03) 100%)",
+                      border:`2px solid ${examBorder}`,
+                      borderRadius:14,
+                      display:"flex",alignItems:"center",justifyContent:"center",
+                      fontSize: big ? 42 : 46,
+                      fontWeight:900,
+                      color:"white",
+                      fontFamily:"'Courier New',monospace",
+                      boxShadow:`0 6px 24px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.15), 0 0 20px ${examColor}44`,
+                      textShadow:`0 0 30px ${examColor}, 0 0 60px ${examColor}88`,
+                      position:"relative",overflow:"hidden",
+                      letterSpacing:-2
+                    }}>
+                      <div style={{position:"absolute",top:0,left:0,right:0,height:"45%",background:"rgba(255,255,255,.05)",borderRadius:"12px 12px 0 0"}}/>
+                      <div style={{position:"absolute",bottom:0,left:0,right:0,height:2,background:`linear-gradient(90deg,transparent,${examColor}66,transparent)`}}/>
+                      {d}
+                    </div>
+                  ))}
+                </div>
+                <div style={{
+                  fontSize:13,
+                  fontWeight:900,
+                  letterSpacing:4,
+                  color:examColor,
+                  marginTop:8,
+                  textTransform:"uppercase",
+                  textShadow:`0 0 10px ${examColor}66`
+                }}>{label}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Progress bar */}
+        <div style={{background:"rgba(255,255,255,.04)",borderRadius:20,height:8,position:"relative",overflow:"hidden",border:"1px solid rgba(255,255,255,.06)"}}>
+          <div style={{
+            background:`linear-gradient(90deg, ${examColor}99, ${examColor}, ${examColor}cc)`,
+            borderRadius:20, height:"100%", width:`${countdown.pct}%`,
+            transition:"width 1s ease",
+            boxShadow:`0 0 12px ${examColor}, 0 0 24px ${examColor}66`,
+            position:"relative"
+          }}>
+            <div style={{position:"absolute",right:0,top:0,bottom:0,width:3,background:"white",borderRadius:20,opacity:.8}}/>
           </div>
-          <div style={{background:"rgba(255,255,255,.07)",borderRadius:20,height:5}}>
-            <div style={{background:`linear-gradient(90deg,${examColor},${examColor}99)`,borderRadius:20,height:5,width:`${countdown.pct}%`,transition:"width 1s ease",boxShadow:`0 0 6px ${examColor}`}}/>
-          </div>
+        </div>
+        <div style={{display:"flex",justifyContent:"space-between",marginTop:6}}>
+          <span style={{fontSize:11,color:"#334155",fontWeight:600}}>Mar 27, 2026</span>
+          <span style={{fontSize:11,fontWeight:800,color:examColor}}>{countdown.pct}% prep time used</span>
+          <span style={{fontSize:11,color:"#334155",fontWeight:600}}>Feb 15, 2027</span>
         </div>
       </div>
 
