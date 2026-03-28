@@ -238,7 +238,7 @@ export default function App() {
   );
 
   return (
-    <div style={{fontFamily:"'Segoe UI',system-ui,sans-serif",maxWidth:860,margin:"0 auto",padding:14,minHeight:"100vh",background:"#f1f5f9"}}>
+    <div style={{fontFamily:"'Segoe UI',system-ui,sans-serif",maxWidth:1200,margin:"0 auto",padding:"14px clamp(14px, 3vw, 40px)",minHeight:"100vh",background:"#f1f5f9"}}>
 
       {/* HEADER */}
       <div style={{background:"linear-gradient(135deg,#1e3a8a,#6d28d9)",borderRadius:16,padding:"18px 22px",marginBottom:12,color:"white"}}>
@@ -368,7 +368,7 @@ export default function App() {
 
       {/* DASHBOARD */}
       {tab==="dashboard" && <>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(155px,1fr))",gap:10,marginBottom:14}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))",gap:10,marginBottom:14}}>
           {stats.ss.map(s => (
             <div key={s.id} onClick={()=>setTab(s.id)} style={{background:"white",borderRadius:12,padding:"14px 16px",cursor:"pointer",borderTop:`4px solid ${s.color}`,boxShadow:"0 1px 4px rgba(0,0,0,.07)",transition:"transform .15s,box-shadow .15s"}}
               onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 4px 14px rgba(0,0,0,.12)";}}
