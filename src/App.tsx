@@ -6,9 +6,12 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const EXAM_DATE  = new Date("2027-02-15T00:00:00");
 const START_DATE = new Date("2026-03-27T00:00:00");
 
-async function sbGet() {
+const DB_KEYS = { home: "savio", school: "savio_school" };
+const LS_KEYS = { home: "savio_v3", school: "savio_school_v3" };
+
+async function sbGet(mode) {
   try {
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/tracker_data?id=eq.savio&select=data`, {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/tracker_data?id=eq.${DB_KEYS[mode]}&select=data`, {
       headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
     });
     const d = await r.json();
@@ -16,13 +19,20 @@ async function sbGet() {
   } catch { return null; }
 }
 
-async function sbSet(payload) {
+async function sbSet(mode, payload) {
   try {
-    await fetch(`${SUPABASE_URL}/rest/v1/tracker_data?id=eq.savio`, {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/tracker_data?id=eq.${DB_KEYS[mode]}`, {
       method: "PATCH",
       headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({ data: payload })
     });
+    if (res.status === 404 || (await res.json())?.length === 0) {
+      await fetch(`${SUPABASE_URL}/rest/v1/tracker_data`, {
+        method: "POST",
+        headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ id: DB_KEYS[mode], data: payload })
+      });
+    }
   } catch {}
 }
 
@@ -133,7 +143,8 @@ function toArr(v) { if (!v) return [""]; if (Array.isArray(v)) return v.length?v
 function hasPapers(p) { return p && PAPER_TYPES.some(({key}) => toArr(p[key]).some(x=>x)); }
 function initPapers(p) { const o={}; PAPER_TYPES.forEach(({key})=>{o[key]=toArr(p?p[key]:null);}); return o; }
 
-export default function App() {
+// ─── The main tracker page (used for both home & school) ───
+function TrackerPage({ mode, onSwitch }) {
   const [data,       setData]       = useState({});
   const [loading,    setLoading]    = useState(true);
   const [syncing,    setSyncing]    = useState(false);
@@ -145,24 +156,33 @@ export default function App() {
   const [tf, setTf] = useState({ type:"Class Test", date:new Date().toISOString().slice(0,10), obtained:"", max:"", notes:"" });
   const countdown = useCountdown();
 
+  const isSchool   = mode === "school";
+  const accentColor = isSchool ? "#f59e0b" : "#6d28d9";
+  const headerBg    = isSchool
+    ? "linear-gradient(135deg,#92400e,#b45309)"
+    : "linear-gradient(135deg,#1e3a8a,#6d28d9)";
+
   const examColor  = countdown.days>60?"#00ffcc":countdown.days>30?"#ffcc00":"#ff4444";
   const examGlow   = countdown.days>60?"rgba(0,255,204,.15)":countdown.days>30?"rgba(255,204,0,.15)":"rgba(255,68,68,.15)";
   const examBorder = countdown.days>60?"rgba(0,255,204,.3)":countdown.days>30?"rgba(255,204,0,.3)":"rgba(255,68,68,.3)";
 
   useEffect(() => {
+    setLoading(true);
+    setData({});
+    setTab("dashboard");
     (async () => {
-      const d = await sbGet();
+      const d = await sbGet(mode);
       if (d) setData(d);
-      else { try { const s=localStorage.getItem("savio_v3"); if(s) setData(JSON.parse(s)); } catch {} }
+      else { try { const s=localStorage.getItem(LS_KEYS[mode]); if(s) setData(JSON.parse(s)); } catch {} }
       setLoading(false);
     })();
-  }, []);
+  }, [mode]);
 
   const persist = useCallback(async nd => {
     setData(nd);
-    try { localStorage.setItem("savio_v3", JSON.stringify(nd)); } catch {}
-    setSyncing(true); await sbSet(nd); setSyncing(false);
-  }, []);
+    try { localStorage.setItem(LS_KEYS[mode], JSON.stringify(nd)); } catch {}
+    setSyncing(true); await sbSet(mode, nd); setSyncing(false);
+  }, [mode]);
 
   const cd = id => data[id] || { status:"not_started", revision:false, tests:[], notes:"", papers:null };
   const cycleStatus = id => { const c=cd(id),i=S_CYCLE.indexOf(c.status); persist({...data,[id]:{...c,status:S_CYCLE[(i+1)%4]}}); };
@@ -178,9 +198,7 @@ export default function App() {
 
   function openFilter(type, label) {
     const allChs = SUBJECTS.flatMap(sub => flattenChapters(sub).map(ch => ({...ch,subName:sub.name,subIcon:sub.icon,subColor:sub.color})));
-    const chapters = type==="flagged"
-      ? allChs.filter(c => cd(c.id).revision)
-      : allChs.filter(c => cd(c.id).status === type);
+    const chapters = type==="flagged" ? allChs.filter(c => cd(c.id).revision) : allChs.filter(c => cd(c.id).status === type);
     setFilterModal({ type, label, chapters });
   }
 
@@ -198,23 +216,19 @@ export default function App() {
 
   const inp = st => ({width:"100%",padding:"8px 10px",borderRadius:8,border:"1px solid #d1d5db",fontSize:14,boxSizing:"border-box",...st});
 
-  if (loading) return <div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100vh",fontFamily:"system-ui",fontSize:18}}>📚 Loading Savio's Study Tracker…</div>;
+  if (loading) return <div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100vh",fontFamily:"system-ui",fontSize:18}}>📚 Loading Savio's {isSchool?"School":"Home"} Tracker…</div>;
 
   return (
     <div style={{fontFamily:"'Segoe UI',system-ui,sans-serif",minHeight:"100vh",background:"#f1f5f9"}}>
-      <style>{`
-        .savio-wrap { max-width:100%; margin:0 auto; padding:14px 16px; }
-        @media(min-width:1024px){ .savio-wrap{ padding:18px 48px; } }
-        @keyframes shimmer{0%{left:-60%}100%{left:160%}}
-      `}</style>
-      <div className="savio-wrap">
+      <style>{`.sw{max-width:100%;margin:0 auto;padding:14px 16px;}@media(min-width:1024px){.sw{padding:18px 48px;}}@keyframes shimmer{0%{left:-60%}100%{left:160%}}`}</style>
+      <div className="sw">
 
       {/* HEADER */}
-      <div style={{background:"linear-gradient(135deg,#1e3a8a,#6d28d9)",borderRadius:16,padding:"18px 22px",marginBottom:12,color:"white"}}>
+      <div style={{background:headerBg,borderRadius:16,padding:"18px 22px",marginBottom:12,color:"white"}}>
         <div style={{display:"flex",alignItems:"center",gap:10}}>
-          <span style={{fontSize:32}}>📚</span>
+          <span style={{fontSize:32}}>{isSchool?"🏫":"📚"}</span>
           <div>
-            <div style={{fontWeight:800,fontSize:22,letterSpacing:-.5}}>Savio's Study Tracker</div>
+            <div style={{fontWeight:800,fontSize:22,letterSpacing:-.5}}>Savio's {isSchool?"School":"Home"} Study Tracker</div>
             <div style={{fontSize:13,opacity:.85}}>Class 10 • CBSE NCERT {syncing&&"• ☁️ Saving..."}</div>
           </div>
           <div style={{marginLeft:"auto",textAlign:"right"}}>
@@ -231,6 +245,7 @@ export default function App() {
       <div style={{background:"linear-gradient(135deg,#0a0f1e,#0d1b3e,#0a0f1e)",borderRadius:20,padding:"22px 24px",marginBottom:14,border:`1.5px solid ${examBorder}`,boxShadow:`0 8px 40px ${examGlow}`,position:"relative",overflow:"hidden"}}>
         <div style={{position:"absolute",top:-40,right:80,width:180,height:180,borderRadius:"50%",background:examColor,opacity:.06,filter:"blur(60px)",pointerEvents:"none"}}/>
         <div style={{position:"absolute",bottom:-40,left:40,width:120,height:120,borderRadius:"50%",background:examColor,opacity:.04,filter:"blur(40px)",pointerEvents:"none"}}/>
+
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:18,flexWrap:"wrap",gap:8}}>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
             <div style={{width:36,height:36,borderRadius:10,background:`${examColor}22`,border:`1px solid ${examColor}55`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>🎯</div>
@@ -239,12 +254,21 @@ export default function App() {
               <div style={{fontSize:14,fontWeight:700,color:"#e2e8f0",marginTop:1}}>CBSE Class 10 • Feb 15, 2027</div>
             </div>
           </div>
-          <div style={{background:`${examColor}22`,border:`1px solid ${examColor}44`,borderRadius:20,padding:"4px 14px"}}>
-            <span style={{fontSize:12,fontWeight:800,color:examColor,letterSpacing:1}}>
-              {countdown.days>60?"🟢 ON TRACK":countdown.days>30?"🟡 HURRY UP":"🔴 URGENT"}
-            </span>
+
+          {/* ON TRACK + SWITCH BUTTON */}
+          <div style={{display:"flex",alignItems:"center",gap:8}}>
+            <div style={{background:`${examColor}22`,border:`1px solid ${examColor}44`,borderRadius:20,padding:"4px 14px"}}>
+              <span style={{fontSize:12,fontWeight:800,color:examColor,letterSpacing:1}}>
+                {countdown.days>60?"🟢 ON TRACK":countdown.days>30?"🟡 HURRY UP":"🔴 URGENT"}
+              </span>
+            </div>
+            {/* SCHOOL / HOME SWITCH BUTTON */}
+            <button onClick={onSwitch} style={{background:isSchool?"linear-gradient(135deg,#1e3a8a,#3730a3)":"linear-gradient(135deg,#92400e,#b45309)",border:"none",borderRadius:20,padding:"5px 14px",cursor:"pointer",color:"white",fontWeight:800,fontSize:12,letterSpacing:1,display:"flex",alignItems:"center",gap:6,boxShadow:"0 2px 10px rgba(0,0,0,.3)",transition:"all .2s"}}>
+              {isSchool?"🏠 HOME":"🏫 SCHOOL"}
+            </button>
           </div>
         </div>
+
         <div style={{display:"flex",justifyContent:"center",alignItems:"center",gap:6,flexWrap:"wrap",marginBottom:20}}>
           {[
             {val:String(countdown.days).padStart(3,"0"),label:"DAYS"},
@@ -262,7 +286,6 @@ export default function App() {
                   {val.split("").map((d,j)=>(
                     <div key={j} style={{width:52,height:76,background:"linear-gradient(180deg,rgba(255,255,255,.1),rgba(255,255,255,.03))",border:`2px solid ${examBorder}`,borderRadius:14,display:"flex",alignItems:"center",justifyContent:"center",fontSize:46,fontWeight:900,color:"white",fontFamily:"'Courier New',monospace",boxShadow:`0 6px 24px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.15),0 0 20px ${examColor}44`,textShadow:`0 0 30px ${examColor},0 0 60px ${examColor}88`,position:"relative",overflow:"hidden",letterSpacing:-2}}>
                       <div style={{position:"absolute",top:0,left:0,right:0,height:"45%",background:"rgba(255,255,255,.05)",borderRadius:"12px 12px 0 0"}}/>
-                      <div style={{position:"absolute",bottom:0,left:0,right:0,height:2,background:`linear-gradient(90deg,transparent,${examColor}66,transparent)`}}/>
                       {d}
                     </div>
                   ))}
@@ -272,7 +295,7 @@ export default function App() {
             </div>
           ))}
         </div>
-        <div style={{background:"rgba(255,255,255,.04)",borderRadius:20,height:8,overflow:"hidden",border:"1px solid rgba(255,255,255,.06)",position:"relative"}}>
+        <div style={{background:"rgba(255,255,255,.04)",borderRadius:20,height:8,overflow:"hidden",border:"1px solid rgba(255,255,255,.06)"}}>
           <div style={{background:`linear-gradient(90deg,${examColor}99,${examColor},${examColor}cc)`,borderRadius:20,height:"100%",width:`${countdown.pct}%`,transition:"width 1s ease",boxShadow:`0 0 12px ${examColor}`,position:"relative"}}>
             <div style={{position:"absolute",right:0,top:0,bottom:0,width:3,background:"white",borderRadius:20,opacity:.8}}/>
           </div>
@@ -288,7 +311,7 @@ export default function App() {
       <div style={{display:"flex",gap:6,marginBottom:14,flexWrap:"wrap"}}>
         {["dashboard",...SUBJECTS.map(s=>s.id)].map(t=>{
           const sub=SUBJECTS.find(s=>s.id===t), active=tab===t;
-          return <button key={t} onClick={()=>setTab(t)} style={{padding:"7px 13px",borderRadius:20,border:"none",cursor:"pointer",fontWeight:active?700:500,fontSize:13,background:active?(sub?sub.color:"#1e3a8a"):"white",color:active?"white":"#374151",boxShadow:active?"0 2px 10px rgba(0,0,0,.22)":"0 1px 3px rgba(0,0,0,.08)",transition:"all .18s"}}>
+          return <button key={t} onClick={()=>setTab(t)} style={{padding:"7px 13px",borderRadius:20,border:"none",cursor:"pointer",fontWeight:active?700:500,fontSize:13,background:active?(sub?sub.color:isSchool?"#92400e":"#1e3a8a"):"white",color:active?"white":"#374151",boxShadow:active?"0 2px 10px rgba(0,0,0,.22)":"0 1px 3px rgba(0,0,0,.08)",transition:"all .18s"}}>
             {t==="dashboard"?"🏠 Dashboard":`${sub.icon} ${sub.name}`}
           </button>;
         })}
@@ -310,67 +333,27 @@ export default function App() {
               <div style={{marginTop:8}}><AnimatedBar pct={Math.round(s.done/s.total*100)} color={s.color} height={6}/></div>
             </div>
           ))}
-
-          {/* Chapter Overview Card */}
           {(()=>{
             const allChs=SUBJECTS.flatMap(s=>flattenChapters(s));
-            const counts={
-              not_started:allChs.filter(c=>cd(c.id).status==="not_started").length,
-              in_progress:allChs.filter(c=>cd(c.id).status==="in_progress").length,
-              completed:  allChs.filter(c=>cd(c.id).status==="completed").length,
-              revised:    allChs.filter(c=>cd(c.id).status==="revised").length,
-              flagged:    allChs.filter(c=>cd(c.id).revision).length,
-            };
+            const counts={not_started:allChs.filter(c=>cd(c.id).status==="not_started").length,in_progress:allChs.filter(c=>cd(c.id).status==="in_progress").length,completed:allChs.filter(c=>cd(c.id).status==="completed").length,revised:allChs.filter(c=>cd(c.id).status==="revised").length,flagged:allChs.filter(c=>cd(c.id).revision).length};
             return (
               <div style={{background:"linear-gradient(135deg,#1e3a8a,#3730a3)",borderRadius:12,padding:"14px 16px",boxShadow:"0 1px 4px rgba(0,0,0,.12)",color:"white",display:"flex",flexDirection:"column"}}>
                 <div style={{fontWeight:800,fontSize:13,marginBottom:10,opacity:.9}}>📊 Chapter Overview</div>
                 {OVERVIEW_ROWS.map(({type,label,color,bg})=>{
                   const count=type==="flagged"?counts.flagged:counts[type];
-                  return (
-                    <div key={type} onClick={()=>count>0&&openFilter(type,label)}
-                      style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"7px 10px",borderRadius:8,background:bg,marginBottom:5,cursor:count>0?"pointer":"default",opacity:count===0?.45:1,transition:"transform .12s,opacity .12s"}}
-                      onMouseEnter={e=>{if(count>0){e.currentTarget.style.transform="scale(1.02)";}}}
-                      onMouseLeave={e=>{e.currentTarget.style.transform="scale(1)";}}>
-                      <span style={{fontSize:12,fontWeight:700,color}}>{label}</span>
-                      <div style={{display:"flex",alignItems:"center",gap:6}}>
-                        <span style={{fontSize:17,fontWeight:900,color}}>{count}</span>
-                        {count>0&&<span style={{fontSize:14,color,opacity:.8}}>›</span>}
-                      </div>
+                  return <div key={type} onClick={()=>count>0&&openFilter(type,label)} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"7px 10px",borderRadius:8,background:bg,marginBottom:5,cursor:count>0?"pointer":"default",opacity:count===0?.45:1,transition:"transform .12s"}} onMouseEnter={e=>{if(count>0)e.currentTarget.style.transform="scale(1.02)";}} onMouseLeave={e=>{e.currentTarget.style.transform="scale(1)";}}>
+                    <span style={{fontSize:12,fontWeight:700,color}}>{label}</span>
+                    <div style={{display:"flex",alignItems:"center",gap:6}}>
+                      <span style={{fontSize:17,fontWeight:900,color}}>{count}</span>
+                      {count>0&&<span style={{fontSize:14,color,opacity:.8}}>›</span>}
                     </div>
-                  );
+                  </div>;
                 })}
               </div>
             );
           })()}
         </div>
 
-        {/* How to use */}
-        <div style={{background:"white",borderRadius:12,padding:"16px 18px",marginBottom:12,boxShadow:"0 1px 4px rgba(0,0,0,.07)"}}>
-          <div style={{fontWeight:800,fontSize:14,marginBottom:12,color:"#111827"}}>📖 How to use</div>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:8}}>
-            {[
-              {dot:"⬜",label:"Not Started",    desc:"Chapter not yet studied",        color:"#6b7280",bg:"#f9fafb",border:"#e5e7eb"},
-              {dot:"🔄",label:"In Progress",    desc:"Currently being studied",        color:"#d97706",bg:"#fffbeb",border:"#fcd34d"},
-              {dot:"✅",label:"Completed",      desc:"Studied and done",               color:"#059669",bg:"#f0fdf4",border:"#86efac"},
-              {dot:"🌟",label:"Revised",        desc:"Completed + revision done ✓",    color:"#7c3aed",bg:"#f5f3ff",border:"#c4b5fd"},
-              {dot:"🚩",label:"Needs Revision", desc:"Flag chapters to revisit later", color:"#dc2626",bg:"#fef2f2",border:"#fca5a5"},
-              {dot:"📎",label:"Has Papers",     desc:"Question paper/answer attached", color:"#059669",bg:"#f0fdf4",border:"#86efac"},
-            ].map(({dot,label,desc,color,bg,border})=>(
-              <div key={label} style={{display:"flex",alignItems:"flex-start",gap:10,padding:"10px 12px",background:bg,border:`1px solid ${border}`,borderRadius:10}}>
-                <div style={{fontSize:20,lineHeight:1,marginTop:1,flexShrink:0}}>{dot}</div>
-                <div>
-                  <div style={{fontSize:13,fontWeight:700,color}}>{label}</div>
-                  <div style={{fontSize:11,color:"#6b7280",marginTop:2}}>{desc}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div style={{marginTop:10,fontSize:12,color:"#9ca3af",background:"#f8fafc",borderRadius:8,padding:"8px 12px"}}>
-            💡 Click the <strong>status badge</strong> to cycle statuses. Use <strong>🚩</strong> to flag for revision. Use <strong>+ Test</strong> for scores. Use <strong>📎</strong> to attach papers.
-          </div>
-        </div>
-
-        {/* Recent Test Scores */}
         <div style={{background:"white",borderRadius:12,padding:"14px 16px",boxShadow:"0 1px 4px rgba(0,0,0,.07)"}}>
           <div style={{fontWeight:700,fontSize:15,marginBottom:12,color:"#111827"}}>📝 Recent Test Scores</div>
           {(()=>{
@@ -380,14 +363,8 @@ export default function App() {
             return all.slice(0,10).map((t,i)=>{ const p=pct(t.obtained,t.max); return (
               <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 0",borderBottom:"1px solid #f3f4f6"}}>
                 <span style={{fontSize:18}}>{t.sIcon}</span>
-                <div style={{flex:1,minWidth:0}}>
-                  <div style={{fontSize:13,fontWeight:600,color:"#111827",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{t.cName}</div>
-                  <div style={{fontSize:11,color:"#9ca3af"}}>{t.type} • {t.date}</div>
-                </div>
-                <div style={{textAlign:"right"}}>
-                  <div style={{fontWeight:800,fontSize:16,color:pctColor(p)}}>{t.obtained}/{t.max}</div>
-                  <div style={{fontSize:11,color:"#9ca3af"}}>{p}%</div>
-                </div>
+                <div style={{flex:1,minWidth:0}}><div style={{fontSize:13,fontWeight:600,color:"#111827",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{t.cName}</div><div style={{fontSize:11,color:"#9ca3af"}}>{t.type} • {t.date}</div></div>
+                <div style={{textAlign:"right"}}><div style={{fontWeight:800,fontSize:16,color:pctColor(p)}}>{t.obtained}/{t.max}</div><div style={{fontSize:11,color:"#9ca3af"}}>{p}%</div></div>
               </div>
             );});
           })()}
@@ -408,17 +385,8 @@ export default function App() {
                 <div style={{fontWeight:800,fontSize:20}}>{sub.name}</div>
                 <div style={{fontSize:13,opacity:.85,marginTop:2}}>{done}/{allCh.length} chapters complete</div>
                 <div style={{display:"flex",gap:12,marginTop:8,flexWrap:"wrap"}}>
-                  {[
-                    {label:"Not Started",count:allCh.filter(c=>cd(c.id).status==="not_started").length,color:"rgba(255,255,255,.5)"},
-                    {label:"In Progress",count:allCh.filter(c=>cd(c.id).status==="in_progress").length,color:"#fcd34d"},
-                    {label:"Completed",  count:allCh.filter(c=>cd(c.id).status==="completed").length,  color:"#6ee7b7"},
-                    {label:"Revised",    count:allCh.filter(c=>cd(c.id).status==="revised").length,    color:"#c4b5fd"},
-                    {label:"🚩 Flagged", count:allCh.filter(c=>cd(c.id).revision).length,              color:"#fca5a5"},
-                  ].filter(s=>s.count>0).map(({label,count,color})=>(
-                    <div key={label} style={{display:"flex",alignItems:"center",gap:4}}>
-                      <span style={{fontSize:16,fontWeight:800,color}}>{count}</span>
-                      <span style={{fontSize:11,opacity:.8}}>{label}</span>
-                    </div>
+                  {[{label:"Not Started",count:allCh.filter(c=>cd(c.id).status==="not_started").length,color:"rgba(255,255,255,.5)"},{label:"In Progress",count:allCh.filter(c=>cd(c.id).status==="in_progress").length,color:"#fcd34d"},{label:"Completed",count:allCh.filter(c=>cd(c.id).status==="completed").length,color:"#6ee7b7"},{label:"Revised",count:allCh.filter(c=>cd(c.id).status==="revised").length,color:"#c4b5fd"},{label:"🚩 Flagged",count:allCh.filter(c=>cd(c.id).revision).length,color:"#fca5a5"}].filter(s=>s.count>0).map(({label,count,color})=>(
+                    <div key={label} style={{display:"flex",alignItems:"center",gap:4}}><span style={{fontSize:16,fontWeight:800,color}}>{count}</span><span style={{fontSize:11,opacity:.8}}>{label}</span></div>
                   ))}
                 </div>
               </div>
@@ -436,20 +404,14 @@ export default function App() {
                         <button onClick={()=>cycleStatus(ch.id)} style={{background:sc.color,color:"white",border:"none",borderRadius:20,padding:"3px 10px",fontSize:11,fontWeight:700,cursor:"pointer",whiteSpace:"nowrap",flexShrink:0}}>{sc.dot} {sc.label}</button>
                         <div style={{flex:1,fontWeight:600,fontSize:14,color:"#1e293b",minWidth:80}}>{ch.name}</div>
                         <div style={{display:"flex",gap:5,flexShrink:0}}>
-                          <button onClick={()=>toggleRev(ch.id)} title="Flag for revision" style={{background:cdata.revision?"#fef2f2":"white",border:`1px solid ${cdata.revision?"#fca5a5":"#e5e7eb"}`,borderRadius:7,padding:"4px 8px",cursor:"pointer",fontSize:13}}>{cdata.revision?"🚩":"🏳️"}</button>
-                          <button onClick={()=>setNoteModal({id:ch.id,name:ch.name,note:cdata.notes||""})} title="Notes" style={{background:cdata.notes?"#eff6ff":"white",border:`1px solid ${cdata.notes?"#93c5fd":"#e5e7eb"}`,borderRadius:7,padding:"4px 8px",cursor:"pointer",fontSize:13}}>{cdata.notes?"📝":"📄"}</button>
-                          <button onClick={()=>setPaperModal({id:ch.id,name:ch.name,papers:initPapers(cdata.papers)})} title="Papers" style={{background:hasPapers(cdata.papers)?"#f0fdf4":"white",border:`1px solid ${hasPapers(cdata.papers)?"#86efac":"#e5e7eb"}`,borderRadius:7,padding:"4px 8px",cursor:"pointer",fontSize:13}}>📎</button>
+                          <button onClick={()=>toggleRev(ch.id)} style={{background:cdata.revision?"#fef2f2":"white",border:`1px solid ${cdata.revision?"#fca5a5":"#e5e7eb"}`,borderRadius:7,padding:"4px 8px",cursor:"pointer",fontSize:13}}>{cdata.revision?"🚩":"🏳️"}</button>
+                          <button onClick={()=>setNoteModal({id:ch.id,name:ch.name,note:cdata.notes||""})} style={{background:cdata.notes?"#eff6ff":"white",border:`1px solid ${cdata.notes?"#93c5fd":"#e5e7eb"}`,borderRadius:7,padding:"4px 8px",cursor:"pointer",fontSize:13}}>{cdata.notes?"📝":"📄"}</button>
+                          <button onClick={()=>setPaperModal({id:ch.id,name:ch.name,papers:initPapers(cdata.papers)})} style={{background:hasPapers(cdata.papers)?"#f0fdf4":"white",border:`1px solid ${hasPapers(cdata.papers)?"#86efac":"#e5e7eb"}`,borderRadius:7,padding:"4px 8px",cursor:"pointer",fontSize:13}}>📎</button>
                           <button onClick={()=>{setTestModal({id:ch.id,name:ch.name});setTf({type:"Class Test",date:new Date().toISOString().slice(0,10),obtained:"",max:"",notes:""});}} style={{background:"white",border:"1px solid #e5e7eb",borderRadius:7,padding:"4px 10px",cursor:"pointer",fontSize:12,fontWeight:700,color:"#374151"}}>+ Test</button>
                         </div>
                       </div>
                       {tests.length>0&&<div style={{marginTop:8,display:"flex",flexWrap:"wrap",gap:5,alignItems:"center"}}>
-                        {tests.map(t=>{const p=pct(t.obtained,t.max);return(
-                          <div key={t.id} style={{background:"white",borderRadius:7,padding:"3px 9px",fontSize:12,border:"1px solid #e5e7eb",display:"flex",gap:5,alignItems:"center"}}>
-                            <span style={{color:"#6b7280"}}>{t.type}</span>
-                            <span style={{fontWeight:700,color:pctColor(p)}}>{t.obtained}/{t.max} ({p}%)</span>
-                            <button onClick={()=>delTest(ch.id,t.id)} style={{background:"none",border:"none",cursor:"pointer",color:"#d1d5db",fontSize:11}}>✕</button>
-                          </div>
-                        );})}
+                        {tests.map(t=>{const p=pct(t.obtained,t.max);return(<div key={t.id} style={{background:"white",borderRadius:7,padding:"3px 9px",fontSize:12,border:"1px solid #e5e7eb",display:"flex",gap:5,alignItems:"center"}}><span style={{color:"#6b7280"}}>{t.type}</span><span style={{fontWeight:700,color:pctColor(p)}}>{t.obtained}/{t.max} ({p}%)</span><button onClick={()=>delTest(ch.id,t.id)} style={{background:"none",border:"none",cursor:"pointer",color:"#d1d5db",fontSize:11}}>✕</button></div>);})}
                         {avg!==null&&<span style={{fontSize:12,color:"#6b7280"}}>Avg: <strong style={{color:pctColor(avg)}}>{avg}%</strong></span>}
                       </div>}
                     </div>
@@ -466,34 +428,22 @@ export default function App() {
         <div style={{background:"white",borderRadius:16,padding:22,width:"100%",maxWidth:400,maxHeight:"92vh",overflowY:"auto",boxShadow:"0 20px 60px rgba(0,0,0,.3)"}}>
           <div style={{fontWeight:800,fontSize:17,color:"#111827"}}>📝 Add Test Score</div>
           <div style={{color:"#6b7280",fontSize:13,marginBottom:14,marginTop:2}}>{testModal.name}</div>
-          <div style={{fontSize:13,fontWeight:600,marginBottom:4,color:"#374151"}}>Test Type</div>
+          <div style={{fontSize:13,fontWeight:600,marginBottom:4}}>Test Type</div>
           <select value={tf.type} onChange={e=>setTf({...tf,type:e.target.value})} style={inp({marginBottom:11})}>{TEST_TYPES.map(t=><option key={t}>{t}</option>)}</select>
-          <div style={{fontSize:13,fontWeight:600,marginBottom:4,color:"#374151"}}>Date</div>
+          <div style={{fontSize:13,fontWeight:600,marginBottom:4}}>Date</div>
           <input type="date" value={tf.date} onChange={e=>setTf({...tf,date:e.target.value})} style={inp({marginBottom:11})}/>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:11}}>
-            <div><div style={{fontSize:13,fontWeight:600,marginBottom:4,color:"#374151"}}>Marks Obtained</div><input type="number" min="0" placeholder="e.g. 18" value={tf.obtained} onChange={e=>setTf({...tf,obtained:e.target.value})} style={inp()}/></div>
-            <div><div style={{fontSize:13,fontWeight:600,marginBottom:4,color:"#374151"}}>Max Marks</div><input type="number" min="1" placeholder="e.g. 20" value={tf.max} onChange={e=>setTf({...tf,max:e.target.value})} style={inp()}/></div>
+            <div><div style={{fontSize:13,fontWeight:600,marginBottom:4}}>Marks Obtained</div><input type="number" min="0" placeholder="e.g. 18" value={tf.obtained} onChange={e=>setTf({...tf,obtained:e.target.value})} style={inp()}/></div>
+            <div><div style={{fontSize:13,fontWeight:600,marginBottom:4}}>Max Marks</div><input type="number" min="1" placeholder="e.g. 20" value={tf.max} onChange={e=>setTf({...tf,max:e.target.value})} style={inp()}/></div>
           </div>
-          {tf.obtained&&tf.max&&+tf.max>0&&<div style={{textAlign:"center",padding:"8px 0",fontSize:26,fontWeight:800,color:pctColor(pct(+tf.obtained,+tf.max)),marginBottom:8}}>
-            {pct(+tf.obtained,+tf.max)}% {pct(+tf.obtained,+tf.max)>=80?"🎉":pct(+tf.obtained,+tf.max)>=60?"👍":"📖"}
-          </div>}
-          <div style={{fontSize:13,fontWeight:600,marginBottom:4,color:"#374151"}}>Notes (optional)</div>
+          {tf.obtained&&tf.max&&+tf.max>0&&<div style={{textAlign:"center",padding:"8px 0",fontSize:26,fontWeight:800,color:pctColor(pct(+tf.obtained,+tf.max)),marginBottom:8}}>{pct(+tf.obtained,+tf.max)}% {pct(+tf.obtained,+tf.max)>=80?"🎉":pct(+tf.obtained,+tf.max)>=60?"👍":"📖"}</div>}
+          <div style={{fontSize:13,fontWeight:600,marginBottom:4}}>Notes (optional)</div>
           <textarea placeholder="Any remarks…" value={tf.notes} onChange={e=>setTf({...tf,notes:e.target.value})} style={inp({minHeight:60,resize:"vertical",marginBottom:14})}/>
           <div style={{display:"flex",gap:10,marginBottom:16}}>
             <button onClick={()=>setTestModal(null)} style={{flex:1,padding:10,borderRadius:10,border:"1px solid #d1d5db",background:"white",cursor:"pointer",fontWeight:600,fontSize:14}}>Cancel</button>
             <button onClick={()=>{addTest(testModal.id);setTestModal(null);}} style={{flex:1,padding:10,borderRadius:10,border:"none",background:"#1e3a8a",color:"white",cursor:"pointer",fontWeight:700,fontSize:14}}>Save Score</button>
           </div>
-          {(cd(testModal.id).tests||[]).length>0&&<>
-            <div style={{fontWeight:700,fontSize:13,color:"#374151",marginBottom:6}}>Previous Scores</div>
-            {(cd(testModal.id).tests||[]).map(t=>{const p=pct(t.obtained,t.max);return(
-              <div key={t.id} style={{display:"flex",alignItems:"center",gap:8,padding:"7px 10px",background:"#f8fafc",borderRadius:8,marginBottom:5}}>
-                <div style={{flex:1}}><div style={{fontSize:13,fontWeight:600,color:"#1e293b"}}>{t.type} • {t.date}</div>{t.notes&&<div style={{fontSize:11,color:"#6b7280"}}>{t.notes}</div>}</div>
-                <div style={{fontWeight:800,color:pctColor(p),fontSize:15}}>{t.obtained}/{t.max}</div>
-                <div style={{fontWeight:600,color:pctColor(p),fontSize:12}}>{p}%</div>
-                <button onClick={()=>delTest(testModal.id,t.id)} style={{background:"#fee2e2",border:"none",borderRadius:6,padding:"3px 8px",cursor:"pointer",color:"#dc2626",fontSize:12,fontWeight:700}}>✕</button>
-              </div>
-            );})}
-          </>}
+          {(cd(testModal.id).tests||[]).length>0&&<>{(cd(testModal.id).tests||[]).map(t=>{const p=pct(t.obtained,t.max);return(<div key={t.id} style={{display:"flex",alignItems:"center",gap:8,padding:"7px 10px",background:"#f8fafc",borderRadius:8,marginBottom:5}}><div style={{flex:1}}><div style={{fontSize:13,fontWeight:600}}>{t.type} • {t.date}</div></div><div style={{fontWeight:800,color:pctColor(p),fontSize:15}}>{t.obtained}/{t.max}</div><div style={{fontWeight:600,color:pctColor(p),fontSize:12}}>{p}%</div><button onClick={()=>delTest(testModal.id,t.id)} style={{background:"#fee2e2",border:"none",borderRadius:6,padding:"3px 8px",cursor:"pointer",color:"#dc2626",fontSize:12,fontWeight:700}}>✕</button></div>);})}</>}
         </div>
       </div>}
 
@@ -521,17 +471,15 @@ export default function App() {
               <div style={{fontSize:13,fontWeight:700,marginBottom:8,color}}>{label}</div>
               {toArr(paperModal.papers[key]).map((link,i)=>(
                 <div key={i} style={{display:"flex",gap:6,alignItems:"center",marginBottom:6}}>
-                  <input type="url" placeholder={`Paste Google Drive link ${i+1}`} value={link}
-                    onChange={e=>{const a=[...toArr(paperModal.papers[key])];a[i]=e.target.value;setPaperModal({...paperModal,papers:{...paperModal.papers,[key]:a}});}}
-                    style={inp({flex:1,background:"white",fontSize:13})}/>
-                  {link&&<a href={link} target="_blank" rel="noreferrer" style={{background:"white",border:`1px solid ${border}`,borderRadius:7,padding:"6px 8px",fontSize:12,textDecoration:"none",color,whiteSpace:"nowrap"}}>🔗</a>}
+                  <input type="url" placeholder={`Paste Google Drive link ${i+1}`} value={link} onChange={e=>{const a=[...toArr(paperModal.papers[key])];a[i]=e.target.value;setPaperModal({...paperModal,papers:{...paperModal.papers,[key]:a}});}} style={inp({flex:1,background:"white",fontSize:13})}/>
+                  {link&&<a href={link} target="_blank" rel="noreferrer" style={{background:"white",border:`1px solid ${border}`,borderRadius:7,padding:"6px 8px",fontSize:12,textDecoration:"none",color}}>🔗</a>}
                   {toArr(paperModal.papers[key]).length>1&&<button onClick={()=>{const a=toArr(paperModal.papers[key]).filter((_,j)=>j!==i);setPaperModal({...paperModal,papers:{...paperModal.papers,[key]:a}});}} style={{background:"#fee2e2",border:"none",borderRadius:7,padding:"6px 8px",cursor:"pointer",color:"#dc2626",fontSize:12,fontWeight:700}}>✕</button>}
                 </div>
               ))}
               <button onClick={()=>{const a=[...toArr(paperModal.papers[key]),""];setPaperModal({...paperModal,papers:{...paperModal.papers,[key]:a}});}} style={{background:"white",border:`1px dashed ${border}`,borderRadius:7,padding:"5px 12px",cursor:"pointer",fontSize:12,color,fontWeight:600,marginTop:2}}>+ Add another link</button>
             </div>
           ))}
-          <div style={{display:"flex",gap:10,marginTop:4}}>
+          <div style={{display:"flex",gap:10}}>
             <button onClick={()=>setPaperModal(null)} style={{flex:1,padding:10,borderRadius:10,border:"1px solid #d1d5db",background:"white",cursor:"pointer",fontWeight:600,fontSize:14}}>Cancel</button>
             <button onClick={()=>{savePapers(paperModal.id,paperModal.papers);setPaperModal(null);}} style={{flex:1,padding:10,borderRadius:10,border:"none",background:"#1e3a8a",color:"white",cursor:"pointer",fontWeight:700,fontSize:14}}>Save Links</button>
           </div>
@@ -542,33 +490,22 @@ export default function App() {
       {filterModal&&<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:16}}>
         <div style={{background:"white",borderRadius:16,padding:22,width:"100%",maxWidth:520,maxHeight:"85vh",overflowY:"auto",boxShadow:"0 20px 60px rgba(0,0,0,.3)"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
-            <div>
-              <div style={{fontWeight:800,fontSize:17,color:"#111827"}}>{filterModal.label}</div>
-              <div style={{fontSize:13,color:"#6b7280",marginTop:2}}>{filterModal.chapters.length} chapter{filterModal.chapters.length!==1?"s":""} found</div>
-            </div>
-            <button onClick={()=>setFilterModal(null)} style={{background:"#f3f4f6",border:"none",borderRadius:8,padding:"6px 12px",cursor:"pointer",fontSize:18,color:"#374151"}}>✕</button>
+            <div><div style={{fontWeight:800,fontSize:17,color:"#111827"}}>{filterModal.label}</div><div style={{fontSize:13,color:"#6b7280",marginTop:2}}>{filterModal.chapters.length} chapter{filterModal.chapters.length!==1?"s":""} found</div></div>
+            <button onClick={()=>setFilterModal(null)} style={{background:"#f3f4f6",border:"none",borderRadius:8,padding:"6px 12px",cursor:"pointer",fontSize:18}}>✕</button>
           </div>
           {filterModal.chapters.length===0
-            ? <div style={{textAlign:"center",color:"#9ca3af",padding:"30px 0",fontSize:14}}>No chapters in this category yet!</div>
+            ? <div style={{textAlign:"center",color:"#9ca3af",padding:"30px 0"}}>No chapters in this category yet!</div>
             : filterModal.chapters.map(ch=>{
                 const cdata=cd(ch.id),sc=S_CFG[cdata.status],tests=cdata.tests||[];
                 const avg=tests.length?Math.round(tests.reduce((a,t)=>a+pct(t.obtained,t.max),0)/tests.length):null;
-                return (
-                  <div key={ch.id} style={{background:sc.bg,border:`1px solid ${sc.border}`,borderRadius:10,padding:"10px 13px",marginBottom:8}}>
-                    <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
-                      <span style={{fontSize:18}}>{ch.subIcon}</span>
-                      <div style={{flex:1}}>
-                        <div style={{fontWeight:700,fontSize:13,color:"#111827"}}>{ch.name}</div>
-                        <div style={{fontSize:11,fontWeight:600,marginTop:1,color:ch.subColor}}>{ch.subName}</div>
-                      </div>
-                      <button onClick={()=>cycleStatus(ch.id)} style={{background:sc.color,color:"white",border:"none",borderRadius:20,padding:"3px 10px",fontSize:11,fontWeight:700,cursor:"pointer"}}>{sc.dot} {sc.label}</button>
-                    </div>
-                    {tests.length>0&&<div style={{marginTop:6,fontSize:12,color:"#6b7280"}}>
-                      {tests.length} test{tests.length>1?"s":""} recorded{avg!==null?" • Avg: ":""}
-                      {avg!==null&&<strong style={{color:pctColor(avg)}}>{avg}%</strong>}
-                    </div>}
+                return <div key={ch.id} style={{background:sc.bg,border:`1px solid ${sc.border}`,borderRadius:10,padding:"10px 13px",marginBottom:8}}>
+                  <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
+                    <span style={{fontSize:18}}>{ch.subIcon}</span>
+                    <div style={{flex:1}}><div style={{fontWeight:700,fontSize:13,color:"#111827"}}>{ch.name}</div><div style={{fontSize:11,fontWeight:600,marginTop:1,color:ch.subColor}}>{ch.subName}</div></div>
+                    <button onClick={()=>cycleStatus(ch.id)} style={{background:sc.color,color:"white",border:"none",borderRadius:20,padding:"3px 10px",fontSize:11,fontWeight:700,cursor:"pointer"}}>{sc.dot} {sc.label}</button>
                   </div>
-                );
+                  {tests.length>0&&<div style={{marginTop:6,fontSize:12,color:"#6b7280"}}>{tests.length} test{tests.length>1?"s":""} recorded{avg!==null?" • Avg: ":""}{avg!==null&&<strong style={{color:pctColor(avg)}}>{avg}%</strong>}</div>}
+                </div>;
               })
           }
           <button onClick={()=>setFilterModal(null)} style={{width:"100%",marginTop:10,padding:11,borderRadius:10,border:"none",background:"#1e3a8a",color:"white",cursor:"pointer",fontWeight:700,fontSize:14}}>Close</button>
@@ -578,4 +515,10 @@ export default function App() {
       </div>
     </div>
   );
+}
+
+// ─── Root app — manages which page is shown ───
+export default function App() {
+  const [mode, setMode] = useState("home");
+  return <TrackerPage mode={mode} onSwitch={() => setMode(m => m==="home"?"school":"home")}/>;
 }
