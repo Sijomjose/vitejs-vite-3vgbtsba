@@ -15,7 +15,10 @@ async function sbGet(mode) {
       headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
     });
     const d = await r.json();
-    return d?.[0]?.data ?? null;
+    const obj = d?.[0]?.data;
+    // Only return if it has actual data (not empty {})
+    if (obj && typeof obj === "object" && Object.keys(obj).length > 0) return obj;
+    return null;
   } catch { return null; }
 }
 
@@ -171,8 +174,22 @@ function TrackerPage({ mode, onSwitch }) {
     setTab("dashboard");
     (async () => {
       const d = await sbGet(mode);
-      if (d) setData(d);
-      else { try { const s=localStorage.getItem(LS_KEYS[mode]); if(s) setData(JSON.parse(s)); } catch {} }
+      if (d) {
+        // Supabase has real data — use it
+        setData(d);
+        try { localStorage.setItem(LS_KEYS[mode], JSON.stringify(d)); } catch {}
+      } else {
+        // Supabase empty — try localStorage and push it back up to Supabase
+        try {
+          const s = localStorage.getItem(LS_KEYS[mode]);
+          if (s) {
+            const parsed = JSON.parse(s);
+            setData(parsed);
+            // Restore localStorage data back to Supabase
+            await sbSet(mode, parsed);
+          }
+        } catch {}
+      }
       setLoading(false);
     })();
   }, [mode]);
