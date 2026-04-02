@@ -21,18 +21,17 @@ async function sbGet(mode) {
 
 async function sbSet(mode, payload) {
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/tracker_data?id=eq.${DB_KEYS[mode]}`, {
-      method: "PATCH",
-      headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ data: payload })
+    // Upsert — inserts if row doesn't exist, updates if it does
+    await fetch(`${SUPABASE_URL}/rest/v1/tracker_data`, {
+      method: "POST",
+      headers: {
+        "apikey": SUPABASE_KEY,
+        "Authorization": `Bearer ${SUPABASE_KEY}`,
+        "Content-Type": "application/json",
+        "Prefer": "resolution=merge-duplicates"
+      },
+      body: JSON.stringify({ id: DB_KEYS[mode], data: payload })
     });
-    if (res.status === 404 || (await res.json())?.length === 0) {
-      await fetch(`${SUPABASE_URL}/rest/v1/tracker_data`, {
-        method: "POST",
-        headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ id: DB_KEYS[mode], data: payload })
-      });
-    }
   } catch {}
 }
 
