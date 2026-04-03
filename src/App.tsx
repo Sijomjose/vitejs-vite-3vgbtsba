@@ -235,9 +235,9 @@ function TrackerPage({ mode, onSwitch }) {
   if (loading) return <div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100vh",fontFamily:"system-ui",fontSize:18}}>📚 Loading Savio's {isSchool?"School":"Home"} Tracker…</div>;
 
   return (
-    <div style={{fontFamily:"'Segoe UI',system-ui,sans-serif",minHeight:"100vh",background:"#f1f5f9"}}>
-      <style>{`.sw{max-width:100%;margin:0 auto;padding:14px 16px;}@media(min-width:1024px){.sw{padding:18px 48px;}}@keyframes shimmer{0%{left:-60%}100%{left:160%}}`}</style>
-      <div className="sw">
+    <div style={{fontFamily:"'Segoe UI',system-ui,sans-serif",background:"#f1f5f9",display:"flex",flexDirection:"column",minHeight:"100vh"}}>
+      <style>{`.sw{max-width:100%;margin:0 auto;padding:14px 16px;}@media(min-width:1024px){.sw{padding:18px 48px;}}@keyframes shimmer{0%{left:-60%}100%{left:160%}}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}`}</style>
+      <div className="sw" style={{flex:1}}>
 
       {/* HEADER */}
       <div style={{background:headerBg,borderRadius:16,padding:"18px 22px",marginBottom:12,color:"white"}}>
@@ -529,6 +529,67 @@ function TrackerPage({ mode, onSwitch }) {
       </div>}
 
       </div>
+
+      {/* FOOTER */}
+      <footer style={{background:"linear-gradient(135deg,#0f172a,#1e1b4b)",color:"white",marginTop:"auto"}}>
+        <div style={{maxWidth:"100%",padding:"28px 48px 20px",display:"flex",flexDirection:"column",gap:20}}>
+
+          {/* Top row */}
+          <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",flexWrap:"wrap",gap:20}}>
+            {/* Brand */}
+            <div style={{display:"flex",alignItems:"center",gap:12}}>
+              <div style={{width:44,height:44,borderRadius:12,background:"linear-gradient(135deg,#2563eb,#7c3aed)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,boxShadow:"0 4px 14px rgba(99,102,241,.4)"}}>
+                {isSchool?"🏫":"📚"}
+              </div>
+              <div>
+                <div style={{fontWeight:800,fontSize:16}}>Savio's Study Tracker</div>
+                <div style={{fontSize:12,opacity:.5,marginTop:2}}>Class 10 • CBSE NCERT • 2026–27</div>
+              </div>
+            </div>
+
+            {/* Stats pills */}
+            <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+              {[
+                {label:"Subjects", value:"5", color:"#60a5fa"},
+                {label:"Chapters", value:"98", color:"#34d399"},
+                {label:"Days Left", value:String(countdown.days), color:examColor},
+              ].map(({label,value,color})=>(
+                <div key={label} style={{background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.1)",borderRadius:20,padding:"6px 14px",textAlign:"center"}}>
+                  <div style={{fontSize:18,fontWeight:900,color}}>{value}</div>
+                  <div style={{fontSize:10,opacity:.5,fontWeight:600,letterSpacing:1,textTransform:"uppercase"}}>{label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Subject progress strip */}
+          <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+            {stats.ss.map(s=>(
+              <div key={s.id} style={{flex:1,minWidth:100,background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.07)",borderRadius:10,padding:"8px 12px"}}>
+                <div style={{display:"flex",justifyContent:"space-between",marginBottom:5}}>
+                  <span style={{fontSize:11,opacity:.6}}>{s.icon} {s.name}</span>
+                  <span style={{fontSize:11,fontWeight:800,color:s.color}}>{Math.round(s.done/s.total*100)}%</span>
+                </div>
+                <div style={{background:"rgba(255,255,255,.08)",borderRadius:10,height:4}}>
+                  <div style={{background:s.color,borderRadius:10,height:4,width:`${Math.round(s.done/s.total*100)}%`,transition:"width .8s ease",boxShadow:`0 0 6px ${s.color}88`}}/>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Divider */}
+          <div style={{borderTop:"1px solid rgba(255,255,255,.07)",paddingTop:14,display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:8}}>
+            <div style={{fontSize:12,opacity:.35}}>
+              Built with ❤️ for Savio • {new Date().getFullYear()} • All the best for your boards! 🎯
+            </div>
+            <div style={{display:"flex",alignItems:"center",gap:6}}>
+              <div style={{width:6,height:6,borderRadius:"50%",background:"#34d399",boxShadow:"0 0 6px #34d399",animation:"pulse 2s infinite"}}/>
+              <span style={{fontSize:11,opacity:.4}}>Live • saviosijo.com</span>
+            </div>
+          </div>
+        </div>
+      </footer>
+
     </div>
   );
 }
