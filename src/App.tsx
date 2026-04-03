@@ -394,7 +394,7 @@ export default function App() {
 
   /* ═════════ RENDER ═════════ */
   return (
-    <div style={{ fontFamily: "'Inter','Segoe UI',system-ui,sans-serif", background: "linear-gradient(180deg,#f0f4ff 0%,#f8fafc 100%)", minHeight: "100vh" }}>
+    <div style={{ fontFamily: "'Inter','Segoe UI',system-ui,sans-serif", background: "linear-gradient(180deg,#f0f4ff 0%,#f8fafc 100%)" }}>
       <style>{`
         @keyframes modalIn{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:none}}
         @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
