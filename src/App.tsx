@@ -104,6 +104,32 @@ const SUBJECTS: SubjectDef[] = [
     ] },
 ];
 
+const SCHOOL_SUBJECTS: SubjectDef[] = [
+  { id: "maths", name: "Mathematics", icon: "📐", color: "#2563eb",
+    chapters: ["Real Numbers","Polynomials","Pair of Linear Equations in Two Variables","Quadratic Equations","Arithmetic Progressions","Triangles","Coordinate Geometry","Introduction to Trigonometry","Some Applications of Trigonometry","Circles","Areas Related to Circles","Surface Areas and Volumes","Statistics","Probability"] },
+  { id: "science", name: "Science", icon: "🔬", color: "#059669",
+    chapters: ["Chemical Reactions and Equations","Acids, Bases and Salts","Metals and Non-metals","Carbon and its Compounds","Life Processes","Control and Coordination","How do Organisms Reproduce?","Heredity","Light – Reflection and Refraction","Human Eye and Colourful World","Electricity","Magnetic Effects of Electric Current","Our Environment"] },
+  { id: "english", name: "English", icon: "📖", color: "#d97706",
+    sections: [
+      { name: "First Flight – Prose", chapters: ["A Letter to God","Nelson Mandela: Long Walk to Freedom","Two Stories about Flying","From the Diary of Anne Frank","Glimpses of India","Mijbil the Otter","Madam Rides the Bus","The Sermon at Benares","The Proposal"] },
+      { name: "First Flight – Poetry", chapters: ["Dust of Snow","Fire and Ice","A Tiger in the Zoo","How to Tell Wild Animals","The Ball Poem","Amanda!","Animals","The Trees","Fog","The Tale of Custard the Dragon","For Anne Gregory"] },
+      { name: "Footprints Without Feet", chapters: ["A Triumph of Surgery","The Thief's Story","The Midnight Visitor","A Question of Trust","Footprints without Feet","The Making of a Scientist","The Necklace","Bholi","The Book That Saved the Earth"] },
+    ] },
+  { id: "hindi", name: "Hindi", icon: "🪔", color: "#dc2626",
+    sections: [
+      { name: "Kshitij – Kavya", chapters: ["Kabir – Sakhiyan aur Sabad","Mirabai – Pad","Bihari – Dohe","Maithili Sharan Gupt – Manushyata","Sumitranandan Pant – Parvat Pradesh mein Pavas","Mahadevi Verma – Madhur Madhur Mere Deepak Jal","Nagarjun – Yah Danturit Muskan / Fasal","Mangalesh Dabral – Sangatkar"] },
+      { name: "Kshitij – Gadya", chapters: ["Swayam Prakash – Netaji ka Chashma","Ram Vriksh Benipuri – Balgobin Bhagat","Yashpal – Lakhnavi Andaaz","Mannu Bhandari – Ek Kahani Yeh Bhi","Sarveshwar Dayal Saxena – Manoj","Hazari Prasad Dwivedi – Sanskriti","Habib Tanvir – Kartoos"] },
+      { name: "Kritika", chapters: ["Mata ka Anchal","George Pancham ki Naak","Sana-Sana Haath Jodi","Ehi Thaiya Jhulni Herani Ho Rama","Main Kyun Likhta Hoon"] },
+    ] },
+  { id: "sst", name: "Social Studies", icon: "🌍", color: "#7c3aed",
+    sections: [
+      { name: "History", chapters: ["The Rise of Nationalism in Europe","Nationalism in India","The Making of a Global World","The Age of Industrialisation","Print Culture and the Modern World"] },
+      { name: "Geography", chapters: ["Resources and Development","Forest and Wildlife Resources","Water Resources","Agriculture","Minerals and Energy Resources","Manufacturing Industries","Lifelines of National Economy"] },
+      { name: "Political Science", chapters: ["Power Sharing","Federalism","Gender, Religion and Caste","Political Parties","Outcomes of Democracy"] },
+      { name: "Economics", chapters: ["Development","Sectors of the Indian Economy","Money and Credit","Globalisation and the Indian Economy","Consumer Rights"] },
+    ] },
+];
+
 function getChapters(sub: SubjectDef): Chapter[] {
   if (sub.chapters) return sub.chapters.map((c, i) => ({ id: `${sub.id}__${i}`, name: c }));
   const out: Chapter[] = [];
@@ -253,6 +279,7 @@ export default function App() {
 
   const [countdown, setCountdown] = useState(getCountdown());
   const isSchool = mode === "school";
+  const activeSubjects = useMemo(() => isSchool ? SCHOOL_SUBJECTS : SUBJECTS, [isSchool]);
 
   useEffect(() => {
     const iv = setInterval(() => setCountdown(getCountdown()), 1000);
@@ -308,7 +335,7 @@ export default function App() {
 
   /* ── Stats ── */
   const stats = useMemo(() => {
-    const ss: SubjectStat[] = SUBJECTS.map(s => {
+    const ss: SubjectStat[] = activeSubjects.map(s => {
       const chs = getChapters(s);
       const done = chs.filter(c => ["completed", "revised"].includes(getCh(c.id).status)).length;
       const prog = chs.filter(c => getCh(c.id).status === "in_progress").length;
@@ -319,21 +346,21 @@ export default function App() {
     const don = ss.reduce((a, b) => a + b.done, 0);
     return { ss, tot, don, pct: pctCalc(don, tot) };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data]);
+  }, [data, activeSubjects]);
 
   const allTests = useMemo(() => {
     const out: (TestEntry & { chName: string; sIcon: string; sColor: string })[] = [];
-    SUBJECTS.forEach(s => getChapters(s).forEach(c => {
+    activeSubjects.forEach(s => getChapters(s).forEach(c => {
       (getCh(c.id).tests || []).forEach(t => out.push({ ...t, chName: c.name, sIcon: s.icon, sColor: s.color }));
     }));
     out.sort((a, b) => +new Date(b.date) - +new Date(a.date));
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data]);
+  }, [data, activeSubjects]);
 
   const testAnalytics = useMemo(() => {
     const bySubject: Record<string, { icon: string; color: string; avg: number; count: number }> = {};
-    SUBJECTS.forEach(s => {
+    activeSubjects.forEach(s => {
       const tests: TestEntry[] = [];
       getChapters(s).forEach(c => (getCh(c.id).tests || []).forEach(t => tests.push(t)));
       if (tests.length) bySubject[s.name] = {
@@ -343,7 +370,7 @@ export default function App() {
     });
     return bySubject;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data]);
+  }, [data, activeSubjects]);
 
   const glow = countdown.days > 60 ? "#10b981" : countdown.days > 30 ? "#f59e0b" : "#ef4444";
   const accentGrad = isSchool
@@ -456,8 +483,8 @@ export default function App() {
 
         {/* ════ TABS + SEARCH ════ */}
         <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap", alignItems: "center" }}>
-          {["dashboard", ...SUBJECTS.map(s => s.id), "analytics"].map(t => {
-            const sub = SUBJECTS.find(s => s.id === t);
+          {["dashboard", ...activeSubjects.map(s => s.id), "analytics"].map(t => {
+            const sub = activeSubjects.find(s => s.id === t);
             const active = tab === t;
             return (
               <button key={t} onClick={() => { setTab(t); setSearch(""); }}
@@ -588,7 +615,7 @@ export default function App() {
         )}
 
         {/* ════ SUBJECT VIEW ════ */}
-        {SUBJECTS.map(sub => {
+        {activeSubjects.map(sub => {
           if (tab !== sub.id) return null;
           const chapters = getChapters(sub);
           const done = chapters.filter(c => ["completed", "revised"].includes(getCh(c.id).status)).length;
