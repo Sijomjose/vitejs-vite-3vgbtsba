@@ -913,14 +913,16 @@ export default function App() {
                 <span style={{ fontSize: 11, opacity: .7 }}>{s.label}</span>
               </div>
             ))}
-            <a href="/l"
-              style={{ background: "rgba(255,255,255,.15)", border: "1px solid rgba(255,255,255,.25)", borderRadius: 12, padding: "6px 14px", cursor: "pointer", color: "white", fontWeight: 700, fontSize: 12, display: "flex", alignItems: "center", gap: 5, textDecoration: "none" }}>
-              🎀 Letty's
-            </a>
-            <button onClick={() => setMode(m => m === "home" ? "school" : "home")}
-              style={{ marginLeft: "auto", background: "rgba(255,255,255,.2)", border: "1px solid rgba(255,255,255,.3)", borderRadius: 12, padding: "6px 14px", cursor: "pointer", color: "white", fontWeight: 700, fontSize: 12, display: "flex", alignItems: "center", gap: 5 }}>
-              {isSchool ? "🏠 Home" : "🏫 School"}
-            </button>
+            <div style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
+              <a href="/l"
+                style={{ background: "rgba(255,105,180,.35)", border: "1.5px solid rgba(255,182,193,.6)", borderRadius: 12, padding: "6px 14px", cursor: "pointer", color: "white", fontWeight: 700, fontSize: 12, display: "flex", alignItems: "center", gap: 5, textDecoration: "none" }}>
+                🎀 Letty's
+              </a>
+              <button onClick={() => setMode(m => m === "home" ? "school" : "home")}
+                style={{ background: "rgba(255,255,255,.2)", border: "1px solid rgba(255,255,255,.3)", borderRadius: 12, padding: "6px 14px", cursor: "pointer", color: "white", fontWeight: 700, fontSize: 12, display: "flex", alignItems: "center", gap: 5 }}>
+                {isSchool ? "🏠 Home" : "🏫 School"}
+              </button>
+            </div>
           </div>
         </div>
 
