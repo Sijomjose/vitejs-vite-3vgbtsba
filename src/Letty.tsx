@@ -9,38 +9,10 @@ import {
 const SUPA_URL = "https://mlfgdutctvbvqwebqajp.supabase.co";
 const SUPA_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1sZmdkdXRjdHZidnF3ZWJxYWpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMzQ2MDIsImV4cCI6MjA4OTgxMDYwMn0.TPBeT6y-fFGAgcME_mmKqBUYHFUMVB1FO3wrAhneKW4";
-const EXAM_DATE = new Date("2027-02-15T00:00:00");
-const START_DATE = new Date("2026-03-27T00:00:00");
-const ROW_IDS: Record<string, string> = { home: "savvy", school: "savvy_school" };
-const LS_KEYS: Record<string, string> = { home: "savvy_v4", school: "savvy_school_v4" };
-const LEGACY_ROW_IDS: Record<string, string> = { home: "savio", school: "savio_school" };
-const LEGACY_LS_KEYS: Record<string, string> = { home: "savio_v4", school: "savio_school_v4" };
-
-/*
-  ── Supabase SQL (run once in Supabase SQL editor) ──────────────────────────
-  CREATE TABLE IF NOT EXISTS common_resources (
-    id         UUID        DEFAULT gen_random_uuid() PRIMARY KEY,
-    page_type  TEXT        NOT NULL,
-    title      TEXT        NOT NULL DEFAULT '',
-    link       TEXT        NOT NULL DEFAULT '',
-    notes      TEXT        NOT NULL DEFAULT '',
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-  );
-  ALTER TABLE common_resources DISABLE ROW LEVEL SECURITY;
-
-  CREATE TABLE IF NOT EXISTS chapter_resources (
-    id            UUID        DEFAULT gen_random_uuid() PRIMARY KEY,
-    tracker       TEXT        NOT NULL,
-    subject       TEXT        NOT NULL DEFAULT '',
-    chapter       TEXT        NOT NULL,
-    resource_type TEXT        NOT NULL,
-    link          TEXT        NOT NULL DEFAULT '',
-    created_at    TIMESTAMPTZ DEFAULT NOW(),
-    updated_at    TIMESTAMPTZ DEFAULT NOW()
-  );
-  ALTER TABLE chapter_resources DISABLE ROW LEVEL SECURITY;
-  ────────────────────────────────────────────────────────────────────────── */
+const ROW_ID = "letty";
+const LS_KEY = "letty_v4";
+const EXAM_DATE = new Date("2027-03-15T00:00:00");
+const START_DATE = new Date("2026-04-04T00:00:00");
 
 /* ───────── Types ───────── */
 interface ChapterResource {
@@ -88,10 +60,10 @@ interface SubjectStat extends SubjectDef {
 }
 
 /* ───────── Data helpers ───────── */
-async function fetchData(mode: string): Promise<Record<string, ChapterData> | null> {
+async function fetchData(rowId: string): Promise<Record<string, ChapterData> | null> {
   try {
     const res = await fetch(
-      `${SUPA_URL}/rest/v1/tracker_data?id=eq.${ROW_IDS[mode]}&select=data`,
+      `${SUPA_URL}/rest/v1/tracker_data?id=eq.${rowId}&select=data`,
       { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
     );
     const d = (await res.json())?.[0]?.data;
@@ -99,7 +71,7 @@ async function fetchData(mode: string): Promise<Record<string, ChapterData> | nu
   } catch { return null; }
 }
 
-async function saveData(mode: string, data: Record<string, ChapterData>) {
+async function saveData(rowId: string, data: Record<string, ChapterData>) {
   try {
     await fetch(`${SUPA_URL}/rest/v1/tracker_data`, {
       method: "POST",
@@ -107,7 +79,7 @@ async function saveData(mode: string, data: Record<string, ChapterData>) {
         apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`,
         "Content-Type": "application/json", Prefer: "resolution=merge-duplicates",
       },
-      body: JSON.stringify({ id: ROW_IDS[mode], data }),
+      body: JSON.stringify({ id: rowId, data }),
     });
   } catch { /* silent */ }
 }
@@ -226,50 +198,6 @@ async function migrateSingleChapter(
   }
 }
 
-async function migrateSupabaseRows() {
-  const pairs = [
-    { from: LEGACY_ROW_IDS.home,   to: ROW_IDS.home },
-    { from: LEGACY_ROW_IDS.school, to: ROW_IDS.school },
-  ];
-  for (const { from, to } of pairs) {
-    try {
-      const checkRes = await fetch(
-        `${SUPA_URL}/rest/v1/tracker_data?id=eq.${to}&select=id`,
-        { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
-      );
-      const existing = await checkRes.json();
-      if (Array.isArray(existing) && existing.length > 0) continue;
-      const oldRes = await fetch(
-        `${SUPA_URL}/rest/v1/tracker_data?id=eq.${from}&select=data`,
-        { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
-      );
-      const oldData = (await oldRes.json())?.[0]?.data;
-      if (!oldData) continue;
-      await fetch(`${SUPA_URL}/rest/v1/tracker_data`, {
-        method: "POST",
-        headers: {
-          apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`,
-          "Content-Type": "application/json", Prefer: "resolution=merge-duplicates",
-        },
-        body: JSON.stringify({ id: to, data: oldData }),
-      });
-    } catch { /* silent */ }
-  }
-}
-
-function migrateLocalStorage() {
-  const pairs = [
-    { from: LEGACY_LS_KEYS.home,   to: LS_KEYS.home },
-    { from: LEGACY_LS_KEYS.school, to: LS_KEYS.school },
-  ];
-  pairs.forEach(({ from, to }) => {
-    try {
-      const old = localStorage.getItem(from);
-      if (old && !localStorage.getItem(to)) localStorage.setItem(to, old);
-    } catch {}
-  });
-}
-
 function getCountdown() {
   const diff = +EXAM_DATE - +new Date();
   if (diff <= 0) return { days: 0, hrs: 0, mins: 0, secs: 0, pct: 100 };
@@ -283,240 +211,193 @@ function getCountdown() {
 }
 
 /* ───────── Subjects ───────── */
-const SUBJECTS: SubjectDef[] = [
+const LETTY_SUBJECTS: SubjectDef[] = [
   { id: "maths", name: "Mathematics", icon: "📐", color: "#2563eb",
-    chapters: ["Real Numbers","Polynomials","Pair of Linear Equations in Two Variables","Quadratic Equations","Arithmetic Progressions","Triangles","Coordinate Geometry","Introduction to Trigonometry","Some Applications of Trigonometry","Circles","Areas Related to Circles","Surface Areas and Volumes","Statistics","Probability"] },
+    chapters: ["Rational Numbers","Linear Equations in One Variable","Understanding Quadrilaterals","Data Handling","Squares and Square Roots","Cubes and Cube Roots","Comparing Quantities","Algebraic Expressions and Identities","Mensuration","Exponents and Powers","Direct and Inverse Proportions","Factorisation","Introduction to Graphs"] },
+
   { id: "science", name: "Science", icon: "🔬", color: "#059669",
-    chapters: ["Chemical Reactions and Equations","Acids, Bases and Salts","Metals and Non-metals","Carbon and its Compounds","Life Processes","Control and Coordination","How do Organisms Reproduce?","Heredity","Light – Reflection and Refraction","Human Eye and Colourful World","Electricity","Magnetic Effects of Electric Current","Our Environment"] },
+    chapters: ["Crop Production and Management","Microorganisms: Friend and Foe","Synthetic Fibres and Plastics","Materials: Metals and Non-Metals","Coal and Petroleum","Combustion and Flame","Conservation of Plants and Animals","Cell – Structure and Functions","Reproduction in Animals","Reaching the Age of Adolescence","Motion","Force and Pressure","Friction","Sound","Chemical Effects of Electric Current","Some Natural Phenomena","Light"] },
+
   { id: "english", name: "English", icon: "📖", color: "#d97706",
     sections: [
-      { name: "First Flight – Prose", chapters: ["A Letter to God","Nelson Mandela: Long Walk to Freedom","Two Stories about Flying","From the Diary of Anne Frank","Glimpses of India","Mijbil the Otter","Madam Rides the Bus","The Sermon at Benares","The Proposal"] },
-      { name: "First Flight – Poetry", chapters: ["Dust of Snow","Fire and Ice","A Tiger in the Zoo","How to Tell Wild Animals","The Ball Poem","Amanda!","Animals","The Trees","Fog","The Tale of Custard the Dragon","For Anne Gregory"] },
-      { name: "Footprints Without Feet", chapters: ["A Triumph of Surgery","The Thief's Story","The Midnight Visitor","A Question of Trust","Footprints without Feet","The Making of a Scientist","The Necklace","Bholi","The Book That Saved the Earth"] },
+      { name: "Honeydew – Prose", chapters: ["The Best Christmas Present in the World","The Tsunami","Glimpses of the Past","Bepin Choudhury's Lapse of Memory","The Summit Within","This is Jody's Fawn","A Visit to Cambridge","A Short Monsoon Diary","The Great Stone Face – I","The Great Stone Face – II"] },
+      { name: "Honeydew – Poetry", chapters: ["The Ant and the Cricket","Geography Lesson","Macavity: The Mystery Cat","The Last Bargain","The School Boy","The Duck and the Kangaroo","When I Set Out for Lyonnesse","On the Grasshopper and Cricket"] },
+      { name: "It So Happened (Supplementary)", chapters: ["How the Camel Got His Hump","Children at Work","The Selfish Giant","The Treasure Within","Princess September","The Fight","The Open Window","Jalebis","The Comet – I","The Comet – II"] },
     ] },
-  { id: "hindi", name: "Hindi", icon: "🪔", color: "#dc2626",
-    sections: [
-      { name: "Kshitij – Kavya", chapters: ["Kabir – Sakhiyan aur Sabad","Mirabai – Pad","Bihari – Dohe","Maithili Sharan Gupt – Manushyata","Sumitranandan Pant – Parvat Pradesh mein Pavas","Mahadevi Verma – Madhur Madhur Mere Deepak Jal","Nagarjun – Yah Danturit Muskan / Fasal","Mangalesh Dabral – Sangatkar"] },
-      { name: "Kshitij – Gadya", chapters: ["Swayam Prakash – Netaji ka Chashma","Ram Vriksh Benipuri – Balgobin Bhagat","Yashpal – Lakhnavi Andaaz","Mannu Bhandari – Ek Kahani Yeh Bhi","Sarveshwar Dayal Saxena – Manoj","Hazari Prasad Dwivedi – Sanskriti","Habib Tanvir – Kartoos"] },
-      { name: "Kritika", chapters: ["Mata ka Anchal","George Pancham ki Naak","Sana-Sana Haath Jodi","Ehi Thaiya Jhulni Herani Ho Rama","Main Kyun Likhta Hoon"] },
-    ] },
-  { id: "sst", name: "Social Studies", icon: "🌍", color: "#7c3aed",
-    sections: [
-      { name: "History", chapters: ["The Rise of Nationalism in Europe","Nationalism in India","The Making of a Global World","The Age of Industrialisation","Print Culture and the Modern World"] },
-      { name: "Geography", chapters: ["Resources and Development","Forest and Wildlife Resources","Water Resources","Agriculture","Minerals and Energy Resources","Manufacturing Industries","Lifelines of National Economy"] },
-      { name: "Political Science", chapters: ["Power Sharing","Federalism","Gender, Religion and Caste","Political Parties","Outcomes of Democracy"] },
-      { name: "Economics", chapters: ["Development","Sectors of the Indian Economy","Money and Credit","Globalisation and the Indian Economy","Consumer Rights"] },
-    ] },
+
   { id: "enggrammar", name: "English Grammar", icon: "✏️", color: "#0891b2",
     sections: [
-      { name: "Present and past", chapters: [
-        "Unit 1 – Present continuous (I am doing)",
-        "Unit 2 – Present simple (I do)",
-        "Unit 3 – Present continuous and present simple (1)",
-        "Unit 4 – Present continuous and present simple (2)",
-        "Unit 5 – Past simple (I did)",
-        "Unit 6 – Past continuous (I was doing)",
+      { name: "Present Tenses", chapters: [
+        "Unit 1 – am/is/are",
+        "Unit 2 – am/is/are (questions)",
+        "Unit 3 – I am doing (present continuous)",
+        "Unit 4 – are you doing? (present continuous questions)",
+        "Unit 5 – I do/work etc. (present simple)",
+        "Unit 6 – I don't... (present simple negative)",
+        "Unit 7 – Do you...? (present simple questions)",
+        "Unit 8 – I am doing and I do (present continuous and present simple)",
+        "Unit 9 – I have... / I've got...",
       ]},
-      { name: "Present perfect and past", chapters: [
-        "Unit 7 – Present perfect (1) (I have done)",
-        "Unit 8 – Present perfect (2) (I have done)",
-        "Unit 9 – Present perfect continuous (I have been doing)",
-        "Unit 10 – Present perfect continuous and simple",
-        "Unit 11 – How long have you (been)...?",
-        "Unit 12 – When...? and How long...? For and since",
-        "Unit 13 – Present perfect and past (1)",
-        "Unit 14 – Present perfect and past (2)",
-        "Unit 15 – Past perfect (I had done)",
-        "Unit 16 – Past perfect continuous (I had been doing)",
-        "Unit 17 – Have and have got",
-        "Unit 18 – Used to (do)",
+      { name: "Past Tenses", chapters: [
+        "Unit 10 – was/were",
+        "Unit 11 – worked/got/went etc. (past simple)",
+        "Unit 12 – I didn't... / Did you...? (past simple negative and questions)",
+        "Unit 13 – I was doing (past continuous)",
+        "Unit 14 – I was doing (past continuous) and I did (past simple)",
       ]},
-      { name: "Future", chapters: [
-        "Unit 19 – Present tenses for the future",
-        "Unit 20 – (I'm) going to (do)",
-        "Unit 21 – Will/shall (1)",
-        "Unit 22 – Will/shall (2)",
-        "Unit 23 – I will and I'm going to",
-        "Unit 24 – Will be doing and will have done",
-        "Unit 25 – When I do / When I've done – When and if",
+      { name: "Present Perfect and Passive", chapters: [
+        "Unit 15 – I have done (present perfect 1)",
+        "Unit 16 – I've just... / I've already... / I haven't...yet (present perfect 2)",
+        "Unit 17 – Have you ever...? (present perfect 3)",
+        "Unit 18 – How long have you...? (present perfect 4)",
+        "Unit 19 – for / since / ago",
+        "Unit 20 – I have done (present perfect) and I did (past simple)",
+        "Unit 21 – is done / was done (passive 1)",
+        "Unit 22 – is being done / has been done (passive 2)",
+        "Unit 23 – be/have/do in present and past tenses",
+        "Unit 24 – Regular and irregular verbs",
       ]},
-      { name: "Modals", chapters: [
-        "Unit 26 – Can, could and (be) able to",
-        "Unit 27 – Could (do) and could have (done)",
-        "Unit 28 – Must and can't",
-        "Unit 29 – May and might (1)",
-        "Unit 30 – May and might (2)",
-        "Unit 31 – Must and have to",
-        "Unit 32 – Must mustn't needn't",
-        "Unit 33 – Should (1)",
-        "Unit 34 – Should (2)",
-        "Unit 35 – Had better – It's time...",
-        "Unit 36 – Can/Could/Would you...? (Requests, offers, permission and invitations)",
+      { name: "Used to, Future and Might", chapters: [
+        "Unit 25 – I used to...",
+        "Unit 26 – What are you doing tomorrow?",
+        "Unit 27 – I'm going to...",
+        "Unit 28 – will/shall (1)",
+        "Unit 29 – will/shall (2)",
+        "Unit 30 – might",
       ]},
-      { name: "Conditionals and wish", chapters: [
-        "Unit 37 – If I do... and If I did...",
-        "Unit 38 – If I knew... I wish I knew...",
-        "Unit 39 – If I had known... I wish I had known...",
-        "Unit 40 – Would – I wish...would",
+      { name: "Modal Verbs", chapters: [
+        "Unit 31 – can and could",
+        "Unit 32 – must / mustn't / needn't",
+        "Unit 33 – should",
+        "Unit 34 – I have to...",
+        "Unit 35 – Would you like...? / I'd like...",
       ]},
-      { name: "Passive", chapters: [
-        "Unit 41 – Passive (1) (is done / was done)",
-        "Unit 42 – Passive (2) (be/been/being done)",
-        "Unit 43 – Passive (3)",
-        "Unit 44 – It is said that... He is said to... (be) supposed to...",
-        "Unit 45 – Have something done",
+      { name: "There, It and Auxiliaries", chapters: [
+        "Unit 36 – there is / there are",
+        "Unit 37 – there was/were / there has/have been",
+        "Unit 38 – It... / there will be",
+        "Unit 39 – I am / I don't etc. (short answers)",
+        "Unit 40 – Have you? / Are you? / Don't you? etc.",
+        "Unit 41 – too/either / so am I / neither do I etc.",
+        "Unit 42 – isn't / haven't / don't etc. (negatives)",
       ]},
-      { name: "Reported speech", chapters: [
-        "Unit 46 – Reported speech (1) (He said that...)",
-        "Unit 47 – Reported speech (2)",
+      { name: "Questions and Reported Speech", chapters: [
+        "Unit 43 – is it...? / have you...? / do they...? etc. (questions 1)",
+        "Unit 44 – Who saw you? / Who did you see? (questions 2)",
+        "Unit 45 – Who is she talking to? / What is it like? (questions 3)",
+        "Unit 46 – What...? / Which...? / How...?",
+        "Unit 47 – How long does it take...?",
+        "Unit 48 – Do you know where...? / I don't know what... etc.",
+        "Unit 49 – She said that... / He told me that...",
       ]},
-      { name: "Questions and auxiliary verbs", chapters: [
-        "Unit 48 – Questions (1)",
-        "Unit 49 – Questions (2) (Do you know where...?)",
-        "Unit 50 – Auxiliary verbs – I think so / I hope so etc.",
-        "Unit 51 – Question tags (do you? isn't it? etc.)",
+      { name: "Verb Patterns", chapters: [
+        "Unit 50 – work/working / go/going / do/doing",
+        "Unit 51 – to... (I want to do) and -ing (I enjoy doing)",
+        "Unit 52 – I want you to... / I told you to...",
+        "Unit 53 – I went to the shop to...",
+        "Unit 54 – go to... / go on... / go for... / go -ing",
+        "Unit 55 – get",
+        "Unit 56 – do and make",
+        "Unit 57 – have",
       ]},
-      { name: "-ing and the infinitive", chapters: [
-        "Unit 52 – Verb + -ing (enjoy doing / stop doing etc.)",
-        "Unit 53 – Verb + to... (decide to do / forget to do etc.)",
-        "Unit 54 – Verb + (object) + to... (I want you to do etc.)",
-        "Unit 55 – Verb + -ing or to... (1) (remember/regret etc.)",
-        "Unit 56 – Verb + -ing or to... (2) (try/need/help)",
-        "Unit 57 – Verb + -ing or to... (3) (like/would like etc.)",
-        "Unit 58 – Prefer and would rather",
-        "Unit 59 – Preposition + -ing",
-        "Unit 60 – Be/get used to something (I'm used to...)",
-        "Unit 61 – Verb + preposition + -ing",
-        "Unit 62 – Expressions + -ing",
-        "Unit 63 – To..., for... and so that... (purpose)",
-        "Unit 64 – Adjective + to...",
-        "Unit 65 – To... (afraid to do) and preposition + -ing (afraid of -ing)",
-        "Unit 66 – See somebody do and see somebody doing",
-        "Unit 67 – -ing clauses",
+      { name: "Pronouns and Possessives", chapters: [
+        "Unit 58 – I/me / he/him / they/them etc.",
+        "Unit 59 – my/his/their etc.",
+        "Unit 60 – Whose is this? / It's mine/yours/hers etc.",
+        "Unit 61 – I/me/my/mine",
+        "Unit 62 – myself/yourself/themselves etc.",
+        "Unit 63 – 's (Ann's camera / my brother's car) etc.",
       ]},
-      { name: "Articles and nouns", chapters: [
-        "Unit 68 – Countable and uncountable nouns (1)",
-        "Unit 69 – Countable and uncountable nouns (2)",
-        "Unit 70 – Countable nouns with a/an and some",
-        "Unit 71 – A/an and the",
-        "Unit 72 – The (1)",
-        "Unit 73 – The (2) (School / the school)",
-        "Unit 74 – The (3) (Children / the children)",
-        "Unit 75 – The (4) (The giraffe / the telephone etc.; the + adjective)",
-        "Unit 76 – Names with and without the (1)",
-        "Unit 77 – Names with and without the (2)",
-        "Unit 78 – Singular and plural",
-        "Unit 79 – Noun + noun (a tennis ball / a headache etc.)",
-        "Unit 80 – 's (the girl's name) and of... (the name of the book)",
+      { name: "Articles and Nouns", chapters: [
+        "Unit 64 – a/an...",
+        "Unit 65 – flower(s) / bus(es) (singular and plural)",
+        "Unit 66 – a car / some money (countable/uncountable 1)",
+        "Unit 67 – a car / some money (countable/uncountable 2)",
+        "Unit 68 – a/an and the",
+        "Unit 69 – the...",
+        "Unit 70 – go to work / go home / go to the cinema",
+        "Unit 71 – I like music / I hate exams",
+        "Unit 72 – the... (names of places)",
       ]},
-      { name: "Pronouns and determiners", chapters: [
-        "Unit 81 – A friend of mine – My own house – On my own / by myself",
-        "Unit 82 – Myself/yourself/themselves etc.",
-        "Unit 83 – There... and it...",
-        "Unit 84 – Some and any",
-        "Unit 85 – No/none/any",
-        "Unit 86 – Much, many, little, few, a lot, plenty",
-        "Unit 87 – All / all of – most / most of – no / none of etc.",
-        "Unit 88 – Both / both of – neither / neither of – either / either of",
-        "Unit 89 – All, every and whole",
-        "Unit 90 – Each and every",
+      { name: "Determiners", chapters: [
+        "Unit 73 – this/that/these/those",
+        "Unit 74 – one/ones",
+        "Unit 75 – some and any",
+        "Unit 76 – not + any / no / none",
+        "Unit 77 – not + anybody/anyone/anything / nobody/no-one/nothing",
+        "Unit 78 – somebody/anything/nowhere etc.",
+        "Unit 79 – every and all",
+        "Unit 80 – all / most / some / any / no/none",
+        "Unit 81 – both / either / neither",
+        "Unit 82 – a lot / much / many",
+        "Unit 83 – (a) little / (a) few",
       ]},
-      { name: "Relative clauses", chapters: [
-        "Unit 91 – Relative clauses (1) – clauses with who/that/which",
-        "Unit 92 – Relative clauses (2) – clauses with or without who/that/which",
-        "Unit 93 – Relative clauses (3) – whose/whom/where",
-        "Unit 94 – Relative clauses (4) – extra information clauses (1)",
-        "Unit 95 – Relative clauses (5) – extra information clauses (2)",
-        "Unit 96 – -ing and -ed clauses",
-      ]},
-      { name: "Adjectives and adverbs", chapters: [
-        "Unit 97 – Adjectives ending in -ing and -ed (boring/bored etc.)",
-        "Unit 98 – Adjectives: word order – Adjectives after verbs",
-        "Unit 99 – Adjectives and adverbs (1) (quick/quickly)",
-        "Unit 100 – Adjectives and adverbs (2) (well/fast/late, hard/hardly)",
-        "Unit 101 – So and such",
-        "Unit 102 – Enough and too",
-        "Unit 103 – Quite and rather",
-        "Unit 104 – Comparison (1) – cheaper, more expensive etc.",
-        "Unit 105 – Comparison (2)",
-        "Unit 106 – Comparison (3) – as...as / than",
-        "Unit 107 – Superlatives – the longest / the most enjoyable etc.",
-        "Unit 108 – Word order (1) – verb + object; place and time",
-        "Unit 109 – Word order (2) – adverbs with the verb",
-      ]},
-      { name: "Conjunctions", chapters: [
-        "Unit 110 – Still, yet, already – Anymore/no longer",
-        "Unit 111 – Even",
-        "Unit 112 – Although/though/even though – In spite of/despite",
-        "Unit 113 – In case",
-        "Unit 114 – Unless – As long as – Provided/providing",
-        "Unit 115 – As (time and reason)",
-        "Unit 116 – Like and as (1)",
-        "Unit 117 – Like and as (2)",
-        "Unit 118 – For, during and while",
-        "Unit 119 – By and until – By the time...",
+      { name: "Adjectives, Adverbs and Word Order", chapters: [
+        "Unit 84 – old/new/interesting etc. (adjectives)",
+        "Unit 85 – quickly/badly/suddenly etc. (adverbs)",
+        "Unit 86 – old/older / expensive/more expensive",
+        "Unit 87 – older than... / more expensive than...",
+        "Unit 88 – not as... as",
+        "Unit 89 – the oldest / the most expensive",
+        "Unit 90 – enough",
+        "Unit 91 – too",
+        "Unit 92 – He speaks English very well. (word order 1)",
+        "Unit 93 – always/usually/often etc. (word order 2)",
+        "Unit 94 – still / yet / already",
+        "Unit 95 – Give me that book! / Give it to me!",
       ]},
       { name: "Prepositions", chapters: [
-        "Unit 120 – At/on/in (time) (1)",
-        "Unit 121 – At/on/in (time) (2)",
-        "Unit 122 – On time/in time – At the end/in the end",
-        "Unit 123 – In/at/on (place) (1)",
-        "Unit 124 – In/at/on (place) (2)",
-        "Unit 125 – In/at/on (place) (3)",
-        "Unit 126 – To/at/in/into",
-        "Unit 127 – In/at/on (other uses)",
-        "Unit 128 – By",
+        "Unit 96 – at 8 o'clock / on Monday / in April",
+        "Unit 97 – from...to / until / since / for",
+        "Unit 98 – before / after / during / while",
+        "Unit 99 – in / at / on (places 1)",
+        "Unit 100 – in / at / on (places 2)",
+        "Unit 101 – to / in / at (places 3)",
+        "Unit 102 – under / behind / opposite etc. (prepositions)",
+        "Unit 103 – up / over / through etc. (prepositions)",
+        "Unit 104 – on / at / by / with / about (prepositions)",
+        "Unit 105 – afraid of... / good at... etc. / preposition + -ing",
+        "Unit 106 – listen to... / look at... etc. (verb + preposition)",
+        "Unit 107 – go in / fall off / run away etc. (phrasal verbs 1)",
+        "Unit 108 – put on your shoes / put your shoes on (phrasal verbs 2)",
       ]},
-      { name: "Noun, adjective and verb + preposition", chapters: [
-        "Unit 129 – Noun + preposition (reason for, cause of etc.)",
-        "Unit 130 – Adjective + preposition (1)",
-        "Unit 131 – Adjective + preposition (2)",
-        "Unit 132 – Verb + preposition (1) – to and at",
-        "Unit 133 – Verb + preposition (2) – about/for/of/after",
-        "Unit 134 – Verb + preposition (3) – about and of",
-        "Unit 135 – Verb + preposition (4) – of/for/from/on",
-        "Unit 136 – Verb + preposition (5) – in/into/with/to/on",
+      { name: "Conjunctions and Relative Clauses", chapters: [
+        "Unit 109 – and / but / or / so / because",
+        "Unit 110 – When...",
+        "Unit 111 – If we go... / If you see... etc.",
+        "Unit 112 – If I had... / If we went... etc.",
+        "Unit 113 – a person who... / a thing that/which... (relative clauses 1)",
+        "Unit 114 – the people we met / the hotel you stayed at (relative clauses 2)",
       ]},
       { name: "Appendices", chapters: [
-        "Appendix 1 – Regular and irregular verbs",
-        "Appendix 2 – Present and past tenses",
-        "Appendix 3 – The future",
-        "Appendix 4 – Modal verbs (can/could/will/would etc.)",
-        "Appendix 5 – Short forms (I'm/you've/didn't etc.)",
-        "Appendix 6 – Spelling",
-        "Appendix 7 – American English",
+        "Appendix 1 – Active and passive",
+        "Appendix 2 – List of irregular verbs",
+        "Appendix 3 – Irregular verbs in groups",
+        "Appendix 4 – Short forms (he's / I'd / I don't etc.)",
+        "Appendix 5 – Spelling",
+        "Appendix 6 – Phrasal verbs (look out / take off etc.)",
+        "Appendix 7 – Phrasal verbs + object (fill in a form / put out a fire etc.)",
       ]},
-      { name: "Reference", chapters: [
-        "Additional exercises",
-        "Study guide",
+      { name: "Additional Exercises", chapters: [
+        "Additional Exercises",
       ]},
     ] },
-];
 
-const SCHOOL_SUBJECTS: SubjectDef[] = [
-  { id: "maths", name: "Mathematics", icon: "📐", color: "#2563eb",
-    chapters: ["Real Numbers","Polynomials","Pair of Linear Equations in Two Variables","Quadratic Equations","Arithmetic Progressions","Triangles","Coordinate Geometry","Introduction to Trigonometry","Some Applications of Trigonometry","Circles","Areas Related to Circles","Surface Areas and Volumes","Statistics","Probability"] },
-  { id: "science", name: "Science", icon: "🔬", color: "#059669",
-    chapters: ["Chemical Reactions and Equations","Acids, Bases and Salts","Metals and Non-metals","Carbon and its Compounds","Life Processes","Control and Coordination","How do Organisms Reproduce?","Heredity","Light – Reflection and Refraction","Human Eye and Colourful World","Electricity","Magnetic Effects of Electric Current","Our Environment"] },
-  { id: "english", name: "English", icon: "📖", color: "#d97706",
-    sections: [
-      { name: "First Flight – Prose", chapters: ["A Letter to God","Nelson Mandela: Long Walk to Freedom","Two Stories about Flying","From the Diary of Anne Frank","Glimpses of India","Mijbil the Otter","Madam Rides the Bus","The Sermon at Benares","The Proposal"] },
-      { name: "First Flight – Poetry", chapters: ["Dust of Snow","Fire and Ice","A Tiger in the Zoo","How to Tell Wild Animals","The Ball Poem","Amanda!","Animals","The Trees","Fog","The Tale of Custard the Dragon","For Anne Gregory"] },
-      { name: "Footprints Without Feet", chapters: ["A Triumph of Surgery","The Thief's Story","The Midnight Visitor","A Question of Trust","Footprints without Feet","The Making of a Scientist","The Necklace","Bholi","The Book That Saved the Earth"] },
-    ] },
   { id: "hindi", name: "Hindi", icon: "🪔", color: "#dc2626",
     sections: [
-      { name: "Kshitij – Kavya", chapters: ["Kabir – Sakhiyan aur Sabad","Mirabai – Pad","Bihari – Dohe","Maithili Sharan Gupt – Manushyata","Sumitranandan Pant – Parvat Pradesh mein Pavas","Mahadevi Verma – Madhur Madhur Mere Deepak Jal","Nagarjun – Yah Danturit Muskan / Fasal","Mangalesh Dabral – Sangatkar"] },
-      { name: "Kshitij – Gadya", chapters: ["Swayam Prakash – Netaji ka Chashma","Ram Vriksh Benipuri – Balgobin Bhagat","Yashpal – Lakhnavi Andaaz","Mannu Bhandari – Ek Kahani Yeh Bhi","Sarveshwar Dayal Saxena – Manoj","Hazari Prasad Dwivedi – Sanskriti","Habib Tanvir – Kartoos"] },
-      { name: "Kritika", chapters: ["Mata ka Anchal","George Pancham ki Naak","Sana-Sana Haath Jodi","Ehi Thaiya Jhulni Herani Ho Rama","Main Kyun Likhta Hoon"] },
+      { name: "Vasant Bhag 3", chapters: ["ध्वनि – Dhwani","लाख की चूड़ियाँ – Laakh Ki Chudiyan","बस की यात्रा – Bus Ki Yatra","दीवानों की हस्ती – Deevanon Ki Hasti","चिट्ठियों की अनूठी दुनिया – Chitthiyon Ki Anoothi Duniya","भगवान के डाकिए – Bhagvan Ke Daakiye","क्या निराश हुआ जाए – Kya Nirash Hua Jaye","यह सबसे कठिन समय नहीं – Yeh Sabse Kathin Samay Nahin","कबीर की साखियाँ – Kabir Ki Saakhiyan","कामचोर – Kamchor","जब सिनेमा ने बोलना सीखा – Jab Sinema Ne Bolna Seekha","सूरदास के पद – Surdas Ke Pad","जहाँ पहिया है – Jahaan Pahiya Hai","अकबरी लोटा – Akbari Lota","सूर के पद – Sur Ke Pad","पानी की कहानी – Paani Ki Kahani","बाज और साँप – Baaj Aur Samp","टोपी – Topi"] },
+      { name: "Durva Bhag 3", chapters: ["गुड़िया – Gudiya","दो गौरैया – Do Gauraiya","चिट्ठियों में यूरोप – Chitthiyon Mein Europe","ओस – Os","नाटक में नाटक – Natak Mein Natak","सागर यात्रा – Sagar Yatra","उठ किसान ओ – Uth Kisaan O","सस्ते का चक्कर – Saste Ka Chakkar","एक खिलाड़ी की कुछ यादें – Ek Khilaadi Ki Kuch Yaadein","बस की सैर – Bus Ki Sair","हिन्दी ने जिनकी जिंदगी बदल दी – Hindi Ne Jinki Zindagi Badal Di","आषाढ़ का पहला दिन – Aashadh Ka Pehla Din","अन्याय के खिलाफ – Anyaya Ke Khilaf","बच्चों के प्रिय श्री केशव शंकर पिल्लई","फर्श पर – Farsh Par","बड़ी अम्मा की बात – Badi Amma Ki Baat","वह सुबह कभी तो आएगी – Voh Subah Kabhi To Aayegi"] },
     ] },
+
   { id: "sst", name: "Social Studies", icon: "🌍", color: "#7c3aed",
     sections: [
-      { name: "History", chapters: ["The Rise of Nationalism in Europe","Nationalism in India","The Making of a Global World","The Age of Industrialisation","Print Culture and the Modern World"] },
-      { name: "Geography", chapters: ["Resources and Development","Forest and Wildlife Resources","Water Resources","Agriculture","Minerals and Energy Resources","Manufacturing Industries","Lifelines of National Economy"] },
-      { name: "Political Science", chapters: ["Power Sharing","Federalism","Gender, Religion and Caste","Political Parties","Outcomes of Democracy"] },
-      { name: "Economics", chapters: ["Development","Sectors of the Indian Economy","Money and Credit","Globalisation and the Indian Economy","Consumer Rights"] },
+      { name: "History – Our Pasts III", chapters: ["How, When and Where","From Trade to Territory: The Company Establishes Power","Ruling the Countryside","Tribals, Dikus and the Vision of a Golden Age","When People Rebel: 1857 and After","Weavers, Iron Smelters and Factory Owners","Civilising the Native, Educating the Nation","Women, Caste and Reform","The Making of the National Movement: 1870s–1947","India After Independence"] },
+      { name: "Geography – Resources and Development", chapters: ["Resources","Land, Soil, Water, Natural Vegetation and Wildlife Resources","Mineral and Power Resources","Agriculture","Industries","Human Resources"] },
+      { name: "Political Science – Social and Political Life III", chapters: ["The Indian Constitution","Understanding Secularism","Why Do We Need a Parliament?","Understanding Laws","Judiciary","Understanding Our Criminal Justice System","Understanding Marginalisation","Confronting Marginalisation","Public Facilities","Law and Social Justice"] },
     ] },
+
+  { id: "sanskrit", name: "Sanskrit", icon: "🕉️", color: "#b45309",
+    chapters: ["सुभाषितानि – Subhashitani","बिलस्य वाणी न कदापि मे श्रुता – Bilasya Vani Na Kadapi Me Shruta","डिजीभारतम् – DigiiBharatam","सदैव पुरतो निधेहि चरणम् – Sadaiva Purato Nidhehi Charanam","कण्टकेनैव कण्टकम् – Kantakenaiva Kantakam","गृहं शून्यं सुतां विना – Griham Shunyam Sutam Vina","भारतजनताऽहम् – Bharat Janataaham","संसारसागरस्य नायकाः – Sansarasagarasya Nayakah","सप्तभगिन्यः – Saptabhaginyah","अश्वः एव मम प्राणाः – Ashvah Eva Mama Pranah","समवायो हि दुर्जयः – Samavayo Hi Durjayah","कः रक्षति कः रक्षितः – Kah Rakshati Kah Rakshitah","क्षितौ राजते भारतस्वर्णभूमिः – Kshitau Rajate Bharatasvarnadbbhumih","आर्यभटः – Aryabhatah","मातृवाणी – Matrivani"] },
 ];
 
 function getChapters(sub: SubjectDef): Chapter[] {
@@ -547,6 +428,8 @@ const PAPER_TYPES = [
   { key: "as",        label: "📝 Answer Sheet",   color: "#d97706", bg: "#fffbeb", border: "#fcd34d" },
   { key: "resources", label: "🔗 Resources",      color: "#7c3aed", bg: "#f5f3ff", border: "#ddd6fe" },
 ];
+
+const accentGrad = "linear-gradient(135deg, #065f46, #059669)";
 
 function pctCalc(a: number, b: number) { return b > 0 ? Math.round((a / b) * 100) : 0; }
 function scoreColor(p: number) { return p >= 80 ? "#10b981" : p >= 60 ? "#f59e0b" : "#ef4444"; }
@@ -651,10 +534,9 @@ function Digit({ ch, glow }: { ch: string; glow: string }) {
 }
 
 /* ═══════════════════════════════════
-   MAIN APP COMPONENT
+   LETTY COMPONENT
    ═══════════════════════════════════ */
-export default function App() {
-  const [mode, setMode] = useState<"home" | "school">("home");
+export default function Letty() {
   const [data, setData] = useState<Record<string, ChapterData>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -672,7 +554,6 @@ export default function App() {
 
   const [countdown, setCountdown] = useState(getCountdown());
   const [hovSlice, setHovSlice] = useState<number | null>(null);
-  const [bothData, setBothData] = useState<Record<string, Record<string, ChapterData>>>({ home: {}, school: {} });
   const [statusModal, setStatusModal] = useState<{ filter: string; label: string; color: string } | null>(null);
 
   // Common resources
@@ -681,13 +562,6 @@ export default function App() {
   const [commonSaving, setCommonSaving] = useState(false);
   const [commonForm, setCommonForm] = useState({ title: "", link: "", notes: "" });
   const [editingResource, setEditingResource] = useState<CommonResource | null>(null);
-  const isSchool = mode === "school";
-  const activeSubjects = useMemo(() => isSchool ? SCHOOL_SUBJECTS : SUBJECTS, [isSchool]);
-
-  useEffect(() => {
-    migrateLocalStorage();
-    migrateSupabaseRows();
-  }, []);
 
   useEffect(() => {
     const iv = setInterval(() => setCountdown(getCountdown()), 1000);
@@ -697,35 +571,36 @@ export default function App() {
   useEffect(() => {
     setLoading(true); setData({}); setTab("dashboard"); setSearch("");
     (async () => {
-      let d = await fetchData(mode);
-      if (d) { setData(d); setBothData(prev => ({ ...prev, [mode]: d! })); try { localStorage.setItem(LS_KEYS[mode], JSON.stringify(d)); } catch {} }
-      else { try { const s = localStorage.getItem(LS_KEYS[mode]); if (s) { d = JSON.parse(s); setData(d!); setBothData(prev => ({ ...prev, [mode]: d! })); await saveData(mode, d!); } } catch {} }
+      let d = await fetchData(ROW_ID);
+      if (d) {
+        setData(d);
+        try { localStorage.setItem(LS_KEY, JSON.stringify(d)); } catch {}
+      } else {
+        try {
+          const s = localStorage.getItem(LS_KEY);
+          if (s) { d = JSON.parse(s); setData(d!); await saveData(ROW_ID, d!); }
+        } catch {}
+      }
       setLoading(false);
-      // fetch other mode in background for status modal
-      const other = mode === "home" ? "school" : "home";
-      const od = await fetchData(other);
-      if (od) { setBothData(prev => ({ ...prev, [other]: od })); }
-      else { try { const s = localStorage.getItem(LS_KEYS[other]); if (s) setBothData(prev => ({ ...prev, [other]: JSON.parse(s) })); } catch {} }
     })();
-  }, [mode]);
+  }, []);
 
   const persist = useCallback(async (d: Record<string, ChapterData>) => {
     setData(d);
-    setBothData(prev => ({ ...prev, [mode]: d }));
-    try { localStorage.setItem(LS_KEYS[mode], JSON.stringify(d)); } catch {}
-    setSaving(true); await saveData(mode, d); setSaving(false);
-  }, [mode]);
+    try { localStorage.setItem(LS_KEY, JSON.stringify(d)); } catch {}
+    setSaving(true); await saveData(ROW_ID, d); setSaving(false);
+  }, []);
 
   useEffect(() => {
     if (tab !== "common") return;
     setCommonLoading(true);
-    fetchCommonResources(mode).then(r => { setCommonResources(r); setCommonLoading(false); });
-  }, [tab, mode]);
+    fetchCommonResources("letty").then(r => { setCommonResources(r); setCommonLoading(false); });
+  }, [tab]);
 
   const addCommonResource = async () => {
     if (!commonForm.title.trim()) return;
     setCommonSaving(true);
-    const r = await insertCommonResource({ page_type: mode, title: commonForm.title.trim(), link: commonForm.link.trim(), notes: commonForm.notes.trim() });
+    const r = await insertCommonResource({ page_type: "letty", title: commonForm.title.trim(), link: commonForm.link.trim(), notes: commonForm.notes.trim() });
     if (r) { setCommonResources(prev => [...prev, r]); setCommonForm({ title: "", link: "", notes: "" }); }
     setCommonSaving(false);
   };
@@ -776,17 +651,16 @@ export default function App() {
 
   useEffect(() => {
     if (!paperModal) return;
-    const tracker = ROW_IDS[mode];
     setResourcesLoading(true);
     setChapterResources([]);
     setNewLinkInputs({ qp: "", ma: "", as: "", resources: "" });
     (async () => {
-      const existing = await fetchChapterResources(tracker, paperModal.id);
+      const existing = await fetchChapterResources(ROW_ID, paperModal.id);
       if (existing.length === 0) {
         const oldPapers = getCh(paperModal.id).papers;
         if (oldPapers && Object.values(oldPapers).some(arr => arr.some(Boolean))) {
-          await migrateSingleChapter(tracker, paperModal.subjectId, paperModal.id, oldPapers);
-          const migrated = await fetchChapterResources(tracker, paperModal.id);
+          await migrateSingleChapter(ROW_ID, paperModal.subjectId, paperModal.id, oldPapers);
+          const migrated = await fetchChapterResources(ROW_ID, paperModal.id);
           setChapterResources(migrated);
         }
       } else {
@@ -802,7 +676,7 @@ export default function App() {
     const link = newLinkInputs[ptKey]?.trim();
     if (!link) return;
     const row = await insertChapterResource({
-      tracker: ROW_IDS[mode],
+      tracker: ROW_ID,
       subject: paperModal.subjectId,
       chapter: paperModal.id,
       resource_type: KEY_TO_RESOURCE_TYPE[ptKey],
@@ -821,7 +695,7 @@ export default function App() {
 
   /* ── Stats ── */
   const stats = useMemo(() => {
-    const ss: SubjectStat[] = activeSubjects.map(s => {
+    const ss: SubjectStat[] = LETTY_SUBJECTS.map(s => {
       const chs = getChapters(s);
       const done = chs.filter(c => ["completed", "revised"].includes(getCh(c.id).status)).length;
       const prog = chs.filter(c => getCh(c.id).status === "in_progress").length;
@@ -832,21 +706,21 @@ export default function App() {
     const don = ss.reduce((a, b) => a + b.done, 0);
     return { ss, tot, don, pct: pctCalc(don, tot) };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, activeSubjects]);
+  }, [data]);
 
   const allTests = useMemo(() => {
     const out: (TestEntry & { chName: string; sIcon: string; sColor: string })[] = [];
-    activeSubjects.forEach(s => getChapters(s).forEach(c => {
+    LETTY_SUBJECTS.forEach(s => getChapters(s).forEach(c => {
       (getCh(c.id).tests || []).forEach(t => out.push({ ...t, chName: c.name, sIcon: s.icon, sColor: s.color }));
     }));
     out.sort((a, b) => +new Date(b.date) - +new Date(a.date));
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, activeSubjects]);
+  }, [data]);
 
   const testAnalytics = useMemo(() => {
     const bySubject: Record<string, { icon: string; color: string; avg: number; count: number }> = {};
-    activeSubjects.forEach(s => {
+    LETTY_SUBJECTS.forEach(s => {
       const tests: TestEntry[] = [];
       getChapters(s).forEach(c => (getCh(c.id).tests || []).forEach(t => tests.push(t)));
       if (tests.length) bySubject[s.name] = {
@@ -856,12 +730,9 @@ export default function App() {
     });
     return bySubject;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, activeSubjects]);
+  }, [data]);
 
   const glow = countdown.days > 60 ? "#10b981" : countdown.days > 30 ? "#f59e0b" : "#ef4444";
-  const accentGrad = isSchool
-    ? "linear-gradient(135deg, #92400e, #b45309)"
-    : "linear-gradient(135deg, #1e40af, #7c3aed)";
 
   const inp = (extra: CSSProperties = {}): CSSProperties => ({
     width: "100%", padding: "10px 12px", borderRadius: 10,
@@ -872,15 +743,15 @@ export default function App() {
   /* ── Loading ── */
   if (loading) return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", fontFamily: "system-ui", gap: 12 }}>
-      <div style={{ width: 24, height: 24, border: "3px solid #e2e8f0", borderTop: "3px solid #6366f1", borderRadius: "50%", animation: "spin .8s linear infinite" }} />
-      <span style={{ fontSize: 16, color: "#64748b" }}>Loading {isSchool ? "School" : "Home"} Tracker…</span>
+      <div style={{ width: 24, height: 24, border: "3px solid #e2e8f0", borderTop: "3px solid #059669", borderRadius: "50%", animation: "spin .8s linear infinite" }} />
+      <span style={{ fontSize: 16, color: "#64748b" }}>Loading Letty's Tracker…</span>
       <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
     </div>
   );
 
   /* ═════════ RENDER ═════════ */
   return (
-    <div style={{ fontFamily: "'Inter','Segoe UI',system-ui,sans-serif", background: "linear-gradient(180deg,#f0f4ff 0%,#f8fafc 100%)" }}>
+    <div style={{ fontFamily: "'Inter','Segoe UI',system-ui,sans-serif", background: "linear-gradient(180deg,#ecfdf5 0%,#f8fafc 100%)" }}>
       <style>{`
         @keyframes modalIn{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:none}}
         @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
@@ -889,16 +760,22 @@ export default function App() {
         ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:10px}
       `}</style>
 
+      {/* ════ TOP NAV BAR ════ */}
+      <div style={{ background: "white", borderBottom: "1px solid #e2e8f0", padding: "10px 20px", display: "flex", gap: 12, alignItems: "center" }}>
+        <a href="/" style={{ textDecoration: "none", padding: "6px 14px", borderRadius: 10, background: "#f1f5f9", color: "#475569", fontWeight: 600, fontSize: 13 }}>📚 Savvy's</a>
+        <span style={{ padding: "6px 14px", borderRadius: 10, background: "#065f46", color: "white", fontWeight: 700, fontSize: 13 }}>🎀 Letty's</span>
+      </div>
+
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "16px 20px" }}>
 
         {/* ════ HEADER ════ */}
         <div style={{ background: accentGrad, borderRadius: 20, padding: "22px 28px", marginBottom: 16, color: "white", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: -60, right: -30, width: 200, height: 200, borderRadius: "50%", background: "rgba(255,255,255,.08)" }} />
           <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
-            <div style={{ fontSize: 38 }}>{isSchool ? "🏫" : "📚"}</div>
+            <div style={{ fontSize: 38 }}>🎀</div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 900, fontSize: 24, letterSpacing: -0.5 }}>Savvy's {isSchool ? "School" : "Home"} Tracker</div>
-              <div style={{ fontSize: 13, opacity: .8, marginTop: 2 }}>Class 10 • CBSE NCERT{saving ? " • ☁️ Syncing…" : ""}</div>
+              <div style={{ fontWeight: 900, fontSize: 24, letterSpacing: -0.5 }}>Letty's Study Tracker</div>
+              <div style={{ fontSize: 13, opacity: .8, marginTop: 2 }}>Grade 8 • CBSE NCERT{saving ? " • ☁️ Syncing…" : ""}</div>
             </div>
             <div style={{ position: "relative", width: 80, height: 80 }}>
               <CircleProgress value={stats.pct} size={80} stroke={8} color="white" bg="rgba(255,255,255,.2)" />
@@ -911,7 +788,7 @@ export default function App() {
           {/* Quick stats ribbon */}
           <div style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}>
             {[
-              { label: "Chapters", val: `${stats.don}/${stats.tot}`, ico: "📑" },
+              { label: "Total Chapters", val: `${stats.don}/${stats.tot}`, ico: "📑" },
               { label: "In Progress", val: stats.ss.reduce((a, b) => a + b.prog, 0), ico: "🔄" },
               { label: "Flagged", val: stats.ss.reduce((a, b) => a + b.flagged, 0), ico: "🚩" },
               { label: "Tests", val: allTests.length, ico: "📝" },
@@ -922,14 +799,6 @@ export default function App() {
                 <span style={{ fontSize: 11, opacity: .7 }}>{s.label}</span>
               </div>
             ))}
-            <a href="/l"
-              style={{ background: "rgba(255,255,255,.15)", border: "1px solid rgba(255,255,255,.25)", borderRadius: 12, padding: "6px 14px", cursor: "pointer", color: "white", fontWeight: 700, fontSize: 12, display: "flex", alignItems: "center", gap: 5, textDecoration: "none" }}>
-              🎀 Letty's
-            </a>
-            <button onClick={() => setMode(m => m === "home" ? "school" : "home")}
-              style={{ marginLeft: "auto", background: "rgba(255,255,255,.2)", border: "1px solid rgba(255,255,255,.3)", borderRadius: 12, padding: "6px 14px", cursor: "pointer", color: "white", fontWeight: 700, fontSize: 12, display: "flex", alignItems: "center", gap: 5 }}>
-              {isSchool ? "🏠 Home" : "🏫 School"}
-            </button>
           </div>
         </div>
 
@@ -939,8 +808,8 @@ export default function App() {
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <div style={{ width: 36, height: 36, borderRadius: 10, background: `${glow}22`, border: `1px solid ${glow}44`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>🎯</div>
               <div>
-                <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 3, color: "#94a3b8", textTransform: "uppercase" as const }}>Board Exam Countdown</div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0" }}>CBSE Class 10 • Feb 15, 2027</div>
+                <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 3, color: "#94a3b8", textTransform: "uppercase" as const }}>Annual Exam Countdown</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0" }}>Grade 8 Annual Exam • Mar 15, 2027</div>
               </div>
             </div>
             <div style={{ background: `${glow}22`, border: `1px solid ${glow}44`, borderRadius: 20, padding: "4px 14px" }}>
@@ -973,10 +842,10 @@ export default function App() {
 
         {/* ════ TABS + SEARCH ════ */}
         <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap", alignItems: "center" }}>
-          {["dashboard", ...activeSubjects.map(s => s.id), "analytics", "common"].map(t => {
-            const sub = activeSubjects.find(s => s.id === t);
+          {["dashboard", ...LETTY_SUBJECTS.map(s => s.id), "analytics", "common"].map(t => {
+            const sub = LETTY_SUBJECTS.find(s => s.id === t);
             const active = tab === t;
-            const tabColor = sub ? sub.color : t === "analytics" ? "#0f172a" : t === "common" ? "#7c3aed" : (isSchool ? "#92400e" : "#1e40af");
+            const tabColor = sub ? sub.color : t === "analytics" ? "#0f172a" : t === "common" ? "#7c3aed" : "#065f46";
             return (
               <button key={t} onClick={() => { setTab(t); setSearch(""); }}
                 style={{
@@ -1132,7 +1001,7 @@ export default function App() {
               <span style={{ fontSize: 40 }}>🗂️</span>
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 900, fontSize: 22 }}>Common Resources</div>
-                <div style={{ fontSize: 13, opacity: .85, marginTop: 2 }}>{isSchool ? "School" : "Home"} • {commonResources.length} saved resource{commonResources.length !== 1 ? "s" : ""}</div>
+                <div style={{ fontSize: 13, opacity: .85, marginTop: 2 }}>Letty • {commonResources.length} saved resource{commonResources.length !== 1 ? "s" : ""}</div>
                 <div style={{ fontSize: 12, opacity: .7, marginTop: 4 }}>Links, notes, and general study materials</div>
               </div>
             </div>
@@ -1230,7 +1099,7 @@ export default function App() {
         )}
 
         {/* ════ SUBJECT VIEW ════ */}
-        {activeSubjects.map(sub => {
+        {LETTY_SUBJECTS.map(sub => {
           if (tab !== sub.id) return null;
           const chapters = getChapters(sub);
           const done = chapters.filter(c => ["completed", "revised"].includes(getCh(c.id).status)).length;
@@ -1436,50 +1305,43 @@ export default function App() {
           {statusModal && (() => {
             const matchFn = (d: ChapterData) =>
               statusModal.filter === "flagged" ? d.revision : d.status === statusModal.filter;
-            const getD = (modeKey: string, id: string): ChapterData =>
-              (bothData[modeKey]?.[id]) || { status: "not_started", revision: false, tests: [], notes: "" };
-            const sections: React.ReactNode[] = [];
-            (["home", "school"] as const).forEach(m => {
-              const subjects = m === "home" ? SUBJECTS : SCHOOL_SUBJECTS;
-              const matched = subjects.flatMap(s =>
-                getChapters(s)
-                  .filter(c => matchFn(getD(m, c.id)))
-                  .map(c => ({ ...c, subName: s.name, subIcon: s.icon, subColor: s.color }))
-              );
-              if (matched.length === 0) return;
-              const bySubject: Record<string, typeof matched> = {};
-              matched.forEach(c => {
-                if (!bySubject[c.subName]) bySubject[c.subName] = [];
-                bySubject[c.subName].push(c);
-              });
-              sections.push(
-                <div key={m}>
-                  <div style={{ fontWeight: 700, fontSize: 13, color: "#64748b", margin: "14px 0 8px",
-                    paddingBottom: 6, borderBottom: "1px solid #f1f5f9" }}>
-                    {m === "home" ? "🏠 Home" : "🏫 School"} — {matched.length} chapter{matched.length !== 1 ? "s" : ""}
-                  </div>
-                  {Object.entries(bySubject).map(([subName, chs]) => {
-                    const first = chs[0];
-                    return (
-                      <div key={subName} style={{ marginBottom: 10 }}>
-                        <div style={{ fontWeight: 600, fontSize: 12, color: first.subColor, marginBottom: 4 }}>
-                          {first.subIcon} {subName}
-                        </div>
-                        {chs.map(c => (
-                          <div key={c.id} style={{ fontSize: 13, color: "#374151", padding: "3px 0 3px 12px",
-                            borderLeft: `3px solid ${first.subColor}44`, marginBottom: 2 }}>
-                            {c.name}
-                          </div>
-                        ))}
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            });
-            return sections.length > 0 ? <>{sections}</> : (
+            const matched = LETTY_SUBJECTS.flatMap(s =>
+              getChapters(s)
+                .filter(c => matchFn(getCh(c.id)))
+                .map(c => ({ ...c, subName: s.name, subIcon: s.icon, subColor: s.color }))
+            );
+            if (matched.length === 0) return (
               <div style={{ color: "#94a3b8", textAlign: "center" as const, padding: "20px 0", fontSize: 14 }}>
                 No chapters found.
+              </div>
+            );
+            const bySubject: Record<string, typeof matched> = {};
+            matched.forEach(c => {
+              if (!bySubject[c.subName]) bySubject[c.subName] = [];
+              bySubject[c.subName].push(c);
+            });
+            return (
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 13, color: "#64748b", margin: "0 0 10px",
+                  paddingBottom: 6, borderBottom: "1px solid #f1f5f9" }}>
+                  {matched.length} chapter{matched.length !== 1 ? "s" : ""}
+                </div>
+                {Object.entries(bySubject).map(([subName, chs]) => {
+                  const first = chs[0];
+                  return (
+                    <div key={subName} style={{ marginBottom: 12 }}>
+                      <div style={{ fontWeight: 600, fontSize: 12, color: first.subColor, marginBottom: 4 }}>
+                        {first.subIcon} {subName}
+                      </div>
+                      {chs.map(c => (
+                        <div key={c.id} style={{ fontSize: 13, color: "#374151", padding: "3px 0 3px 12px",
+                          borderLeft: `3px solid ${first.subColor}44`, marginBottom: 2 }}>
+                          {c.name}
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })}
               </div>
             );
           })()}
@@ -1487,7 +1349,7 @@ export default function App() {
       </div>
 
       {/* ════ FOOTER ════ */}
-      <footer style={{ background: "linear-gradient(135deg,#0f172a,#1e1b4b)", color: "white", marginTop: 40, padding: "28px 20px 20px" }}>
+      <footer style={{ background: "linear-gradient(135deg,#0f172a,#064e3b)", color: "white", marginTop: 40, padding: "28px 20px 20px" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
             {stats.ss.map(s => (
@@ -1503,10 +1365,10 @@ export default function App() {
             ))}
           </div>
           <div style={{ borderTop: "1px solid rgba(255,255,255,.07)", paddingTop: 14, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
-            <div style={{ fontSize: 12, opacity: .35 }}>Built with ❤️ for Savvy • {new Date().getFullYear()} • All the best! 🎯</div>
+            <div style={{ fontSize: 12, opacity: .35 }}>Built with ❤️ for Letty • {new Date().getFullYear()} • All the best! 🎯</div>
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#34d399", boxShadow: "0 0 6px #34d399", animation: "pulse2 2s infinite" }} />
-              <span style={{ fontSize: 11, opacity: .4 }}>Live • saviosijo.com</span>
+              <span style={{ fontSize: 11, opacity: .4 }}>Live • letty.study</span>
             </div>
           </div>
         </div>
