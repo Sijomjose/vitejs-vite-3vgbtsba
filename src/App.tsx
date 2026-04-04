@@ -558,12 +558,6 @@ function ensureArr(v: unknown): string[] {
 function hasPapers(p: Record<string, string[]> | null | undefined): boolean {
   return !!p && PAPER_TYPES.some(({ key }) => ensureArr(p[key]).some(Boolean));
 }
-function initPapers(p?: Record<string, string[]> | null): Record<string, string[]> {
-  const o: Record<string, string[]> = {};
-  PAPER_TYPES.forEach(({ key }) => { o[key] = ensureArr(p ? p[key] : null); });
-  return o;
-}
-
 /* ───────── UI Components ───────── */
 
 function CircleProgress({ value, size = 72, stroke = 7, color = "#2563eb", bg = "#e2e8f0" }: {
@@ -770,9 +764,6 @@ export default function App() {
 
   const saveNote = (id: string, note: string) =>
     persist({ ...data, [id]: { ...getCh(id), notes: note } });
-
-  const savePapers = (id: string, papers: Record<string, string[]>) =>
-    persist({ ...data, [id]: { ...getCh(id), papers } });
 
   useEffect(() => {
     if (!paperModal) return;
