@@ -5,7 +5,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-/* âââââââââ Supabase Config âââââââââ */
+/* ───────── Supabase Config ───────── */
 const SUPA_URL = "https://mlfgdutctvbvqwebqajp.supabase.co";
 const SUPA_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1sZmdkdXRjdHZidnF3ZWJxYWpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMzQ2MDIsImV4cCI6MjA4OTgxMDYwMn0.TPBeT6y-fFGAgcME_mmKqBUYHFUMVB1FO3wrAhneKW4";
@@ -17,7 +17,7 @@ const LEGACY_ROW_IDS: Record<string, string> = { home: "savio", school: "savio_s
 const LEGACY_LS_KEYS: Record<string, string> = { home: "savio_v4", school: "savio_school_v4" };
 
 /*
-  ââ Supabase SQL (run once in Supabase SQL editor) ââââââââââââââââââââââââââ
+  ── Supabase SQL (run once in Supabase SQL editor) ──────────────────────────
   CREATE TABLE IF NOT EXISTS common_resources (
     id         UUID        DEFAULT gen_random_uuid() PRIMARY KEY,
     page_type  TEXT        NOT NULL,
@@ -40,9 +40,9 @@ const LEGACY_LS_KEYS: Record<string, string> = { home: "savio_v4", school: "savi
     updated_at    TIMESTAMPTZ DEFAULT NOW()
   );
   ALTER TABLE chapter_resources DISABLE ROW LEVEL SECURITY;
-  ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+  ────────────────────────────────────────────────────────────────────────── */
 
-/* âââââââââ Types âââââââââ */
+/* ───────── Types ───────── */
 interface ChapterResource {
   id: string;
   tracker: string;
@@ -87,7 +87,7 @@ interface SubjectStat extends SubjectDef {
   total: number; done: number; prog: number; flagged: number; pct: number;
 }
 
-/* âââââââââ Data helpers âââââââââ */
+/* ───────── Data helpers ───────── */
 async function fetchData(mode: string): Promise<Record<string, ChapterData> | null> {
   try {
     const res = await fetch(
@@ -282,209 +282,209 @@ function getCountdown() {
   };
 }
 
-/* âââââââââ Subjects âââââââââ */
+/* ───────── Subjects ───────── */
 const SUBJECTS: SubjectDef[] = [
-  { id: "maths", name: "Mathematics", icon: "ð", color: "#2563eb",
+  { id: "maths", name: "Mathematics", icon: "📐", color: "#2563eb",
     chapters: ["Real Numbers","Polynomials","Pair of Linear Equations in Two Variables","Quadratic Equations","Arithmetic Progressions","Triangles","Coordinate Geometry","Introduction to Trigonometry","Some Applications of Trigonometry","Circles","Areas Related to Circles","Surface Areas and Volumes","Statistics","Probability"] },
-  { id: "science", name: "Science", icon: "ð¬", color: "#059669",
-    chapters: ["Chemical Reactions and Equations","Acids, Bases and Salts","Metals and Non-metals","Carbon and its Compounds","Life Processes","Control and Coordination","How do Organisms Reproduce?","Heredity","Light â Reflection and Refraction","Human Eye and Colourful World","Electricity","Magnetic Effects of Electric Current","Our Environment"] },
-  { id: "english", name: "English", icon: "ð", color: "#d97706",
+  { id: "science", name: "Science", icon: "🔬", color: "#059669",
+    chapters: ["Chemical Reactions and Equations","Acids, Bases and Salts","Metals and Non-metals","Carbon and its Compounds","Life Processes","Control and Coordination","How do Organisms Reproduce?","Heredity","Light – Reflection and Refraction","Human Eye and Colourful World","Electricity","Magnetic Effects of Electric Current","Our Environment"] },
+  { id: "english", name: "English", icon: "📖", color: "#d97706",
     sections: [
-      { name: "First Flight â Prose", chapters: ["A Letter to God","Nelson Mandela: Long Walk to Freedom","Two Stories about Flying","From the Diary of Anne Frank","Glimpses of India","Mijbil the Otter","Madam Rides the Bus","The Sermon at Benares","The Proposal"] },
-      { name: "First Flight â Poetry", chapters: ["Dust of Snow","Fire and Ice","A Tiger in the Zoo","How to Tell Wild Animals","The Ball Poem","Amanda!","Animals","The Trees","Fog","The Tale of Custard the Dragon","For Anne Gregory"] },
+      { name: "First Flight – Prose", chapters: ["A Letter to God","Nelson Mandela: Long Walk to Freedom","Two Stories about Flying","From the Diary of Anne Frank","Glimpses of India","Mijbil the Otter","Madam Rides the Bus","The Sermon at Benares","The Proposal"] },
+      { name: "First Flight – Poetry", chapters: ["Dust of Snow","Fire and Ice","A Tiger in the Zoo","How to Tell Wild Animals","The Ball Poem","Amanda!","Animals","The Trees","Fog","The Tale of Custard the Dragon","For Anne Gregory"] },
       { name: "Footprints Without Feet", chapters: ["A Triumph of Surgery","The Thief's Story","The Midnight Visitor","A Question of Trust","Footprints without Feet","The Making of a Scientist","The Necklace","Bholi","The Book That Saved the Earth"] },
     ] },
-  { id: "hindi", name: "Hindi", icon: "ðª", color: "#dc2626",
+  { id: "hindi", name: "Hindi", icon: "🪔", color: "#dc2626",
     sections: [
-      { name: "Kshitij â Kavya", chapters: ["Kabir â Sakhiyan aur Sabad","Mirabai â Pad","Bihari â Dohe","Maithili Sharan Gupt â Manushyata","Sumitranandan Pant â Parvat Pradesh mein Pavas","Mahadevi Verma â Madhur Madhur Mere Deepak Jal","Nagarjun â Yah Danturit Muskan / Fasal","Mangalesh Dabral â Sangatkar"] },
-      { name: "Kshitij â Gadya", chapters: ["Swayam Prakash â Netaji ka Chashma","Ram Vriksh Benipuri â Balgobin Bhagat","Yashpal â Lakhnavi Andaaz","Mannu Bhandari â Ek Kahani Yeh Bhi","Sarveshwar Dayal Saxena â Manoj","Hazari Prasad Dwivedi â Sanskriti","Habib Tanvir â Kartoos"] },
+      { name: "Kshitij – Kavya", chapters: ["Kabir – Sakhiyan aur Sabad","Mirabai – Pad","Bihari – Dohe","Maithili Sharan Gupt – Manushyata","Sumitranandan Pant – Parvat Pradesh mein Pavas","Mahadevi Verma – Madhur Madhur Mere Deepak Jal","Nagarjun – Yah Danturit Muskan / Fasal","Mangalesh Dabral – Sangatkar"] },
+      { name: "Kshitij – Gadya", chapters: ["Swayam Prakash – Netaji ka Chashma","Ram Vriksh Benipuri – Balgobin Bhagat","Yashpal – Lakhnavi Andaaz","Mannu Bhandari – Ek Kahani Yeh Bhi","Sarveshwar Dayal Saxena – Manoj","Hazari Prasad Dwivedi – Sanskriti","Habib Tanvir – Kartoos"] },
       { name: "Kritika", chapters: ["Mata ka Anchal","George Pancham ki Naak","Sana-Sana Haath Jodi","Ehi Thaiya Jhulni Herani Ho Rama","Main Kyun Likhta Hoon"] },
     ] },
-  { id: "sst", name: "Social Studies", icon: "ð", color: "#7c3aed",
+  { id: "sst", name: "Social Studies", icon: "🌍", color: "#7c3aed",
     sections: [
       { name: "History", chapters: ["The Rise of Nationalism in Europe","Nationalism in India","The Making of a Global World","The Age of Industrialisation","Print Culture and the Modern World"] },
       { name: "Geography", chapters: ["Resources and Development","Forest and Wildlife Resources","Water Resources","Agriculture","Minerals and Energy Resources","Manufacturing Industries","Lifelines of National Economy"] },
       { name: "Political Science", chapters: ["Power Sharing","Federalism","Gender, Religion and Caste","Political Parties","Outcomes of Democracy"] },
       { name: "Economics", chapters: ["Development","Sectors of the Indian Economy","Money and Credit","Globalisation and the Indian Economy","Consumer Rights"] },
     ] },
-  { id: "enggrammar", name: "English Grammar", icon: "âï¸", color: "#0891b2",
+  { id: "enggrammar", name: "English Grammar", icon: "✏️", color: "#0891b2",
     sections: [
       { name: "Present and past", chapters: [
-        "Unit 1 â Present continuous (I am doing)",
-        "Unit 2 â Present simple (I do)",
-        "Unit 3 â Present continuous and present simple (1)",
-        "Unit 4 â Present continuous and present simple (2)",
-        "Unit 5 â Past simple (I did)",
-        "Unit 6 â Past continuous (I was doing)",
+        "Unit 1 – Present continuous (I am doing)",
+        "Unit 2 – Present simple (I do)",
+        "Unit 3 – Present continuous and present simple (1)",
+        "Unit 4 – Present continuous and present simple (2)",
+        "Unit 5 – Past simple (I did)",
+        "Unit 6 – Past continuous (I was doing)",
       ]},
       { name: "Present perfect and past", chapters: [
-        "Unit 7 â Present perfect (1) (I have done)",
-        "Unit 8 â Present perfect (2) (I have done)",
-        "Unit 9 â Present perfect continuous (I have been doing)",
-        "Unit 10 â Present perfect continuous and simple",
-        "Unit 11 â How long have you (been)...?",
-        "Unit 12 â When...? and How long...? For and since",
-        "Unit 13 â Present perfect and past (1)",
-        "Unit 14 â Present perfect and past (2)",
-        "Unit 15 â Past perfect (I had done)",
-        "Unit 16 â Past perfect continuous (I had been doing)",
-        "Unit 17 â Have and have got",
-        "Unit 18 â Used to (do)",
+        "Unit 7 – Present perfect (1) (I have done)",
+        "Unit 8 – Present perfect (2) (I have done)",
+        "Unit 9 – Present perfect continuous (I have been doing)",
+        "Unit 10 – Present perfect continuous and simple",
+        "Unit 11 – How long have you (been)...?",
+        "Unit 12 – When...? and How long...? For and since",
+        "Unit 13 – Present perfect and past (1)",
+        "Unit 14 – Present perfect and past (2)",
+        "Unit 15 – Past perfect (I had done)",
+        "Unit 16 – Past perfect continuous (I had been doing)",
+        "Unit 17 – Have and have got",
+        "Unit 18 – Used to (do)",
       ]},
       { name: "Future", chapters: [
-        "Unit 19 â Present tenses for the future",
-        "Unit 20 â (I'm) going to (do)",
-        "Unit 21 â Will/shall (1)",
-        "Unit 22 â Will/shall (2)",
-        "Unit 23 â I will and I'm going to",
-        "Unit 24 â Will be doing and will have done",
-        "Unit 25 â When I do / When I've done â When and if",
+        "Unit 19 – Present tenses for the future",
+        "Unit 20 – (I'm) going to (do)",
+        "Unit 21 – Will/shall (1)",
+        "Unit 22 – Will/shall (2)",
+        "Unit 23 – I will and I'm going to",
+        "Unit 24 – Will be doing and will have done",
+        "Unit 25 – When I do / When I've done – When and if",
       ]},
       { name: "Modals", chapters: [
-        "Unit 26 â Can, could and (be) able to",
-        "Unit 27 â Could (do) and could have (done)",
-        "Unit 28 â Must and can't",
-        "Unit 29 â May and might (1)",
-        "Unit 30 â May and might (2)",
-        "Unit 31 â Must and have to",
-        "Unit 32 â Must mustn't needn't",
-        "Unit 33 â Should (1)",
-        "Unit 34 â Should (2)",
-        "Unit 35 â Had better â It's time...",
-        "Unit 36 â Can/Could/Would you...? (Requests, offers, permission and invitations)",
+        "Unit 26 – Can, could and (be) able to",
+        "Unit 27 – Could (do) and could have (done)",
+        "Unit 28 – Must and can't",
+        "Unit 29 – May and might (1)",
+        "Unit 30 – May and might (2)",
+        "Unit 31 – Must and have to",
+        "Unit 32 – Must mustn't needn't",
+        "Unit 33 – Should (1)",
+        "Unit 34 – Should (2)",
+        "Unit 35 – Had better – It's time...",
+        "Unit 36 – Can/Could/Would you...? (Requests, offers, permission and invitations)",
       ]},
       { name: "Conditionals and wish", chapters: [
-        "Unit 37 â If I do... and If I did...",
-        "Unit 38 â If I knew... I wish I knew...",
-        "Unit 39 â If I had known... I wish I had known...",
-        "Unit 40 â Would â I wish...would",
+        "Unit 37 – If I do... and If I did...",
+        "Unit 38 – If I knew... I wish I knew...",
+        "Unit 39 – If I had known... I wish I had known...",
+        "Unit 40 – Would – I wish...would",
       ]},
       { name: "Passive", chapters: [
-        "Unit 41 â Passive (1) (is done / was done)",
-        "Unit 42 â Passive (2) (be/been/being done)",
-        "Unit 43 â Passive (3)",
-        "Unit 44 â It is said that... He is said to... (be) supposed to...",
-        "Unit 45 â Have something done",
+        "Unit 41 – Passive (1) (is done / was done)",
+        "Unit 42 – Passive (2) (be/been/being done)",
+        "Unit 43 – Passive (3)",
+        "Unit 44 – It is said that... He is said to... (be) supposed to...",
+        "Unit 45 – Have something done",
       ]},
       { name: "Reported speech", chapters: [
-        "Unit 46 â Reported speech (1) (He said that...)",
-        "Unit 47 â Reported speech (2)",
+        "Unit 46 – Reported speech (1) (He said that...)",
+        "Unit 47 – Reported speech (2)",
       ]},
       { name: "Questions and auxiliary verbs", chapters: [
-        "Unit 48 â Questions (1)",
-        "Unit 49 â Questions (2) (Do you know where...?)",
-        "Unit 50 â Auxiliary verbs â I think so / I hope so etc.",
-        "Unit 51 â Question tags (do you? isn't it? etc.)",
+        "Unit 48 – Questions (1)",
+        "Unit 49 – Questions (2) (Do you know where...?)",
+        "Unit 50 – Auxiliary verbs – I think so / I hope so etc.",
+        "Unit 51 – Question tags (do you? isn't it? etc.)",
       ]},
       { name: "-ing and the infinitive", chapters: [
-        "Unit 52 â Verb + -ing (enjoy doing / stop doing etc.)",
-        "Unit 53 â Verb + to... (decide to do / forget to do etc.)",
-        "Unit 54 â Verb + (object) + to... (I want you to do etc.)",
-        "Unit 55 â Verb + -ing or to... (1) (remember/regret etc.)",
-        "Unit 56 â Verb + -ing or to... (2) (try/need/help)",
-        "Unit 57 â Verb + -ing or to... (3) (like/would like etc.)",
-        "Unit 58 â Prefer and would rather",
-        "Unit 59 â Preposition + -ing",
-        "Unit 60 â Be/get used to something (I'm used to...)",
-        "Unit 61 â Verb + preposition + -ing",
-        "Unit 62 â Expressions + -ing",
-        "Unit 63 â To..., for... and so that... (purpose)",
-        "Unit 64 â Adjective + to...",
-        "Unit 65 â To... (afraid to do) and preposition + -ing (afraid of -ing)",
-        "Unit 66 â See somebody do and see somebody doing",
-        "Unit 67 â -ing clauses",
+        "Unit 52 – Verb + -ing (enjoy doing / stop doing etc.)",
+        "Unit 53 – Verb + to... (decide to do / forget to do etc.)",
+        "Unit 54 – Verb + (object) + to... (I want you to do etc.)",
+        "Unit 55 – Verb + -ing or to... (1) (remember/regret etc.)",
+        "Unit 56 – Verb + -ing or to... (2) (try/need/help)",
+        "Unit 57 – Verb + -ing or to... (3) (like/would like etc.)",
+        "Unit 58 – Prefer and would rather",
+        "Unit 59 – Preposition + -ing",
+        "Unit 60 – Be/get used to something (I'm used to...)",
+        "Unit 61 – Verb + preposition + -ing",
+        "Unit 62 – Expressions + -ing",
+        "Unit 63 – To..., for... and so that... (purpose)",
+        "Unit 64 – Adjective + to...",
+        "Unit 65 – To... (afraid to do) and preposition + -ing (afraid of -ing)",
+        "Unit 66 – See somebody do and see somebody doing",
+        "Unit 67 – -ing clauses",
       ]},
       { name: "Articles and nouns", chapters: [
-        "Unit 68 â Countable and uncountable nouns (1)",
-        "Unit 69 â Countable and uncountable nouns (2)",
-        "Unit 70 â Countable nouns with a/an and some",
-        "Unit 71 â A/an and the",
-        "Unit 72 â The (1)",
-        "Unit 73 â The (2) (School / the school)",
-        "Unit 74 â The (3) (Children / the children)",
-        "Unit 75 â The (4) (The giraffe / the telephone etc.; the + adjective)",
-        "Unit 76 â Names with and without the (1)",
-        "Unit 77 â Names with and without the (2)",
-        "Unit 78 â Singular and plural",
-        "Unit 79 â Noun + noun (a tennis ball / a headache etc.)",
-        "Unit 80 â 's (the girl's name) and of... (the name of the book)",
+        "Unit 68 – Countable and uncountable nouns (1)",
+        "Unit 69 – Countable and uncountable nouns (2)",
+        "Unit 70 – Countable nouns with a/an and some",
+        "Unit 71 – A/an and the",
+        "Unit 72 – The (1)",
+        "Unit 73 – The (2) (School / the school)",
+        "Unit 74 – The (3) (Children / the children)",
+        "Unit 75 – The (4) (The giraffe / the telephone etc.; the + adjective)",
+        "Unit 76 – Names with and without the (1)",
+        "Unit 77 – Names with and without the (2)",
+        "Unit 78 – Singular and plural",
+        "Unit 79 – Noun + noun (a tennis ball / a headache etc.)",
+        "Unit 80 – 's (the girl's name) and of... (the name of the book)",
       ]},
       { name: "Pronouns and determiners", chapters: [
-        "Unit 81 â A friend of mine â My own house â On my own / by myself",
-        "Unit 82 â Myself/yourself/themselves etc.",
-        "Unit 83 â There... and it...",
-        "Unit 84 â Some and any",
-        "Unit 85 â No/none/any",
-        "Unit 86 â Much, many, little, few, a lot, plenty",
-        "Unit 87 â All / all of â most / most of â no / none of etc.",
-        "Unit 88 â Both / both of â neither / neither of â either / either of",
-        "Unit 89 â All, every and whole",
-        "Unit 90 â Each and every",
+        "Unit 81 – A friend of mine – My own house – On my own / by myself",
+        "Unit 82 – Myself/yourself/themselves etc.",
+        "Unit 83 – There... and it...",
+        "Unit 84 – Some and any",
+        "Unit 85 – No/none/any",
+        "Unit 86 – Much, many, little, few, a lot, plenty",
+        "Unit 87 – All / all of – most / most of – no / none of etc.",
+        "Unit 88 – Both / both of – neither / neither of – either / either of",
+        "Unit 89 – All, every and whole",
+        "Unit 90 – Each and every",
       ]},
       { name: "Relative clauses", chapters: [
-        "Unit 91 â Relative clauses (1) â clauses with who/that/which",
-        "Unit 92 â Relative clauses (2) â clauses with or without who/that/which",
-        "Unit 93 â Relative clauses (3) â whose/whom/where",
-        "Unit 94 â Relative clauses (4) â extra information clauses (1)",
-        "Unit 95 â Relative clauses (5) â extra information clauses (2)",
-        "Unit 96 â -ing and -ed clauses",
+        "Unit 91 – Relative clauses (1) – clauses with who/that/which",
+        "Unit 92 – Relative clauses (2) – clauses with or without who/that/which",
+        "Unit 93 – Relative clauses (3) – whose/whom/where",
+        "Unit 94 – Relative clauses (4) – extra information clauses (1)",
+        "Unit 95 – Relative clauses (5) – extra information clauses (2)",
+        "Unit 96 – -ing and -ed clauses",
       ]},
       { name: "Adjectives and adverbs", chapters: [
-        "Unit 97 â Adjectives ending in -ing and -ed (boring/bored etc.)",
-        "Unit 98 â Adjectives: word order â Adjectives after verbs",
-        "Unit 99 â Adjectives and adverbs (1) (quick/quickly)",
-        "Unit 100 â Adjectives and adverbs (2) (well/fast/late, hard/hardly)",
-        "Unit 101 â So and such",
-        "Unit 102 â Enough and too",
-        "Unit 103 â Quite and rather",
-        "Unit 104 â Comparison (1) â cheaper, more expensive etc.",
-        "Unit 105 â Comparison (2)",
-        "Unit 106 â Comparison (3) â as...as / than",
-        "Unit 107 â Superlatives â the longest / the most enjoyable etc.",
-        "Unit 108 â Word order (1) â verb + object; place and time",
-        "Unit 109 â Word order (2) â adverbs with the verb",
+        "Unit 97 – Adjectives ending in -ing and -ed (boring/bored etc.)",
+        "Unit 98 – Adjectives: word order – Adjectives after verbs",
+        "Unit 99 – Adjectives and adverbs (1) (quick/quickly)",
+        "Unit 100 – Adjectives and adverbs (2) (well/fast/late, hard/hardly)",
+        "Unit 101 – So and such",
+        "Unit 102 – Enough and too",
+        "Unit 103 – Quite and rather",
+        "Unit 104 – Comparison (1) – cheaper, more expensive etc.",
+        "Unit 105 – Comparison (2)",
+        "Unit 106 – Comparison (3) – as...as / than",
+        "Unit 107 – Superlatives – the longest / the most enjoyable etc.",
+        "Unit 108 – Word order (1) – verb + object; place and time",
+        "Unit 109 – Word order (2) – adverbs with the verb",
       ]},
       { name: "Conjunctions", chapters: [
-        "Unit 110 â Still, yet, already â Anymore/no longer",
-        "Unit 111 â Even",
-        "Unit 112 â Although/though/even though â In spite of/despite",
-        "Unit 113 â In case",
-        "Unit 114 â Unless â As long as â Provided/providing",
-        "Unit 115 â As (time and reason)",
-        "Unit 116 â Like and as (1)",
-        "Unit 117 â Like and as (2)",
-        "Unit 118 â For, during and while",
-        "Unit 119 â By and until â By the time...",
+        "Unit 110 – Still, yet, already – Anymore/no longer",
+        "Unit 111 – Even",
+        "Unit 112 – Although/though/even though – In spite of/despite",
+        "Unit 113 – In case",
+        "Unit 114 – Unless – As long as – Provided/providing",
+        "Unit 115 – As (time and reason)",
+        "Unit 116 – Like and as (1)",
+        "Unit 117 – Like and as (2)",
+        "Unit 118 – For, during and while",
+        "Unit 119 – By and until – By the time...",
       ]},
       { name: "Prepositions", chapters: [
-        "Unit 120 â At/on/in (time) (1)",
-        "Unit 121 â At/on/in (time) (2)",
-        "Unit 122 â On time/in time â At the end/in the end",
-        "Unit 123 â In/at/on (place) (1)",
-        "Unit 124 â In/at/on (place) (2)",
-        "Unit 125 â In/at/on (place) (3)",
-        "Unit 126 â To/at/in/into",
-        "Unit 127 â In/at/on (other uses)",
-        "Unit 128 â By",
+        "Unit 120 – At/on/in (time) (1)",
+        "Unit 121 – At/on/in (time) (2)",
+        "Unit 122 – On time/in time – At the end/in the end",
+        "Unit 123 – In/at/on (place) (1)",
+        "Unit 124 – In/at/on (place) (2)",
+        "Unit 125 – In/at/on (place) (3)",
+        "Unit 126 – To/at/in/into",
+        "Unit 127 – In/at/on (other uses)",
+        "Unit 128 – By",
       ]},
       { name: "Noun, adjective and verb + preposition", chapters: [
-        "Unit 129 â Noun + preposition (reason for, cause of etc.)",
-        "Unit 130 â Adjective + preposition (1)",
-        "Unit 131 â Adjective + preposition (2)",
-        "Unit 132 â Verb + preposition (1) â to and at",
-        "Unit 133 â Verb + preposition (2) â about/for/of/after",
-        "Unit 134 â Verb + preposition (3) â about and of",
-        "Unit 135 â Verb + preposition (4) â of/for/from/on",
-        "Unit 136 â Verb + preposition (5) â in/into/with/to/on",
+        "Unit 129 – Noun + preposition (reason for, cause of etc.)",
+        "Unit 130 – Adjective + preposition (1)",
+        "Unit 131 – Adjective + preposition (2)",
+        "Unit 132 – Verb + preposition (1) – to and at",
+        "Unit 133 – Verb + preposition (2) – about/for/of/after",
+        "Unit 134 – Verb + preposition (3) – about and of",
+        "Unit 135 – Verb + preposition (4) – of/for/from/on",
+        "Unit 136 – Verb + preposition (5) – in/into/with/to/on",
       ]},
       { name: "Appendices", chapters: [
-        "Appendix 1 â Regular and irregular verbs",
-        "Appendix 2 â Present and past tenses",
-        "Appendix 3 â The future",
-        "Appendix 4 â Modal verbs (can/could/will/would etc.)",
-        "Appendix 5 â Short forms (I'm/you've/didn't etc.)",
-        "Appendix 6 â Spelling",
-        "Appendix 7 â American English",
+        "Appendix 1 – Regular and irregular verbs",
+        "Appendix 2 – Present and past tenses",
+        "Appendix 3 – The future",
+        "Appendix 4 – Modal verbs (can/could/will/would etc.)",
+        "Appendix 5 – Short forms (I'm/you've/didn't etc.)",
+        "Appendix 6 – Spelling",
+        "Appendix 7 – American English",
       ]},
       { name: "Reference", chapters: [
         "Additional exercises",
@@ -494,23 +494,23 @@ const SUBJECTS: SubjectDef[] = [
 ];
 
 const SCHOOL_SUBJECTS: SubjectDef[] = [
-  { id: "maths", name: "Mathematics", icon: "ð", color: "#2563eb",
+  { id: "maths", name: "Mathematics", icon: "📐", color: "#2563eb",
     chapters: ["Real Numbers","Polynomials","Pair of Linear Equations in Two Variables","Quadratic Equations","Arithmetic Progressions","Triangles","Coordinate Geometry","Introduction to Trigonometry","Some Applications of Trigonometry","Circles","Areas Related to Circles","Surface Areas and Volumes","Statistics","Probability"] },
-  { id: "science", name: "Science", icon: "ð¬", color: "#059669",
-    chapters: ["Chemical Reactions and Equations","Acids, Bases and Salts","Metals and Non-metals","Carbon and its Compounds","Life Processes","Control and Coordination","How do Organisms Reproduce?","Heredity","Light â Reflection and Refraction","Human Eye and Colourful World","Electricity","Magnetic Effects of Electric Current","Our Environment"] },
-  { id: "english", name: "English", icon: "ð", color: "#d97706",
+  { id: "science", name: "Science", icon: "🔬", color: "#059669",
+    chapters: ["Chemical Reactions and Equations","Acids, Bases and Salts","Metals and Non-metals","Carbon and its Compounds","Life Processes","Control and Coordination","How do Organisms Reproduce?","Heredity","Light – Reflection and Refraction","Human Eye and Colourful World","Electricity","Magnetic Effects of Electric Current","Our Environment"] },
+  { id: "english", name: "English", icon: "📖", color: "#d97706",
     sections: [
-      { name: "First Flight â Prose", chapters: ["A Letter to God","Nelson Mandela: Long Walk to Freedom","Two Stories about Flying","From the Diary of Anne Frank","Glimpses of India","Mijbil the Otter","Madam Rides the Bus","The Sermon at Benares","The Proposal"] },
-      { name: "First Flight â Poetry", chapters: ["Dust of Snow","Fire and Ice","A Tiger in the Zoo","How to Tell Wild Animals","The Ball Poem","Amanda!","Animals","The Trees","Fog","The Tale of Custard the Dragon","For Anne Gregory"] },
+      { name: "First Flight – Prose", chapters: ["A Letter to God","Nelson Mandela: Long Walk to Freedom","Two Stories about Flying","From the Diary of Anne Frank","Glimpses of India","Mijbil the Otter","Madam Rides the Bus","The Sermon at Benares","The Proposal"] },
+      { name: "First Flight – Poetry", chapters: ["Dust of Snow","Fire and Ice","A Tiger in the Zoo","How to Tell Wild Animals","The Ball Poem","Amanda!","Animals","The Trees","Fog","The Tale of Custard the Dragon","For Anne Gregory"] },
       { name: "Footprints Without Feet", chapters: ["A Triumph of Surgery","The Thief's Story","The Midnight Visitor","A Question of Trust","Footprints without Feet","The Making of a Scientist","The Necklace","Bholi","The Book That Saved the Earth"] },
     ] },
-  { id: "hindi", name: "Hindi", icon: "ðª", color: "#dc2626",
+  { id: "hindi", name: "Hindi", icon: "🪔", color: "#dc2626",
     sections: [
-      { name: "Kshitij â Kavya", chapters: ["Kabir â Sakhiyan aur Sabad","Mirabai â Pad","Bihari â Dohe","Maithili Sharan Gupt â Manushyata","Sumitranandan Pant â Parvat Pradesh mein Pavas","Mahadevi Verma â Madhur Madhur Mere Deepak Jal","Nagarjun â Yah Danturit Muskan / Fasal","Mangalesh Dabral â Sangatkar"] },
-      { name: "Kshitij â Gadya", chapters: ["Swayam Prakash â Netaji ka Chashma","Ram Vriksh Benipuri â Balgobin Bhagat","Yashpal â Lakhnavi Andaaz","Mannu Bhandari â Ek Kahani Yeh Bhi","Sarveshwar Dayal Saxena â Manoj","Hazari Prasad Dwivedi â Sanskriti","Habib Tanvir â Kartoos"] },
+      { name: "Kshitij – Kavya", chapters: ["Kabir – Sakhiyan aur Sabad","Mirabai – Pad","Bihari – Dohe","Maithili Sharan Gupt – Manushyata","Sumitranandan Pant – Parvat Pradesh mein Pavas","Mahadevi Verma – Madhur Madhur Mere Deepak Jal","Nagarjun – Yah Danturit Muskan / Fasal","Mangalesh Dabral – Sangatkar"] },
+      { name: "Kshitij – Gadya", chapters: ["Swayam Prakash – Netaji ka Chashma","Ram Vriksh Benipuri – Balgobin Bhagat","Yashpal – Lakhnavi Andaaz","Mannu Bhandari – Ek Kahani Yeh Bhi","Sarveshwar Dayal Saxena – Manoj","Hazari Prasad Dwivedi – Sanskriti","Habib Tanvir – Kartoos"] },
       { name: "Kritika", chapters: ["Mata ka Anchal","George Pancham ki Naak","Sana-Sana Haath Jodi","Ehi Thaiya Jhulni Herani Ho Rama","Main Kyun Likhta Hoon"] },
     ] },
-  { id: "sst", name: "Social Studies", icon: "ð", color: "#7c3aed",
+  { id: "sst", name: "Social Studies", icon: "🌍", color: "#7c3aed",
     sections: [
       { name: "History", chapters: ["The Rise of Nationalism in Europe","Nationalism in India","The Making of a Global World","The Age of Industrialisation","Print Culture and the Modern World"] },
       { name: "Geography", chapters: ["Resources and Development","Forest and Wildlife Resources","Water Resources","Agriculture","Minerals and Energy Resources","Manufacturing Industries","Lifelines of National Economy"] },
@@ -530,10 +530,10 @@ function getChapters(sub: SubjectDef): Chapter[] {
 
 const STATUSES = ["not_started", "in_progress", "completed", "revised"] as const;
 const STATUS_META: Record<string, { label: string; color: string; icon: string; bg: string }> = {
-  not_started: { label: "Not Started", color: "#94a3b8", icon: "â¬", bg: "#f8fafc" },
-  in_progress: { label: "In Progress", color: "#f59e0b", icon: "ð", bg: "#fffbeb" },
-  completed:   { label: "Completed",   color: "#10b981", icon: "â", bg: "#ecfdf5" },
-  revised:     { label: "Revised",     color: "#8b5cf6", icon: "ð", bg: "#f5f3ff" },
+  not_started: { label: "Not Started", color: "#94a3b8", icon: "⬜", bg: "#f8fafc" },
+  in_progress: { label: "In Progress", color: "#f59e0b", icon: "🔄", bg: "#fffbeb" },
+  completed:   { label: "Completed",   color: "#10b981", icon: "✅", bg: "#ecfdf5" },
+  revised:     { label: "Revised",     color: "#8b5cf6", icon: "🌟", bg: "#f5f3ff" },
 };
 
 const TEST_TYPES = [
@@ -542,10 +542,10 @@ const TEST_TYPES = [
 ];
 
 const PAPER_TYPES = [
-  { key: "qp",        label: "ð Question Paper", color: "#2563eb", bg: "#eff6ff", border: "#93c5fd" },
-  { key: "ma",        label: "â Model Answer",   color: "#059669", bg: "#f0fdf4", border: "#86efac" },
-  { key: "as",        label: "ð Answer Sheet",   color: "#d97706", bg: "#fffbeb", border: "#fcd34d" },
-  { key: "resources", label: "ð Resources",      color: "#7c3aed", bg: "#f5f3ff", border: "#ddd6fe" },
+  { key: "qp",        label: "📄 Question Paper", color: "#2563eb", bg: "#eff6ff", border: "#93c5fd" },
+  { key: "ma",        label: "✅ Model Answer",   color: "#059669", bg: "#f0fdf4", border: "#86efac" },
+  { key: "as",        label: "📝 Answer Sheet",   color: "#d97706", bg: "#fffbeb", border: "#fcd34d" },
+  { key: "resources", label: "🔗 Resources",      color: "#7c3aed", bg: "#f5f3ff", border: "#ddd6fe" },
 ];
 
 function pctCalc(a: number, b: number) { return b > 0 ? Math.round((a / b) * 100) : 0; }
@@ -558,7 +558,7 @@ function ensureArr(v: unknown): string[] {
 function hasPapers(p: Record<string, string[]> | null | undefined): boolean {
   return !!p && PAPER_TYPES.some(({ key }) => ensureArr(p[key]).some(Boolean));
 }
-/* âââââââââ UI Components âââââââââ */
+/* ───────── UI Components ───────── */
 
 function CircleProgress({ value, size = 72, stroke = 7, color = "#2563eb", bg = "#e2e8f0" }: {
   value: number; size?: number; stroke?: number; color?: string; bg?: string;
@@ -622,7 +622,7 @@ function Modal({ open, onClose, title, children }: {
           <div style={{ fontWeight: 800, fontSize: 18, color: "#0f172a" }}>{title}</div>
           <button onClick={onClose} style={{ background: "#f1f5f9", border: "none", borderRadius: 10,
             width: 36, height: 36, cursor: "pointer", fontSize: 16,
-            display: "flex", alignItems: "center", justifyContent: "center" }}>â</button>
+            display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
         </div>
         {children}
       </div>
@@ -644,9 +644,9 @@ function Digit({ ch, glow }: { ch: string; glow: string }) {
   );
 }
 
-/* âââââââââââââââââââââââââââââââââââ
+/* ═══════════════════════════════════
    MAIN APP COMPONENT
-   âââââââââââââââââââââââââââââââââââ */
+   ═══════════════════════════════════ */
 export default function App() {
   const [mode, setMode] = useState<"home" | "school">("home");
   const [data, setData] = useState<Record<string, ChapterData>>({});
@@ -810,7 +810,7 @@ export default function App() {
     setChapterResources(prev => prev.filter(r => r.id !== id));
   };
 
-  /* ââ Stats ââ */
+  /* ── Stats ── */
   const stats = useMemo(() => {
     const ss: SubjectStat[] = activeSubjects.map(s => {
       const chs = getChapters(s);
@@ -860,16 +860,16 @@ export default function App() {
     outline: "none", transition: "border .2s", ...extra,
   });
 
-  /* ââ Loading ââ */
+  /* ── Loading ── */
   if (loading) return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", fontFamily: "system-ui", gap: 12 }}>
       <div style={{ width: 24, height: 24, border: "3px solid #e2e8f0", borderTop: "3px solid #6366f1", borderRadius: "50%", animation: "spin .8s linear infinite" }} />
-      <span style={{ fontSize: 16, color: "#64748b" }}>Loading {isSchool ? "School" : "Home"} Trackerâ¦</span>
+      <span style={{ fontSize: 16, color: "#64748b" }}>Loading {isSchool ? "School" : "Home"} Tracker…</span>
       <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
     </div>
   );
 
-  /* âââââââââ RENDER âââââââââ */
+  /* ═════════ RENDER ═════════ */
   return (
     <div style={{ fontFamily: "'Inter','Segoe UI',system-ui,sans-serif", background: "linear-gradient(180deg,#f0f4ff 0%,#f8fafc 100%)" }}>
       <style>{`
@@ -882,14 +882,14 @@ export default function App() {
 
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "16px 20px" }}>
 
-        {/* ââââ HEADER ââââ */}
+        {/* ════ HEADER ════ */}
         <div style={{ background: accentGrad, borderRadius: 20, padding: "22px 28px", marginBottom: 16, color: "white", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: -60, right: -30, width: 200, height: 200, borderRadius: "50%", background: "rgba(255,255,255,.08)" }} />
           <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
-            <div style={{ fontSize: 38 }}>{isSchool ? "ð«" : "ð"}</div>
+            <div style={{ fontSize: 38 }}>{isSchool ? "🏫" : "📚"}</div>
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 900, fontSize: 24, letterSpacing: -0.5 }}>Savvy's {isSchool ? "School" : "Home"} Tracker</div>
-              <div style={{ fontSize: 13, opacity: .8, marginTop: 2 }}>Class 10 â¢ CBSE NCERT{saving ? " â¢ âï¸ Syncingâ¦" : ""}</div>
+              <div style={{ fontSize: 13, opacity: .8, marginTop: 2 }}>Class 10 • CBSE NCERT{saving ? " • ☁️ Syncing…" : ""}</div>
             </div>
             <div style={{ position: "relative", width: 80, height: 80 }}>
               <CircleProgress value={stats.pct} size={80} stroke={8} color="white" bg="rgba(255,255,255,.2)" />
@@ -902,10 +902,10 @@ export default function App() {
           {/* Quick stats ribbon */}
           <div style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}>
             {[
-              { label: "Chapters", val: `${stats.don}/${stats.tot}`, ico: "ð" },
-              { label: "In Progress", val: stats.ss.reduce((a, b) => a + b.prog, 0), ico: "ð" },
-              { label: "Flagged", val: stats.ss.reduce((a, b) => a + b.flagged, 0), ico: "ð©" },
-              { label: "Tests", val: allTests.length, ico: "ð" },
+              { label: "Chapters", val: `${stats.don}/${stats.tot}`, ico: "📑" },
+              { label: "In Progress", val: stats.ss.reduce((a, b) => a + b.prog, 0), ico: "🔄" },
+              { label: "Flagged", val: stats.ss.reduce((a, b) => a + b.flagged, 0), ico: "🚩" },
+              { label: "Tests", val: allTests.length, ico: "📝" },
             ].map(s => (
               <div key={s.label} style={{ background: "rgba(255,255,255,.15)", borderRadius: 12, padding: "6px 14px", display: "flex", alignItems: "center", gap: 6 }}>
                 <span style={{ fontSize: 14 }}>{s.ico}</span>
@@ -916,28 +916,28 @@ export default function App() {
             <div style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
               <a href="/l"
                 style={{ background: "rgba(255,105,180,.35)", border: "1.5px solid rgba(255,182,193,.6)", borderRadius: 12, padding: "6px 14px", cursor: "pointer", color: "white", fontWeight: 700, fontSize: 12, display: "flex", alignItems: "center", gap: 5, textDecoration: "none" }}>
-                ð Letty's
+                🎀 Letty's
               </a>
               <button onClick={() => setMode(m => m === "home" ? "school" : "home")}
                 style={{ background: "rgba(255,255,255,.2)", border: "1px solid rgba(255,255,255,.3)", borderRadius: 12, padding: "6px 14px", cursor: "pointer", color: "white", fontWeight: 700, fontSize: 12, display: "flex", alignItems: "center", gap: 5 }}>
-                {isSchool ? "ð  Home" : "ð« School"}
+                {isSchool ? "🏠 Home" : "🏫 School"}
               </button>
             </div>
           </div>
         </div>
 
-        {/* ââââ COUNTDOWN ââââ */}
+        {/* ════ COUNTDOWN ════ */}
         <Glass style={{ padding: "20px 24px", marginBottom: 16, background: "linear-gradient(135deg,#0f172a,#1e1b4b)", color: "white", border: `1.5px solid ${glow}33` }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 10, background: `${glow}22`, border: `1px solid ${glow}44`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>ð¯</div>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: `${glow}22`, border: `1px solid ${glow}44`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>🎯</div>
               <div>
                 <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 3, color: "#94a3b8", textTransform: "uppercase" as const }}>Board Exam Countdown</div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0" }}>CBSE Class 10 â¢ Feb 15, 2027</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0" }}>CBSE Class 10 • Feb 15, 2027</div>
               </div>
             </div>
             <div style={{ background: `${glow}22`, border: `1px solid ${glow}44`, borderRadius: 20, padding: "4px 14px" }}>
-              <span style={{ fontSize: 12, fontWeight: 800, color: glow }}>{countdown.days > 60 ? "ð¢ ON TRACK" : countdown.days > 30 ? "ð¡ HURRY" : "ð´ URGENT"}</span>
+              <span style={{ fontSize: 12, fontWeight: 800, color: glow }}>{countdown.days > 60 ? "🟢 ON TRACK" : countdown.days > 30 ? "🟡 HURRY" : "🔴 URGENT"}</span>
             </div>
           </div>
           <div style={{ display: "flex", justifyContent: "center", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
@@ -964,7 +964,7 @@ export default function App() {
           </div>
         </Glass>
 
-        {/* ââââ TABS + SEARCH ââââ */}
+        {/* ════ TABS + SEARCH ════ */}
         <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap", alignItems: "center" }}>
           {["dashboard", ...activeSubjects.map(s => s.id), "analytics", "common"].map(t => {
             const sub = activeSubjects.find(s => s.id === t);
@@ -980,17 +980,17 @@ export default function App() {
                   boxShadow: active ? `0 2px 12px ${sub ? sub.color + "44" : "rgba(0,0,0,.15)"}` : "0 1px 3px rgba(0,0,0,.06)",
                   transition: "all .2s",
                 }}>
-                {t === "dashboard" ? "ð  Dashboard" : t === "analytics" ? "ð Analytics" : t === "common" ? "ðï¸ Common" : `${sub!.icon} ${sub!.name}`}
+                {t === "dashboard" ? "🏠 Dashboard" : t === "analytics" ? "📊 Analytics" : t === "common" ? "🗂️ Common" : `${sub!.icon} ${sub!.name}`}
               </button>
             );
           })}
           {tab !== "dashboard" && tab !== "analytics" && tab !== "common" && (
-            <input placeholder="ð Search chaptersâ¦" value={search} onChange={e => setSearch(e.target.value)}
+            <input placeholder="🔍 Search chapters…" value={search} onChange={e => setSearch(e.target.value)}
               style={{ ...inp({ maxWidth: 220, marginLeft: "auto", background: "white", fontSize: 13 }) }} />
           )}
         </div>
 
-        {/* ââââ DASHBOARD ââââ */}
+        {/* ════ DASHBOARD ════ */}
         {tab === "dashboard" && (
           <div style={{ animation: "fadeUp .3s ease" }}>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(200px,1fr))", gap: 12, marginBottom: 16 }}>
@@ -1008,15 +1008,15 @@ export default function App() {
                     </div>
                   </div>
                   <div style={{ display: "flex", gap: 8, marginTop: 10, fontSize: 11 }}>
-                    {s.prog > 0 && <span style={{ color: "#f59e0b" }}>ð {s.prog}</span>}
-                    {s.flagged > 0 && <span style={{ color: "#ef4444" }}>ð© {s.flagged}</span>}
+                    {s.prog > 0 && <span style={{ color: "#f59e0b" }}>🔄 {s.prog}</span>}
+                    {s.flagged > 0 && <span style={{ color: "#ef4444" }}>🚩 {s.flagged}</span>}
                   </div>
                 </Glass>
               ))}
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <Glass style={{ padding: "18px 20px" }}>
-                <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 12, color: "#0f172a" }}>ð Status Overview</div>
+                <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 12, color: "#0f172a" }}>📊 Status Overview</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
                   <ResponsiveContainer width={120} height={120}>
                     <PieChart>
@@ -1064,7 +1064,7 @@ export default function App() {
                 </div>
               </Glass>
               <Glass style={{ padding: "18px 20px" }}>
-                <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 12, color: "#0f172a" }}>ð Recent Tests</div>
+                <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 12, color: "#0f172a" }}>📝 Recent Tests</div>
                 {allTests.length === 0 ? <div style={{ color: "#94a3b8", fontSize: 14, textAlign: "center" as const, padding: 20 }}>No test scores yet!</div> :
                   allTests.slice(0, 6).map((t, i) => {
                     const p = pctCalc(+t.obtained, +t.max);
@@ -1073,7 +1073,7 @@ export default function App() {
                         <span style={{ fontSize: 16 }}>{t.sIcon}</span>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontSize: 13, fontWeight: 600, color: "#0f172a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>{t.chName}</div>
-                          <div style={{ fontSize: 11, color: "#94a3b8" }}>{t.type} â¢ {t.date}</div>
+                          <div style={{ fontSize: 11, color: "#94a3b8" }}>{t.type} • {t.date}</div>
                         </div>
                         <div style={{ fontWeight: 800, fontSize: 15, color: scoreColor(p) }}>{t.obtained}/{t.max}</div>
                       </div>
@@ -1084,11 +1084,11 @@ export default function App() {
           </div>
         )}
 
-        {/* ââââ ANALYTICS TAB ââââ */}
+        {/* ════ ANALYTICS TAB ════ */}
         {tab === "analytics" && (
           <div style={{ animation: "fadeUp .3s ease" }}>
             <Glass style={{ padding: "22px 24px", marginBottom: 14 }}>
-              <div style={{ fontWeight: 700, fontSize: 17, marginBottom: 16, color: "#0f172a" }}>ð Subject Progress</div>
+              <div style={{ fontWeight: 700, fontSize: 17, marginBottom: 16, color: "#0f172a" }}>📊 Subject Progress</div>
               <ResponsiveContainer width="100%" height={240}>
                 <BarChart data={stats.ss.map(s => ({ name: `${s.icon} ${s.name.slice(0, 5)}`, Done: s.done, "In Prog": s.prog, Left: s.total - s.done - s.prog }))}>
                   <XAxis dataKey="name" tick={{ fontSize: 12 }} /><YAxis tick={{ fontSize: 12 }} /><Tooltip />
@@ -1100,7 +1100,7 @@ export default function App() {
             </Glass>
             {Object.keys(testAnalytics).length > 0 && (
               <Glass style={{ padding: "22px 24px" }}>
-                <div style={{ fontWeight: 700, fontSize: 17, marginBottom: 16, color: "#0f172a" }}>ð¯ Test Averages</div>
+                <div style={{ fontWeight: 700, fontSize: 17, marginBottom: 16, color: "#0f172a" }}>🎯 Test Averages</div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(180px,1fr))", gap: 10 }}>
                   {Object.entries(testAnalytics).map(([name, d]) => (
                     <div key={name} style={{ background: `${d.color}0a`, border: `1px solid ${d.color}22`, borderRadius: 14, padding: "16px 18px", textAlign: "center" as const }}>
@@ -1117,27 +1117,27 @@ export default function App() {
           </div>
         )}
 
-        {/* ââââ COMMON TAB ââââ */}
+        {/* ════ COMMON TAB ════ */}
         {tab === "common" && (
           <div style={{ animation: "fadeUp .3s ease" }}>
             {/* Header */}
             <div style={{ background: "linear-gradient(135deg,#7c3aed,#6d28d9cc)", borderRadius: 18, padding: "20px 24px", marginBottom: 14, color: "white", display: "flex", alignItems: "center", gap: 18, boxShadow: "0 6px 24px #7c3aed33" }}>
-              <span style={{ fontSize: 40 }}>ðï¸</span>
+              <span style={{ fontSize: 40 }}>🗂️</span>
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 900, fontSize: 22 }}>Common Resources</div>
-                <div style={{ fontSize: 13, opacity: .85, marginTop: 2 }}>{isSchool ? "School" : "Home"} â¢ {commonResources.length} saved resource{commonResources.length !== 1 ? "s" : ""}</div>
+                <div style={{ fontSize: 13, opacity: .85, marginTop: 2 }}>{isSchool ? "School" : "Home"} • {commonResources.length} saved resource{commonResources.length !== 1 ? "s" : ""}</div>
                 <div style={{ fontSize: 12, opacity: .7, marginTop: 4 }}>Links, notes, and general study materials</div>
               </div>
             </div>
 
             {/* Add Resource Form */}
             <Glass style={{ padding: "20px 22px", marginBottom: 14 }}>
-              <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 14, color: "#0f172a" }}>â Add Resource</div>
+              <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 14, color: "#0f172a" }}>➕ Add Resource</div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
                 <div>
                   <div style={{ fontSize: 12, fontWeight: 600, color: "#64748b", marginBottom: 4 }}>Title <span style={{ color: "#ef4444" }}>*</span></div>
                   <input
-                    placeholder="e.g. Chapter 3 Notes, Formula Sheetâ¦"
+                    placeholder="e.g. Chapter 3 Notes, Formula Sheet…"
                     value={commonForm.title}
                     onChange={e => setCommonForm(f => ({ ...f, title: e.target.value }))}
                     style={{ width: "100%", padding: "9px 12px", borderRadius: 10, border: "1px solid #e2e8f0", fontSize: 13, boxSizing: "border-box" as const, outline: "none" }}
@@ -1147,7 +1147,7 @@ export default function App() {
                   <div style={{ fontSize: 12, fontWeight: 600, color: "#64748b", marginBottom: 4 }}>Google Drive / URL</div>
                   <input
                     type="url"
-                    placeholder="https://drive.google.com/â¦"
+                    placeholder="https://drive.google.com/…"
                     value={commonForm.link}
                     onChange={e => setCommonForm(f => ({ ...f, link: e.target.value }))}
                     style={{ width: "100%", padding: "9px 12px", borderRadius: 10, border: "1px solid #e2e8f0", fontSize: 13, boxSizing: "border-box" as const, outline: "none" }}
@@ -1157,7 +1157,7 @@ export default function App() {
               <div style={{ marginBottom: 12 }}>
                 <div style={{ fontSize: 12, fontWeight: 600, color: "#64748b", marginBottom: 4 }}>Notes</div>
                 <textarea
-                  placeholder="Add any notes or descriptionâ¦"
+                  placeholder="Add any notes or description…"
                   value={commonForm.notes}
                   onChange={e => setCommonForm(f => ({ ...f, notes: e.target.value }))}
                   style={{ width: "100%", padding: "9px 12px", borderRadius: 10, border: "1px solid #e2e8f0", fontSize: 13, boxSizing: "border-box" as const, outline: "none", resize: "vertical" as const, minHeight: 72, fontFamily: "inherit" }}
@@ -1168,16 +1168,16 @@ export default function App() {
                 disabled={!commonForm.title.trim() || commonSaving}
                 style={{ background: !commonForm.title.trim() || commonSaving ? "#e2e8f0" : "linear-gradient(135deg,#7c3aed,#6d28d9)", color: !commonForm.title.trim() || commonSaving ? "#94a3b8" : "white", border: "none", borderRadius: 12, padding: "10px 22px", fontWeight: 700, fontSize: 14, cursor: !commonForm.title.trim() || commonSaving ? "default" : "pointer", transition: "all .2s" }}
               >
-                {commonSaving ? "Savingâ¦" : "Save Resource"}
+                {commonSaving ? "Saving…" : "Save Resource"}
               </button>
             </Glass>
 
             {/* Resource List */}
             {commonLoading ? (
-              <div style={{ textAlign: "center" as const, padding: 40, color: "#94a3b8", fontSize: 14 }}>Loadingâ¦</div>
+              <div style={{ textAlign: "center" as const, padding: 40, color: "#94a3b8", fontSize: 14 }}>Loading…</div>
             ) : commonResources.length === 0 ? (
               <Glass style={{ padding: "32px 24px", textAlign: "center" as const }}>
-                <div style={{ fontSize: 36, marginBottom: 10 }}>ðï¸</div>
+                <div style={{ fontSize: 36, marginBottom: 10 }}>🗂️</div>
                 <div style={{ fontWeight: 600, color: "#64748b", fontSize: 15 }}>No resources yet</div>
                 <div style={{ color: "#94a3b8", fontSize: 13, marginTop: 4 }}>Add your first link, note, or resource above.</div>
               </Glass>
@@ -1210,7 +1210,7 @@ export default function App() {
           </div>
         )}
 
-        {/* ââââ SUBJECT VIEW ââââ */}
+        {/* ════ SUBJECT VIEW ════ */}
         {activeSubjects.map(sub => {
           if (tab !== sub.id) return null;
           const chapters = getChapters(sub);
@@ -1233,7 +1233,7 @@ export default function App() {
                       { l: "In Progress", c: chapters.filter(c => getCh(c.id).status === "in_progress").length, cl: "#fcd34d" },
                       { l: "Completed", c: chapters.filter(c => getCh(c.id).status === "completed").length, cl: "#6ee7b7" },
                       { l: "Revised", c: chapters.filter(c => getCh(c.id).status === "revised").length, cl: "#c4b5fd" },
-                      { l: "ð© Flagged", c: chapters.filter(c => getCh(c.id).revision).length, cl: "#fca5a5" },
+                      { l: "🚩 Flagged", c: chapters.filter(c => getCh(c.id).revision).length, cl: "#fca5a5" },
                     ].filter(x => x.c > 0).map(x => <span key={x.l}><strong style={{ color: x.cl, fontSize: 15 }}>{x.c}</strong> {x.l}</span>)}
                   </div>
                 </div>
@@ -1248,7 +1248,7 @@ export default function App() {
 
               {sections.map(sec => (
                 <div key={sec.name || "m"} style={{ marginBottom: 18 }}>
-                  {sec.name && <div style={{ fontWeight: 700, color: sub.color, fontSize: 14, marginBottom: 8, paddingBottom: 6, borderBottom: `2px solid ${sub.color}22` }}>ð {sec.name}</div>}
+                  {sec.name && <div style={{ fontWeight: 700, color: sub.color, fontSize: 14, marginBottom: 8, paddingBottom: 6, borderBottom: `2px solid ${sub.color}22` }}>📌 {sec.name}</div>}
                   {sec.chs.map(ch => {
                     const d = getCh(ch.id);
                     const sm = STATUS_META[d.status];
@@ -1263,9 +1263,9 @@ export default function App() {
                           </button>
                           <div style={{ flex: 1, fontWeight: 600, fontSize: 14, color: "#1e293b", minWidth: 80 }}>{ch.name}</div>
                           <div style={{ display: "flex", gap: 5 }}>
-                            <button onClick={() => toggleFlag(ch.id)} style={{ background: d.revision ? "#fef2f2" : "white", border: `1px solid ${d.revision ? "#fca5a5" : "#e5e7eb"}`, borderRadius: 8, padding: "5px 8px", cursor: "pointer", fontSize: 13 }}>{d.revision ? "ð©" : "ð³ï¸"}</button>
-                            <button onClick={() => setNoteModal({ id: ch.id, name: ch.name, note: d.notes || "" })} style={{ background: d.notes ? "#eff6ff" : "white", border: `1px solid ${d.notes ? "#93c5fd" : "#e5e7eb"}`, borderRadius: 8, padding: "5px 8px", cursor: "pointer", fontSize: 13 }}>{d.notes ? "ð" : "ð"}</button>
-                            <button onClick={() => setPaperModal({ id: ch.id, name: ch.name, subjectId: sub.id, subjectName: sub.name })} style={{ background: hasPapers(d.papers) ? "#f0fdf4" : "white", border: `1px solid ${hasPapers(d.papers) ? "#86efac" : "#e5e7eb"}`, borderRadius: 8, padding: "5px 8px", cursor: "pointer", fontSize: 13 }}>ð</button>
+                            <button onClick={() => toggleFlag(ch.id)} style={{ background: d.revision ? "#fef2f2" : "white", border: `1px solid ${d.revision ? "#fca5a5" : "#e5e7eb"}`, borderRadius: 8, padding: "5px 8px", cursor: "pointer", fontSize: 13 }}>{d.revision ? "🚩" : "🏳️"}</button>
+                            <button onClick={() => setNoteModal({ id: ch.id, name: ch.name, note: d.notes || "" })} style={{ background: d.notes ? "#eff6ff" : "white", border: `1px solid ${d.notes ? "#93c5fd" : "#e5e7eb"}`, borderRadius: 8, padding: "5px 8px", cursor: "pointer", fontSize: 13 }}>{d.notes ? "📝" : "📄"}</button>
+                            <button onClick={() => setPaperModal({ id: ch.id, name: ch.name, subjectId: sub.id, subjectName: sub.name })} style={{ background: hasPapers(d.papers) ? "#f0fdf4" : "white", border: `1px solid ${hasPapers(d.papers) ? "#86efac" : "#e5e7eb"}`, borderRadius: 8, padding: "5px 8px", cursor: "pointer", fontSize: 13 }}>📎</button>
                             <button onClick={() => { setTestModal({ id: ch.id, name: ch.name }); setTestForm({ type: "Class Test", date: new Date().toISOString().slice(0, 10), obtained: "", max: "", notes: "" }); }}
                               style={{ background: "white", border: "1px solid #e5e7eb", borderRadius: 8, padding: "5px 10px", cursor: "pointer", fontSize: 12, fontWeight: 700, color: "#475569" }}>+ Test</button>
                           </div>
@@ -1278,7 +1278,7 @@ export default function App() {
                                 <div key={t.id} style={{ background: "white", borderRadius: 8, padding: "3px 10px", fontSize: 12, border: "1px solid #e5e7eb", display: "flex", gap: 5, alignItems: "center" }}>
                                   <span style={{ color: "#94a3b8" }}>{t.type}</span>
                                   <span style={{ fontWeight: 700, color: scoreColor(p) }}>{t.obtained}/{t.max} ({p}%)</span>
-                                  <button onClick={() => delTest(ch.id, t.id)} style={{ background: "none", border: "none", cursor: "pointer", color: "#d1d5db", fontSize: 11 }}>â</button>
+                                  <button onClick={() => delTest(ch.id, t.id)} style={{ background: "none", border: "none", cursor: "pointer", color: "#d1d5db", fontSize: 11 }}>✕</button>
                                 </div>
                               );
                             })}
@@ -1294,8 +1294,8 @@ export default function App() {
           );
         })}
 
-        {/* ââââ TEST MODAL ââââ */}
-        <Modal open={!!testModal} onClose={() => setTestModal(null)} title="ð Add Test Score">
+        {/* ════ TEST MODAL ════ */}
+        <Modal open={!!testModal} onClose={() => setTestModal(null)} title="📝 Add Test Score">
           {testModal && <>
             <div style={{ color: "#94a3b8", fontSize: 13, marginBottom: 14, marginTop: -8 }}>{testModal.name}</div>
             <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Test Type</div>
@@ -1312,10 +1312,10 @@ export default function App() {
             </div>
             {testForm.obtained && testForm.max && +testForm.max > 0 && (
               <div style={{ textAlign: "center" as const, padding: "8px 0", fontSize: 28, fontWeight: 900, color: scoreColor(pctCalc(+testForm.obtained, +testForm.max)) }}>
-                {pctCalc(+testForm.obtained, +testForm.max)}% {pctCalc(+testForm.obtained, +testForm.max) >= 80 ? "ð" : pctCalc(+testForm.obtained, +testForm.max) >= 60 ? "ð" : "ð"}
+                {pctCalc(+testForm.obtained, +testForm.max)}% {pctCalc(+testForm.obtained, +testForm.max) >= 80 ? "🎉" : pctCalc(+testForm.obtained, +testForm.max) >= 60 ? "👍" : "📖"}
               </div>
             )}
-            <textarea placeholder="Notes (optional)â¦" value={testForm.notes} onChange={e => setTestForm({ ...testForm, notes: e.target.value })} style={inp({ minHeight: 60, resize: "vertical" as const, marginBottom: 14 })} />
+            <textarea placeholder="Notes (optional)…" value={testForm.notes} onChange={e => setTestForm({ ...testForm, notes: e.target.value })} style={inp({ minHeight: 60, resize: "vertical" as const, marginBottom: 14 })} />
             <div style={{ display: "flex", gap: 10 }}>
               <button onClick={() => setTestModal(null)} style={{ flex: 1, padding: 11, borderRadius: 12, border: "1px solid #e2e8f0", background: "white", cursor: "pointer", fontWeight: 600, fontSize: 14 }}>Cancel</button>
               <button onClick={() => { addTest(testModal.id); setTestModal(null); }} style={{ flex: 1, padding: 11, borderRadius: 12, border: "none", background: accentGrad, color: "white", cursor: "pointer", fontWeight: 700, fontSize: 14 }}>Save Score</button>
@@ -1323,12 +1323,12 @@ export default function App() {
           </>}
         </Modal>
 
-        {/* ââââ NOTE MODAL ââââ */}
-        <Modal open={!!noteModal} onClose={() => setNoteModal(null)} title="ð Chapter Notes">
+        {/* ════ NOTE MODAL ════ */}
+        <Modal open={!!noteModal} onClose={() => setNoteModal(null)} title="📄 Chapter Notes">
           {noteModal && <>
             <div style={{ color: "#94a3b8", fontSize: 13, marginBottom: 12, marginTop: -8 }}>{noteModal.name}</div>
             <textarea value={noteModal.note} onChange={e => setNoteModal({ ...noteModal, note: e.target.value })}
-              placeholder="Study notes, formulae, remindersâ¦" style={inp({ minHeight: 120, resize: "vertical" as const, marginBottom: 14 })} />
+              placeholder="Study notes, formulae, reminders…" style={inp({ minHeight: 120, resize: "vertical" as const, marginBottom: 14 })} />
             <div style={{ display: "flex", gap: 10 }}>
               <button onClick={() => setNoteModal(null)} style={{ flex: 1, padding: 11, borderRadius: 12, border: "1px solid #e2e8f0", background: "white", cursor: "pointer", fontWeight: 600, fontSize: 14 }}>Cancel</button>
               <button onClick={() => { saveNote(noteModal.id, noteModal.note); setNoteModal(null); }} style={{ flex: 1, padding: 11, borderRadius: 12, border: "none", background: accentGrad, color: "white", cursor: "pointer", fontWeight: 700, fontSize: 14 }}>Save Note</button>
@@ -1336,12 +1336,12 @@ export default function App() {
           </>}
         </Modal>
 
-        {/* ââââ PAPERS MODAL ââââ */}
-        <Modal open={!!paperModal} onClose={() => setPaperModal(null)} title="ð Papers & Resources">
+        {/* ════ PAPERS MODAL ════ */}
+        <Modal open={!!paperModal} onClose={() => setPaperModal(null)} title="📎 Papers & Resources">
           {paperModal && <>
             <div style={{ color: "#94a3b8", fontSize: 13, marginBottom: 12, marginTop: -8 }}>{paperModal.name}</div>
             <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 16, background: "#f8fafc", borderRadius: 8, padding: "8px 12px" }}>
-              Upload to Google Drive â Right click â Share â Copy link â Paste below
+              Upload to Google Drive → Right click → Share → Copy link → Paste below
             </div>
             {resourcesLoading ? (
               <div style={{ textAlign: "center", padding: "20px 0", color: "#94a3b8", fontSize: 13 }}>Loading...</div>
@@ -1355,10 +1355,10 @@ export default function App() {
                       <div key={r.id} style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 6 }}>
                         <a href={r.link} target="_blank" rel="noreferrer"
                           style={{ flex: 1, fontSize: 12, color, wordBreak: "break-all" as const, padding: "6px 8px", background: "white", borderRadius: 7, border: `1px solid ${border}`, textDecoration: "none" }}>
-                          ð {r.link}
+                          🔗 {r.link}
                         </a>
                         <button onClick={() => handleDeleteResource(r.id)}
-                          style={{ background: "#fee2e2", border: "none", borderRadius: 7, padding: "6px 8px", cursor: "pointer", color: "#dc2626", fontSize: 12, fontWeight: 700, flexShrink: 0 }}>â</button>
+                          style={{ background: "#fee2e2", border: "none", borderRadius: 7, padding: "6px 8px", cursor: "pointer", color: "#dc2626", fontSize: 12, fontWeight: 700, flexShrink: 0 }}>✕</button>
                       </div>
                     ))}
                     <div style={{ display: "flex", gap: 6, marginTop: section.length ? 6 : 0 }}>
@@ -1377,8 +1377,8 @@ export default function App() {
           </>}
         </Modal>
 
-        {/* ââââ EDIT COMMON RESOURCE MODAL ââââ */}
-        <Modal open={!!editingResource} onClose={() => setEditingResource(null)} title="âï¸ Edit Resource">
+        {/* ════ EDIT COMMON RESOURCE MODAL ════ */}
+        <Modal open={!!editingResource} onClose={() => setEditingResource(null)} title="✏️ Edit Resource">
           {editingResource && <>
             <div style={{ fontSize: 12, fontWeight: 600, color: "#64748b", marginBottom: 4 }}>Title <span style={{ color: "#ef4444" }}>*</span></div>
             <input
@@ -1391,7 +1391,7 @@ export default function App() {
               type="url"
               value={editingResource.link}
               onChange={e => setEditingResource(r => r && ({ ...r, link: e.target.value }))}
-              placeholder="https://drive.google.com/â¦"
+              placeholder="https://drive.google.com/…"
               style={{ width: "100%", padding: "9px 12px", borderRadius: 10, border: "1px solid #e2e8f0", fontSize: 14, boxSizing: "border-box" as const, outline: "none", marginBottom: 10 }}
             />
             <div style={{ fontSize: 12, fontWeight: 600, color: "#64748b", marginBottom: 4 }}>Notes</div>
@@ -1406,13 +1406,13 @@ export default function App() {
                 onClick={saveEditResource}
                 disabled={!editingResource.title.trim() || commonSaving}
                 style={{ flex: 1, padding: 11, borderRadius: 12, border: "none", background: !editingResource.title.trim() || commonSaving ? "#e2e8f0" : "linear-gradient(135deg,#7c3aed,#6d28d9)", color: !editingResource.title.trim() || commonSaving ? "#94a3b8" : "white", cursor: !editingResource.title.trim() || commonSaving ? "default" : "pointer", fontWeight: 700, fontSize: 14 }}>
-                {commonSaving ? "Savingâ¦" : "Save Changes"}
+                {commonSaving ? "Saving…" : "Save Changes"}
               </button>
             </div>
           </>}
         </Modal>
 
-        {/* ââââ STATUS FILTER MODAL ââââ */}
+        {/* ════ STATUS FILTER MODAL ════ */}
         <Modal open={!!statusModal} onClose={() => setStatusModal(null)} title={`${statusModal?.label || ""} Chapters`}>
           {statusModal && (() => {
             const matchFn = (d: ChapterData) =>
@@ -1437,7 +1437,7 @@ export default function App() {
                 <div key={m}>
                   <div style={{ fontWeight: 700, fontSize: 13, color: "#64748b", margin: "14px 0 8px",
                     paddingBottom: 6, borderBottom: "1px solid #f1f5f9" }}>
-                    {m === "home" ? "ð  Home" : "ð« School"} â {matched.length} chapter{matched.length !== 1 ? "s" : ""}
+                    {m === "home" ? "🏠 Home" : "🏫 School"} — {matched.length} chapter{matched.length !== 1 ? "s" : ""}
                   </div>
                   {Object.entries(bySubject).map(([subName, chs]) => {
                     const first = chs[0];
@@ -1467,7 +1467,7 @@ export default function App() {
         </Modal>
       </div>
 
-      {/* ââââ FOOTER ââââ */}
+      {/* ════ FOOTER ════ */}
       <footer style={{ background: "linear-gradient(135deg,#0f172a,#1e1b4b)", color: "white", marginTop: 40, padding: "28px 20px 20px" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
@@ -1484,10 +1484,10 @@ export default function App() {
             ))}
           </div>
           <div style={{ borderTop: "1px solid rgba(255,255,255,.07)", paddingTop: 14, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
-            <div style={{ fontSize: 12, opacity: .35 }}>Built with â¤ï¸ for Savvy â¢ {new Date().getFullYear()} â¢ All the best! ð¯</div>
+            <div style={{ fontSize: 12, opacity: .35 }}>Built with ❤️ for Savvy • {new Date().getFullYear()} • All the best! 🎯</div>
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#34d399", boxShadow: "0 0 6px #34d399", animation: "pulse2 2s infinite" }} />
-              <span style={{ fontSize: 11, opacity: .4 }}>Live â¢ saviosijo.com</span>
+              <span style={{ fontSize: 11, opacity: .4 }}>Live • saviosijo.com</span>
             </div>
           </div>
         </div>
