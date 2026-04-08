@@ -1050,39 +1050,27 @@ export default function Letty() {
               </Glass>
             ) : (
               <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
-                {commonResources.map(r => (
-                  <Glass key={r.id} style={{ padding: "16px 18px", borderLeft: "4px solid #7c3aed" }}>
-                    <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontWeight: 700, fontSize: 15, color: "#0f172a", marginBottom: r.link || r.notes ? 6 : 0 }}>{r.title}</div>
-                        {r.link && (
-                          <a href={r.link} target="_blank" rel="noreferrer"
-                            style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 13, color: "#7c3aed", textDecoration: "none", background: "#f5f3ff", borderRadius: 8, padding: "3px 10px", marginBottom: r.notes ? 6 : 0, border: "1px solid #ddd6fe", maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>
-                            🔗 {r.link.length > 50 ? r.link.slice(0, 50) + "…" : r.link}
-                          </a>
-                        )}
-                        {r.notes && (
-                          <div style={{ fontSize: 13, color: "#475569", background: "#f8fafc", borderRadius: 8, padding: "6px 10px", whiteSpace: "pre-wrap" as const, lineHeight: 1.5 }}>{r.notes}</div>
-                        )}
-                        <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 6 }}>
-                          Added {new Date(r.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-                          {r.updated_at !== r.created_at && ` • Edited ${new Date(r.updated_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}`}
-                        </div>
-                      </div>
-                      <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-                        <button
-                          onClick={() => setEditingResource({ ...r })}
-                          style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 8, padding: "6px 10px", cursor: "pointer", fontSize: 13, color: "#2563eb", fontWeight: 600 }}>
-                          ✏️ Edit
-                        </button>
-                        <button
-                          onClick={() => { if (window.confirm(`Delete "${r.title}"?`)) deleteCommonRes(r.id); }}
-                          style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 8, padding: "6px 10px", cursor: "pointer", fontSize: 13, color: "#dc2626", fontWeight: 600 }}>
-                          🗑️
-                        </button>
-                      </div>
+                {commonResources.map((r, idx) => (
+                  <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 14px", borderBottom: "1px solid #ede9fe", fontSize: 14 }}>
+                    <span style={{ color: "#7c3aed", fontWeight: 700, minWidth: 22, flexShrink: 0 }}>{idx + 1}.</span>
+                    <span style={{ fontWeight: 600, flexShrink: 0 }}>{r.title}</span>
+                    {r.link && (
+                      <a href={r.link} target="_blank" rel="noopener noreferrer"
+                        style={{ color: "#2563eb", fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
+                        🔗 {r.link}
+                      </a>
+                    )}
+                    <div style={{ display: "flex", gap: 6, flexShrink: 0, marginLeft: "auto" }}>
+                      <button onClick={() => setEditingResource({ ...r })}
+                        style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 6, padding: "3px 8px", cursor: "pointer", fontSize: 12, color: "#2563eb", fontWeight: 600 }}>
+                        ✏️ Edit
+                      </button>
+                      <button onClick={() => { if (window.confirm(`Delete "${r.title}"?`)) deleteCommonRes(r.id); }}
+                        style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 6, padding: "3px 8px", cursor: "pointer", fontSize: 13, color: "#dc2626" }}>
+                        🗑️
+                      </button>
                     </div>
-                  </Glass>
+                  </div>
                 ))}
               </div>
             )}
