@@ -299,7 +299,7 @@ const SUBJECTS: SubjectDef[] = [
       { name: "Kshitij – Kavya", chapters: ["Surdas – Pad","Tulsidas – Ram-Lakshman-Parshuram Samvad","Jaishankar Prasad – Atmakathya","Suryakant Tripathi 'Nirala' – Utsah / Att Nahi Rahi","Nagarjun – Yah Danturit Muskan / Fasal","Mangalesh Dabral – Sangatkar"] },
       { name: "Kshitij – Gadya", chapters: ["Swayam Prakash – Netaji ka Chashma","Ram Vriksh Benipuri – Balgobin Bhagat","Yashpal – Lakhnavi Andaaz","Mannu Bhandari – Ek Kahani Yeh Bhi","Hazari Prasad Dwivedi – Sanskriti","Habib Tanvir – Kartoos"] },
       { name: "Kritika", chapters: ["Mata ka Anchal","Sana-Sana Haath Jodi","Main Kyun Likhta Hoon"] },
-    ] }
+    ] },
   { id: "sst", name: "Social Studies", icon: "🌍", color: "#7c3aed",
     sections: [
       { name: "History", chapters: ["The Rise of Nationalism in Europe","Nationalism in India","The Making of a Global World","The Age of Industrialisation","Print Culture and the Modern World"] },
@@ -509,7 +509,7 @@ const SCHOOL_SUBJECTS: SubjectDef[] = [
       { name: "Kshitij – Kavya", chapters: ["Surdas – Pad","Tulsidas – Ram-Lakshman-Parshuram Samvad","Jaishankar Prasad – Atmakathya","Suryakant Tripathi 'Nirala' – Utsah / Att Nahi Rahi","Nagarjun – Yah Danturit Muskan / Fasal","Mangalesh Dabral – Sangatkar"] },
       { name: "Kshitij – Gadya", chapters: ["Swayam Prakash – Netaji ka Chashma","Ram Vriksh Benipuri – Balgobin Bhagat","Yashpal – Lakhnavi Andaaz","Mannu Bhandari – Ek Kahani Yeh Bhi","Hazari Prasad Dwivedi – Sanskriti","Habib Tanvir – Kartoos"] },
       { name: "Kritika", chapters: ["Mata ka Anchal","Sana-Sana Haath Jodi","Main Kyun Likhta Hoon"] },
-    ] }
+    ] },
   { id: "sst", name: "Social Studies", icon: "🌍", color: "#7c3aed",
     sections: [
       { name: "History", chapters: ["The Rise of Nationalism in Europe","Nationalism in India","The Making of a Global World","The Age of Industrialisation","Print Culture and the Modern World"] },
