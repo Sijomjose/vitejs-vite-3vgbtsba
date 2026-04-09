@@ -5,7 +5,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-/* ───────── Supabase Config ───────── */
+/* âââââââââ Supabase Config âââââââââ */
 const SUPA_URL = "https://mlfgdutctvbvqwebqajp.supabase.co";
 const SUPA_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1sZmdkdXRjdHZidnF3ZWJxYWpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMzQ2MDIsImV4cCI6MjA4OTgxMDYwMn0.TPBeT6y-fFGAgcME_mmKqBUYHFUMVB1FO3wrAhneKW4";
@@ -14,7 +14,7 @@ const LS_KEY = "letty_v4";
 const EXAM_DATE = new Date("2027-03-15T00:00:00");
 const START_DATE = new Date("2026-04-04T00:00:00");
 
-/* ───────── Types ───────── */
+/* âââââââââ Types âââââââââ */
 interface ChapterResource {
   id: string;
   tracker: string;
@@ -59,7 +59,7 @@ interface SubjectStat extends SubjectDef {
   total: number; done: number; prog: number; flagged: number; pct: number;
 }
 
-/* ───────── Data helpers ───────── */
+/* âââââââââ Data helpers âââââââââ */
 async function fetchData(rowId: string): Promise<Record<string, ChapterData> | null> {
   try {
     const res = await fetch(
@@ -210,193 +210,193 @@ function getCountdown() {
   };
 }
 
-/* ───────── Subjects ───────── */
+/* âââââââââ Subjects âââââââââ */
 const LETTY_SUBJECTS: SubjectDef[] = [
-  { id: "maths", name: "Mathematics", icon: "📐", color: "#2563eb",
+  { id: "maths", name: "Mathematics", icon: "ð", color: "#2563eb",
     sections: [
-      { name: "Ganita Prakash – Part 1", chapters: ["A Square and a Cube","Power Play","A Story of Numbers","Quadrilaterals","Number Play","We Distribute, Yet Things Multiply","Proportional Reasoning-1"] },
-      { name: "Ganita Prakash – Part 2", chapters: ["Fractions in Disguise","The Baudhayana–Pythagoras Theorem","Proportional Reasoning-2","Exploring Some Geometric Themes","Tales by Dots and Lines","Algebra Play","Area"] },
-    ] }
-  { id: "science", name: "Science", icon: "🔬", color: "#059669",
-    chapters: ["Exploring the Investigative World of Science","The Invisible Living World: Beyond Our Naked Eye","Health: The Ultimate Treasure","Electricity: Magnetic and Heating Effects","Exploring Forces","Pressure, Winds, Storms and Cyclones","Particulate Nature of Matter","Nature of Matter: Elements, Compounds and Mixtures","The Amazing World of Solutes, Solvents and Solutions","Light: Mirrors and Lenses","Keeping Time with the Skies","How Nature Works in Harmony","Our Home: Earth, a Unique Life Sustaining Planet"] }
-  { id: "english", name: "English", icon: "📖", color: "#d97706",
+      { name: "Ganita Prakash â Part 1", chapters: ["A Square and a Cube","Power Play","A Story of Numbers","Quadrilaterals","Number Play","We Distribute, Yet Things Multiply","Proportional Reasoning-1"] },
+      { name: "Ganita Prakash â Part 2", chapters: ["Fractions in Disguise","The BaudhayanaâPythagoras Theorem","Proportional Reasoning-2","Exploring Some Geometric Themes","Tales by Dots and Lines","Algebra Play","Area"] },
+    ] },
+  { id: "science", name: "Science", icon: "ð¬", color: "#059669",
+    chapters: ["Exploring the Investigative World of Science","The Invisible Living World: Beyond Our Naked Eye","Health: The Ultimate Treasure","Electricity: Magnetic and Heating Effects","Exploring Forces","Pressure, Winds, Storms and Cyclones","Particulate Nature of Matter","Nature of Matter: Elements, Compounds and Mixtures","The Amazing World of Solutes, Solvents and Solutions","Light: Mirrors and Lenses","Keeping Time with the Skies","How Nature Works in Harmony","Our Home: Earth, a Unique Life Sustaining Planet"] },
+  { id: "english", name: "English", icon: "ð", color: "#d97706",
     sections: [
-      { name: "Honeydew – Prose", chapters: ["The Best Christmas Present in the World","The Tsunami","Glimpses of the Past","Bepin Choudhury's Lapse of Memory","The Summit Within","This is Jody's Fawn","A Visit to Cambridge","A Short Monsoon Diary","The Great Stone Face – I","The Great Stone Face – II"] },
-      { name: "Honeydew – Poetry", chapters: ["The Ant and the Cricket","Geography Lesson","Macavity: The Mystery Cat","The Last Bargain","The School Boy","The Duck and the Kangaroo","When I Set Out for Lyonnesse","On the Grasshopper and Cricket"] },
-      { name: "It So Happened (Supplementary)", chapters: ["How the Camel Got His Hump","Children at Work","The Selfish Giant","The Treasure Within","Princess September","The Fight","The Open Window","Jalebis","The Comet – I","The Comet – II"] },
+      { name: "Honeydew â Prose", chapters: ["The Best Christmas Present in the World","The Tsunami","Glimpses of the Past","Bepin Choudhury's Lapse of Memory","The Summit Within","This is Jody's Fawn","A Visit to Cambridge","A Short Monsoon Diary","The Great Stone Face â I","The Great Stone Face â II"] },
+      { name: "Honeydew â Poetry", chapters: ["The Ant and the Cricket","Geography Lesson","Macavity: The Mystery Cat","The Last Bargain","The School Boy","The Duck and the Kangaroo","When I Set Out for Lyonnesse","On the Grasshopper and Cricket"] },
+      { name: "It So Happened (Supplementary)", chapters: ["How the Camel Got His Hump","Children at Work","The Selfish Giant","The Treasure Within","Princess September","The Fight","The Open Window","Jalebis","The Comet â I","The Comet â II"] },
     ] },
 
-  { id: "enggrammar", name: "English Grammar", icon: "✏️", color: "#0891b2",
+  { id: "enggrammar", name: "English Grammar", icon: "âï¸", color: "#0891b2",
     sections: [
       { name: "Present Tenses", chapters: [
-        "Unit 1 – am/is/are",
-        "Unit 2 – am/is/are (questions)",
-        "Unit 3 – I am doing (present continuous)",
-        "Unit 4 – are you doing? (present continuous questions)",
-        "Unit 5 – I do/work etc. (present simple)",
-        "Unit 6 – I don't... (present simple negative)",
-        "Unit 7 – Do you...? (present simple questions)",
-        "Unit 8 – I am doing and I do (present continuous and present simple)",
-        "Unit 9 – I have... / I've got...",
+        "Unit 1 â am/is/are",
+        "Unit 2 â am/is/are (questions)",
+        "Unit 3 â I am doing (present continuous)",
+        "Unit 4 â are you doing? (present continuous questions)",
+        "Unit 5 â I do/work etc. (present simple)",
+        "Unit 6 â I don't... (present simple negative)",
+        "Unit 7 â Do you...? (present simple questions)",
+        "Unit 8 â I am doing and I do (present continuous and present simple)",
+        "Unit 9 â I have... / I've got...",
       ]},
       { name: "Past Tenses", chapters: [
-        "Unit 10 – was/were",
-        "Unit 11 – worked/got/went etc. (past simple)",
-        "Unit 12 – I didn't... / Did you...? (past simple negative and questions)",
-        "Unit 13 – I was doing (past continuous)",
-        "Unit 14 – I was doing (past continuous) and I did (past simple)",
+        "Unit 10 â was/were",
+        "Unit 11 â worked/got/went etc. (past simple)",
+        "Unit 12 â I didn't... / Did you...? (past simple negative and questions)",
+        "Unit 13 â I was doing (past continuous)",
+        "Unit 14 â I was doing (past continuous) and I did (past simple)",
       ]},
       { name: "Present Perfect and Passive", chapters: [
-        "Unit 15 – I have done (present perfect 1)",
-        "Unit 16 – I've just... / I've already... / I haven't...yet (present perfect 2)",
-        "Unit 17 – Have you ever...? (present perfect 3)",
-        "Unit 18 – How long have you...? (present perfect 4)",
-        "Unit 19 – for / since / ago",
-        "Unit 20 – I have done (present perfect) and I did (past simple)",
-        "Unit 21 – is done / was done (passive 1)",
-        "Unit 22 – is being done / has been done (passive 2)",
-        "Unit 23 – be/have/do in present and past tenses",
-        "Unit 24 – Regular and irregular verbs",
+        "Unit 15 â I have done (present perfect 1)",
+        "Unit 16 â I've just... / I've already... / I haven't...yet (present perfect 2)",
+        "Unit 17 â Have you ever...? (present perfect 3)",
+        "Unit 18 â How long have you...? (present perfect 4)",
+        "Unit 19 â for / since / ago",
+        "Unit 20 â I have done (present perfect) and I did (past simple)",
+        "Unit 21 â is done / was done (passive 1)",
+        "Unit 22 â is being done / has been done (passive 2)",
+        "Unit 23 â be/have/do in present and past tenses",
+        "Unit 24 â Regular and irregular verbs",
       ]},
       { name: "Used to, Future and Might", chapters: [
-        "Unit 25 – I used to...",
-        "Unit 26 – What are you doing tomorrow?",
-        "Unit 27 – I'm going to...",
-        "Unit 28 – will/shall (1)",
-        "Unit 29 – will/shall (2)",
-        "Unit 30 – might",
+        "Unit 25 â I used to...",
+        "Unit 26 â What are you doing tomorrow?",
+        "Unit 27 â I'm going to...",
+        "Unit 28 â will/shall (1)",
+        "Unit 29 â will/shall (2)",
+        "Unit 30 â might",
       ]},
       { name: "Modal Verbs", chapters: [
-        "Unit 31 – can and could",
-        "Unit 32 – must / mustn't / needn't",
-        "Unit 33 – should",
-        "Unit 34 – I have to...",
-        "Unit 35 – Would you like...? / I'd like...",
+        "Unit 31 â can and could",
+        "Unit 32 â must / mustn't / needn't",
+        "Unit 33 â should",
+        "Unit 34 â I have to...",
+        "Unit 35 â Would you like...? / I'd like...",
       ]},
       { name: "There, It and Auxiliaries", chapters: [
-        "Unit 36 – there is / there are",
-        "Unit 37 – there was/were / there has/have been",
-        "Unit 38 – It... / there will be",
-        "Unit 39 – I am / I don't etc. (short answers)",
-        "Unit 40 – Have you? / Are you? / Don't you? etc.",
-        "Unit 41 – too/either / so am I / neither do I etc.",
-        "Unit 42 – isn't / haven't / don't etc. (negatives)",
+        "Unit 36 â there is / there are",
+        "Unit 37 â there was/were / there has/have been",
+        "Unit 38 â It... / there will be",
+        "Unit 39 â I am / I don't etc. (short answers)",
+        "Unit 40 â Have you? / Are you? / Don't you? etc.",
+        "Unit 41 â too/either / so am I / neither do I etc.",
+        "Unit 42 â isn't / haven't / don't etc. (negatives)",
       ]},
       { name: "Questions and Reported Speech", chapters: [
-        "Unit 43 – is it...? / have you...? / do they...? etc. (questions 1)",
-        "Unit 44 – Who saw you? / Who did you see? (questions 2)",
-        "Unit 45 – Who is she talking to? / What is it like? (questions 3)",
-        "Unit 46 – What...? / Which...? / How...?",
-        "Unit 47 – How long does it take...?",
-        "Unit 48 – Do you know where...? / I don't know what... etc.",
-        "Unit 49 – She said that... / He told me that...",
+        "Unit 43 â is it...? / have you...? / do they...? etc. (questions 1)",
+        "Unit 44 â Who saw you? / Who did you see? (questions 2)",
+        "Unit 45 â Who is she talking to? / What is it like? (questions 3)",
+        "Unit 46 â What...? / Which...? / How...?",
+        "Unit 47 â How long does it take...?",
+        "Unit 48 â Do you know where...? / I don't know what... etc.",
+        "Unit 49 â She said that... / He told me that...",
       ]},
       { name: "Verb Patterns", chapters: [
-        "Unit 50 – work/working / go/going / do/doing",
-        "Unit 51 – to... (I want to do) and -ing (I enjoy doing)",
-        "Unit 52 – I want you to... / I told you to...",
-        "Unit 53 – I went to the shop to...",
-        "Unit 54 – go to... / go on... / go for... / go -ing",
-        "Unit 55 – get",
-        "Unit 56 – do and make",
-        "Unit 57 – have",
+        "Unit 50 â work/working / go/going / do/doing",
+        "Unit 51 â to... (I want to do) and -ing (I enjoy doing)",
+        "Unit 52 â I want you to... / I told you to...",
+        "Unit 53 â I went to the shop to...",
+        "Unit 54 â go to... / go on... / go for... / go -ing",
+        "Unit 55 â get",
+        "Unit 56 â do and make",
+        "Unit 57 â have",
       ]},
       { name: "Pronouns and Possessives", chapters: [
-        "Unit 58 – I/me / he/him / they/them etc.",
-        "Unit 59 – my/his/their etc.",
-        "Unit 60 – Whose is this? / It's mine/yours/hers etc.",
-        "Unit 61 – I/me/my/mine",
-        "Unit 62 – myself/yourself/themselves etc.",
-        "Unit 63 – 's (Ann's camera / my brother's car) etc.",
+        "Unit 58 â I/me / he/him / they/them etc.",
+        "Unit 59 â my/his/their etc.",
+        "Unit 60 â Whose is this? / It's mine/yours/hers etc.",
+        "Unit 61 â I/me/my/mine",
+        "Unit 62 â myself/yourself/themselves etc.",
+        "Unit 63 â 's (Ann's camera / my brother's car) etc.",
       ]},
       { name: "Articles and Nouns", chapters: [
-        "Unit 64 – a/an...",
-        "Unit 65 – flower(s) / bus(es) (singular and plural)",
-        "Unit 66 – a car / some money (countable/uncountable 1)",
-        "Unit 67 – a car / some money (countable/uncountable 2)",
-        "Unit 68 – a/an and the",
-        "Unit 69 – the...",
-        "Unit 70 – go to work / go home / go to the cinema",
-        "Unit 71 – I like music / I hate exams",
-        "Unit 72 – the... (names of places)",
+        "Unit 64 â a/an...",
+        "Unit 65 â flower(s) / bus(es) (singular and plural)",
+        "Unit 66 â a car / some money (countable/uncountable 1)",
+        "Unit 67 â a car / some money (countable/uncountable 2)",
+        "Unit 68 â a/an and the",
+        "Unit 69 â the...",
+        "Unit 70 â go to work / go home / go to the cinema",
+        "Unit 71 â I like music / I hate exams",
+        "Unit 72 â the... (names of places)",
       ]},
       { name: "Determiners", chapters: [
-        "Unit 73 – this/that/these/those",
-        "Unit 74 – one/ones",
-        "Unit 75 – some and any",
-        "Unit 76 – not + any / no / none",
-        "Unit 77 – not + anybody/anyone/anything / nobody/no-one/nothing",
-        "Unit 78 – somebody/anything/nowhere etc.",
-        "Unit 79 – every and all",
-        "Unit 80 – all / most / some / any / no/none",
-        "Unit 81 – both / either / neither",
-        "Unit 82 – a lot / much / many",
-        "Unit 83 – (a) little / (a) few",
+        "Unit 73 â this/that/these/those",
+        "Unit 74 â one/ones",
+        "Unit 75 â some and any",
+        "Unit 76 â not + any / no / none",
+        "Unit 77 â not + anybody/anyone/anything / nobody/no-one/nothing",
+        "Unit 78 â somebody/anything/nowhere etc.",
+        "Unit 79 â every and all",
+        "Unit 80 â all / most / some / any / no/none",
+        "Unit 81 â both / either / neither",
+        "Unit 82 â a lot / much / many",
+        "Unit 83 â (a) little / (a) few",
       ]},
       { name: "Adjectives, Adverbs and Word Order", chapters: [
-        "Unit 84 – old/new/interesting etc. (adjectives)",
-        "Unit 85 – quickly/badly/suddenly etc. (adverbs)",
-        "Unit 86 – old/older / expensive/more expensive",
-        "Unit 87 – older than... / more expensive than...",
-        "Unit 88 – not as... as",
-        "Unit 89 – the oldest / the most expensive",
-        "Unit 90 – enough",
-        "Unit 91 – too",
-        "Unit 92 – He speaks English very well. (word order 1)",
-        "Unit 93 – always/usually/often etc. (word order 2)",
-        "Unit 94 – still / yet / already",
-        "Unit 95 – Give me that book! / Give it to me!",
+        "Unit 84 â old/new/interesting etc. (adjectives)",
+        "Unit 85 â quickly/badly/suddenly etc. (adverbs)",
+        "Unit 86 â old/older / expensive/more expensive",
+        "Unit 87 â older than... / more expensive than...",
+        "Unit 88 â not as... as",
+        "Unit 89 â the oldest / the most expensive",
+        "Unit 90 â enough",
+        "Unit 91 â too",
+        "Unit 92 â He speaks English very well. (word order 1)",
+        "Unit 93 â always/usually/often etc. (word order 2)",
+        "Unit 94 â still / yet / already",
+        "Unit 95 â Give me that book! / Give it to me!",
       ]},
       { name: "Prepositions", chapters: [
-        "Unit 96 – at 8 o'clock / on Monday / in April",
-        "Unit 97 – from...to / until / since / for",
-        "Unit 98 – before / after / during / while",
-        "Unit 99 – in / at / on (places 1)",
-        "Unit 100 – in / at / on (places 2)",
-        "Unit 101 – to / in / at (places 3)",
-        "Unit 102 – under / behind / opposite etc. (prepositions)",
-        "Unit 103 – up / over / through etc. (prepositions)",
-        "Unit 104 – on / at / by / with / about (prepositions)",
-        "Unit 105 – afraid of... / good at... etc. / preposition + -ing",
-        "Unit 106 – listen to... / look at... etc. (verb + preposition)",
-        "Unit 107 – go in / fall off / run away etc. (phrasal verbs 1)",
-        "Unit 108 – put on your shoes / put your shoes on (phrasal verbs 2)",
+        "Unit 96 â at 8 o'clock / on Monday / in April",
+        "Unit 97 â from...to / until / since / for",
+        "Unit 98 â before / after / during / while",
+        "Unit 99 â in / at / on (places 1)",
+        "Unit 100 â in / at / on (places 2)",
+        "Unit 101 â to / in / at (places 3)",
+        "Unit 102 â under / behind / opposite etc. (prepositions)",
+        "Unit 103 â up / over / through etc. (prepositions)",
+        "Unit 104 â on / at / by / with / about (prepositions)",
+        "Unit 105 â afraid of... / good at... etc. / preposition + -ing",
+        "Unit 106 â listen to... / look at... etc. (verb + preposition)",
+        "Unit 107 â go in / fall off / run away etc. (phrasal verbs 1)",
+        "Unit 108 â put on your shoes / put your shoes on (phrasal verbs 2)",
       ]},
       { name: "Conjunctions and Relative Clauses", chapters: [
-        "Unit 109 – and / but / or / so / because",
-        "Unit 110 – When...",
-        "Unit 111 – If we go... / If you see... etc.",
-        "Unit 112 – If I had... / If we went... etc.",
-        "Unit 113 – a person who... / a thing that/which... (relative clauses 1)",
-        "Unit 114 – the people we met / the hotel you stayed at (relative clauses 2)",
+        "Unit 109 â and / but / or / so / because",
+        "Unit 110 â When...",
+        "Unit 111 â If we go... / If you see... etc.",
+        "Unit 112 â If I had... / If we went... etc.",
+        "Unit 113 â a person who... / a thing that/which... (relative clauses 1)",
+        "Unit 114 â the people we met / the hotel you stayed at (relative clauses 2)",
       ]},
       { name: "Appendices", chapters: [
-        "Appendix 1 – Active and passive",
-        "Appendix 2 – List of irregular verbs",
-        "Appendix 3 – Irregular verbs in groups",
-        "Appendix 4 – Short forms (he's / I'd / I don't etc.)",
-        "Appendix 5 – Spelling",
-        "Appendix 6 – Phrasal verbs (look out / take off etc.)",
-        "Appendix 7 – Phrasal verbs + object (fill in a form / put out a fire etc.)",
+        "Appendix 1 â Active and passive",
+        "Appendix 2 â List of irregular verbs",
+        "Appendix 3 â Irregular verbs in groups",
+        "Appendix 4 â Short forms (he's / I'd / I don't etc.)",
+        "Appendix 5 â Spelling",
+        "Appendix 6 â Phrasal verbs (look out / take off etc.)",
+        "Appendix 7 â Phrasal verbs + object (fill in a form / put out a fire etc.)",
       ]},
       { name: "Additional Exercises", chapters: [
         "Additional Exercises",
       ]},
     ] },
 
-  { id: "hindi", name: "Hindi", icon: "🪔", color: "#dc2626",
+  { id: "hindi", name: "Hindi", icon: "ðª", color: "#dc2626",
     sections: [
       { name: "Malhar", chapters: ["Laakh Ki Chudiyaan","Bus Ki Yaatra","Deevanon Ki Hasti","Bhagvan Ke Daakiye","Kya Nirash Hua Jaye","Yeh Sabse Kathin Samay Nahin","Kabir Ki Saakhiyaan","Sudama Charit","Jahaan Pahiya Hai","Akbari Lota"] },
-    ] }
-  { id: "sst", name: "Social Studies", icon: "🌍", color: "#7c3aed",
+    ] },
+  { id: "sst", name: "Social Studies", icon: "ð", color: "#7c3aed",
     sections: [
-      { name: "Exploring Society – Theme A: Land and People", chapters: ["Natural Resources and Their Use"] },
-      { name: "Exploring Society – Theme B: Tapestry of the Past", chapters: ["Reshaping India's Political Map","The Rise of the Marathas","The Colonial Era in India"] },
-      { name: "Exploring Society – Theme D: Governance and Democracy", chapters: ["Universal Franchise and India's Electoral System","The Parliamentary System: Legislature and Executive"] },
-      { name: "Exploring Society – Theme E: Economy", chapters: ["Factors of Production"] },
-    ] }
-  { id: "sanskrit", name: "Sanskrit", icon: "🕉️", color: "#b45309",
-    chapters: ["सुभाषितानि – Subhashitani","बिलस्य वाणी न कदापि मे श्रुता – Bilasya Vani Na Kadapi Me Shruta","डिजीभारतम् – DigiiBharatam","सदैव पुरतो निधेहि चरणम् – Sadaiva Purato Nidhehi Charanam","कण्टकेनैव कण्टकम् – Kantakenaiva Kantakam","गृहं शून्यं सुतां विना – Griham Shunyam Sutam Vina","भारतजनताऽहम् – Bharat Janataaham","संसारसागरस्य नायकाः – Sansarasagarasya Nayakah","सप्तभगिन्यः – Saptabhaginyah","अश्वः एव मम प्राणाः – Ashvah Eva Mama Pranah","समवायो हि दुर्जयः – Samavayo Hi Durjayah","कः रक्षति कः रक्षितः – Kah Rakshati Kah Rakshitah","क्षितौ राजते भारतस्वर्णभूमिः – Kshitau Rajate Bharatasvarnadbbhumih","आर्यभटः – Aryabhatah","मातृवाणी – Matrivani"] },
+      { name: "Exploring Society â Theme A: Land and People", chapters: ["Natural Resources and Their Use"] },
+      { name: "Exploring Society â Theme B: Tapestry of the Past", chapters: ["Reshaping India's Political Map","The Rise of the Marathas","The Colonial Era in India"] },
+      { name: "Exploring Society â Theme D: Governance and Democracy", chapters: ["Universal Franchise and India's Electoral System","The Parliamentary System: Legislature and Executive"] },
+      { name: "Exploring Society â Theme E: Economy", chapters: ["Factors of Production"] },
+    ] },
+  { id: "sanskrit", name: "Sanskrit", icon: "ðï¸", color: "#b45309",
+    chapters: ["à¤¸à¥à¤­à¤¾à¤·à¤¿à¤¤à¤¾à¤¨à¤¿ â Subhashitani","à¤¬à¤¿à¤²à¤¸à¥à¤¯ à¤µà¤¾à¤£à¥ à¤¨ à¤à¤¦à¤¾à¤ªà¤¿ à¤®à¥ à¤¶à¥à¤°à¥à¤¤à¤¾ â Bilasya Vani Na Kadapi Me Shruta","à¤¡à¤¿à¤à¥à¤­à¤¾à¤°à¤¤à¤®à¥ â DigiiBharatam","à¤¸à¤¦à¥à¤µ à¤ªà¥à¤°à¤¤à¥ à¤¨à¤¿à¤§à¥à¤¹à¤¿ à¤à¤°à¤£à¤®à¥ â Sadaiva Purato Nidhehi Charanam","à¤à¤£à¥à¤à¤à¥à¤¨à¥à¤µ à¤à¤£à¥à¤à¤à¤®à¥ â Kantakenaiva Kantakam","à¤à¥à¤¹à¤ à¤¶à¥à¤¨à¥à¤¯à¤ à¤¸à¥à¤¤à¤¾à¤ à¤µà¤¿à¤¨à¤¾ â Griham Shunyam Sutam Vina","à¤­à¤¾à¤°à¤¤à¤à¤¨à¤¤à¤¾à¤½à¤¹à¤®à¥ â Bharat Janataaham","à¤¸à¤à¤¸à¤¾à¤°à¤¸à¤¾à¤à¤°à¤¸à¥à¤¯ à¤¨à¤¾à¤¯à¤à¤¾à¤ â Sansarasagarasya Nayakah","à¤¸à¤ªà¥à¤¤à¤­à¤à¤¿à¤¨à¥à¤¯à¤ â Saptabhaginyah","à¤à¤¶à¥à¤µà¤ à¤à¤µ à¤®à¤® à¤ªà¥à¤°à¤¾à¤£à¤¾à¤ â Ashvah Eva Mama Pranah","à¤¸à¤®à¤µà¤¾à¤¯à¥ à¤¹à¤¿ à¤¦à¥à¤°à¥à¤à¤¯à¤ â Samavayo Hi Durjayah","à¤à¤ à¤°à¤à¥à¤·à¤¤à¤¿ à¤à¤ à¤°à¤à¥à¤·à¤¿à¤¤à¤ â Kah Rakshati Kah Rakshitah","à¤à¥à¤·à¤¿à¤¤à¥ à¤°à¤¾à¤à¤¤à¥ à¤­à¤¾à¤°à¤¤à¤¸à¥à¤µà¤°à¥à¤£à¤­à¥à¤®à¤¿à¤ â Kshitau Rajate Bharatasvarnadbbhumih","à¤à¤°à¥à¤¯à¤­à¤à¤ â Aryabhatah","à¤®à¤¾à¤¤à¥à¤µà¤¾à¤£à¥ â Matrivani"] },
 ];
 
 function getChapters(sub: SubjectDef): Chapter[] {
@@ -410,10 +410,10 @@ function getChapters(sub: SubjectDef): Chapter[] {
 
 const STATUSES = ["not_started", "in_progress", "completed", "revised"] as const;
 const STATUS_META: Record<string, { label: string; color: string; icon: string; bg: string }> = {
-  not_started: { label: "Not Started", color: "#94a3b8", icon: "⬜", bg: "#f8fafc" },
-  in_progress: { label: "In Progress", color: "#f59e0b", icon: "🔄", bg: "#fffbeb" },
-  completed:   { label: "Completed",   color: "#10b981", icon: "✅", bg: "#ecfdf5" },
-  revised:     { label: "Revised",     color: "#8b5cf6", icon: "🌟", bg: "#f5f3ff" },
+  not_started: { label: "Not Started", color: "#94a3b8", icon: "â¬", bg: "#f8fafc" },
+  in_progress: { label: "In Progress", color: "#f59e0b", icon: "ð", bg: "#fffbeb" },
+  completed:   { label: "Completed",   color: "#10b981", icon: "â", bg: "#ecfdf5" },
+  revised:     { label: "Revised",     color: "#8b5cf6", icon: "ð", bg: "#f5f3ff" },
 };
 
 const TEST_TYPES = [
@@ -422,10 +422,10 @@ const TEST_TYPES = [
 ];
 
 const PAPER_TYPES = [
-  { key: "qp",        label: "📄 Question Paper", color: "#2563eb", bg: "#eff6ff", border: "#93c5fd" },
-  { key: "ma",        label: "✅ Model Answer",   color: "#059669", bg: "#f0fdf4", border: "#86efac" },
-  { key: "as",        label: "📝 Answer Sheet",   color: "#d97706", bg: "#fffbeb", border: "#fcd34d" },
-  { key: "resources", label: "🔗 Resources",      color: "#7c3aed", bg: "#f5f3ff", border: "#ddd6fe" },
+  { key: "qp",        label: "ð Question Paper", color: "#2563eb", bg: "#eff6ff", border: "#93c5fd" },
+  { key: "ma",        label: "â Model Answer",   color: "#059669", bg: "#f0fdf4", border: "#86efac" },
+  { key: "as",        label: "ð Answer Sheet",   color: "#d97706", bg: "#fffbeb", border: "#fcd34d" },
+  { key: "resources", label: "ð Resources",      color: "#7c3aed", bg: "#f5f3ff", border: "#ddd6fe" },
 ];
 
 const accentGrad = "linear-gradient(135deg, #065f46, #059669)";
@@ -440,7 +440,7 @@ function ensureArr(v: unknown): string[] {
 function hasPapers(p: Record<string, string[]> | null | undefined): boolean {
   return !!p && PAPER_TYPES.some(({ key }) => ensureArr(p[key]).some(Boolean));
 }
-/* ───────── UI Components ───────── */
+/* âââââââââ UI Components âââââââââ */
 
 function CircleProgress({ value, size = 72, stroke = 7, color = "#2563eb", bg = "#e2e8f0" }: {
   value: number; size?: number; stroke?: number; color?: string; bg?: string;
@@ -504,7 +504,7 @@ function Modal({ open, onClose, title, children }: {
           <div style={{ fontWeight: 800, fontSize: 18, color: "#0f172a" }}>{title}</div>
           <button onClick={onClose} style={{ background: "#f1f5f9", border: "none", borderRadius: 10,
             width: 36, height: 36, cursor: "pointer", fontSize: 16,
-            display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
+            display: "flex", alignItems: "center", justifyContent: "center" }}>â</button>
         </div>
         {children}
       </div>
@@ -526,9 +526,9 @@ function Digit({ ch, glow }: { ch: string; glow: string }) {
   );
 }
 
-/* ═══════════════════════════════════
+/* âââââââââââââââââââââââââââââââââââ
    LETTY COMPONENT
-   ═══════════════════════════════════ */
+   âââââââââââââââââââââââââââââââââââ */
 export default function Letty() {
   const [data, setData] = useState<Record<string, ChapterData>>({});
   const [loading, setLoading] = useState(true);
@@ -683,7 +683,7 @@ export default function Letty() {
     setChapterResources(prev => prev.filter(r => r.id !== id));
   };
 
-  /* ── Stats ── */
+  /* ââ Stats ââ */
   const stats = useMemo(() => {
     const ss: SubjectStat[] = LETTY_SUBJECTS.map(s => {
       const chs = getChapters(s);
@@ -730,16 +730,16 @@ export default function Letty() {
     outline: "none", transition: "border .2s", ...extra,
   });
 
-  /* ── Loading ── */
+  /* ââ Loading ââ */
   if (loading) return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", fontFamily: "system-ui", gap: 12 }}>
       <div style={{ width: 24, height: 24, border: "3px solid #e2e8f0", borderTop: "3px solid #059669", borderRadius: "50%", animation: "spin .8s linear infinite" }} />
-      <span style={{ fontSize: 16, color: "#64748b" }}>Loading Letty's Tracker…</span>
+      <span style={{ fontSize: 16, color: "#64748b" }}>Loading Letty's Trackerâ¦</span>
       <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
     </div>
   );
 
-  /* ═════════ RENDER ═════════ */
+  /* âââââââââ RENDER âââââââââ */
   return (
     <div style={{ fontFamily: "'Inter','Segoe UI',system-ui,sans-serif", background: "linear-gradient(180deg,#ecfdf5 0%,#f8fafc 100%)" }}>
       <style>{`
@@ -750,22 +750,22 @@ export default function Letty() {
         ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:10px}
       `}</style>
 
-      {/* ════ TOP NAV BAR ════ */}
+      {/* ââââ TOP NAV BAR ââââ */}
       <div style={{ background: "white", borderBottom: "1px solid #e2e8f0", padding: "10px 20px", display: "flex", gap: 12, alignItems: "center" }}>
-        <a href="/" style={{ textDecoration: "none", padding: "6px 14px", borderRadius: 10, background: "#f1f5f9", color: "#475569", fontWeight: 600, fontSize: 13 }}>📚 Savvy's</a>
-        <span style={{ padding: "6px 14px", borderRadius: 10, background: "#065f46", color: "white", fontWeight: 700, fontSize: 13 }}>🎀 Letty's</span>
+        <a href="/" style={{ textDecoration: "none", padding: "6px 14px", borderRadius: 10, background: "#f1f5f9", color: "#475569", fontWeight: 600, fontSize: 13 }}>ð Savvy's</a>
+        <span style={{ padding: "6px 14px", borderRadius: 10, background: "#065f46", color: "white", fontWeight: 700, fontSize: 13 }}>ð Letty's</span>
       </div>
 
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "16px 20px" }}>
 
-        {/* ════ HEADER ════ */}
+        {/* ââââ HEADER ââââ */}
         <div style={{ background: accentGrad, borderRadius: 20, padding: "22px 28px", marginBottom: 16, color: "white", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: -60, right: -30, width: 200, height: 200, borderRadius: "50%", background: "rgba(255,255,255,.08)" }} />
           <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
-            <div style={{ fontSize: 38 }}>🎀</div>
+            <div style={{ fontSize: 38 }}>ð</div>
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 900, fontSize: 24, letterSpacing: -0.5 }}>Letty's Study Tracker</div>
-              <div style={{ fontSize: 13, opacity: .8, marginTop: 2 }}>Grade 8 • CBSE NCERT{saving ? " • ☁️ Syncing…" : ""}</div>
+              <div style={{ fontSize: 13, opacity: .8, marginTop: 2 }}>Grade 8 â¢ CBSE NCERT{saving ? " â¢ âï¸ Syncingâ¦" : ""}</div>
             </div>
             <div style={{ position: "relative", width: 80, height: 80 }}>
               <CircleProgress value={stats.pct} size={80} stroke={8} color="white" bg="rgba(255,255,255,.2)" />
@@ -778,10 +778,10 @@ export default function Letty() {
           {/* Quick stats ribbon */}
           <div style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}>
             {[
-              { label: "Total Chapters", val: `${stats.don}/${stats.tot}`, ico: "📑" },
-              { label: "In Progress", val: stats.ss.reduce((a, b) => a + b.prog, 0), ico: "🔄" },
-              { label: "Flagged", val: stats.ss.reduce((a, b) => a + b.flagged, 0), ico: "🚩" },
-              { label: "Tests", val: allTests.length, ico: "📝" },
+              { label: "Total Chapters", val: `${stats.don}/${stats.tot}`, ico: "ð" },
+              { label: "In Progress", val: stats.ss.reduce((a, b) => a + b.prog, 0), ico: "ð" },
+              { label: "Flagged", val: stats.ss.reduce((a, b) => a + b.flagged, 0), ico: "ð©" },
+              { label: "Tests", val: allTests.length, ico: "ð" },
             ].map(s => (
               <div key={s.label} style={{ background: "rgba(255,255,255,.15)", borderRadius: 12, padding: "6px 14px", display: "flex", alignItems: "center", gap: 6 }}>
                 <span style={{ fontSize: 14 }}>{s.ico}</span>
@@ -792,18 +792,18 @@ export default function Letty() {
           </div>
         </div>
 
-        {/* ════ COUNTDOWN ════ */}
+        {/* ââââ COUNTDOWN ââââ */}
         <Glass style={{ padding: "20px 24px", marginBottom: 16, background: "linear-gradient(135deg,#0f172a,#1e1b4b)", color: "white", border: `1.5px solid ${glow}33` }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 10, background: `${glow}22`, border: `1px solid ${glow}44`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>🎯</div>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: `${glow}22`, border: `1px solid ${glow}44`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>ð¯</div>
               <div>
                 <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 3, color: "#94a3b8", textTransform: "uppercase" as const }}>Annual Exam Countdown</div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0" }}>Grade 8 Annual Exam • Mar 15, 2027</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0" }}>Grade 8 Annual Exam â¢ Mar 15, 2027</div>
               </div>
             </div>
             <div style={{ background: `${glow}22`, border: `1px solid ${glow}44`, borderRadius: 20, padding: "4px 14px" }}>
-              <span style={{ fontSize: 12, fontWeight: 800, color: glow }}>{countdown.days > 60 ? "🟢 ON TRACK" : countdown.days > 30 ? "🟡 HURRY" : "🔴 URGENT"}</span>
+              <span style={{ fontSize: 12, fontWeight: 800, color: glow }}>{countdown.days > 60 ? "ð¢ ON TRACK" : countdown.days > 30 ? "ð¡ HURRY" : "ð´ URGENT"}</span>
             </div>
           </div>
           <div style={{ display: "flex", justifyContent: "center", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
@@ -830,7 +830,7 @@ export default function Letty() {
           </div>
         </Glass>
 
-        {/* ════ TABS + SEARCH ════ */}
+        {/* ââââ TABS + SEARCH ââââ */}
         <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap", alignItems: "center" }}>
           {["dashboard", ...LETTY_SUBJECTS.map(s => s.id), "analytics", "common"].map(t => {
             const sub = LETTY_SUBJECTS.find(s => s.id === t);
@@ -846,17 +846,17 @@ export default function Letty() {
                   boxShadow: active ? `0 2px 12px ${sub ? sub.color + "44" : "rgba(0,0,0,.15)"}` : "0 1px 3px rgba(0,0,0,.06)",
                   transition: "all .2s",
                 }}>
-                {t === "dashboard" ? "🏠 Dashboard" : t === "analytics" ? "📊 Analytics" : t === "common" ? "🗂️ Common" : `${sub!.icon} ${sub!.name}`}
+                {t === "dashboard" ? "ð  Dashboard" : t === "analytics" ? "ð Analytics" : t === "common" ? "ðï¸ Common" : `${sub!.icon} ${sub!.name}`}
               </button>
             );
           })}
           {tab !== "dashboard" && tab !== "analytics" && tab !== "common" && (
-            <input placeholder="🔍 Search chapters…" value={search} onChange={e => setSearch(e.target.value)}
+            <input placeholder="ð Search chaptersâ¦" value={search} onChange={e => setSearch(e.target.value)}
               style={{ ...inp({ maxWidth: 220, marginLeft: "auto", background: "white", fontSize: 13 }) }} />
           )}
         </div>
 
-        {/* ════ DASHBOARD ════ */}
+        {/* ââââ DASHBOARD ââââ */}
         {tab === "dashboard" && (
           <div style={{ animation: "fadeUp .3s ease" }}>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(200px,1fr))", gap: 12, marginBottom: 16 }}>
@@ -874,15 +874,15 @@ export default function Letty() {
                     </div>
                   </div>
                   <div style={{ display: "flex", gap: 8, marginTop: 10, fontSize: 11 }}>
-                    {s.prog > 0 && <span style={{ color: "#f59e0b" }}>🔄 {s.prog}</span>}
-                    {s.flagged > 0 && <span style={{ color: "#ef4444" }}>🚩 {s.flagged}</span>}
+                    {s.prog > 0 && <span style={{ color: "#f59e0b" }}>ð {s.prog}</span>}
+                    {s.flagged > 0 && <span style={{ color: "#ef4444" }}>ð© {s.flagged}</span>}
                   </div>
                 </Glass>
               ))}
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <Glass style={{ padding: "18px 20px" }}>
-                <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 12, color: "#0f172a" }}>📊 Status Overview</div>
+                <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 12, color: "#0f172a" }}>ð Status Overview</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
                   <ResponsiveContainer width={120} height={120}>
                     <PieChart>
@@ -930,7 +930,7 @@ export default function Letty() {
                 </div>
               </Glass>
               <Glass style={{ padding: "18px 20px" }}>
-                <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 12, color: "#0f172a" }}>📝 Recent Tests</div>
+                <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 12, color: "#0f172a" }}>ð Recent Tests</div>
                 {allTests.length === 0 ? <div style={{ color: "#94a3b8", fontSize: 14, textAlign: "center" as const, padding: 20 }}>No test scores yet!</div> :
                   allTests.slice(0, 6).map((t, i) => {
                     const p = pctCalc(+t.obtained, +t.max);
@@ -939,7 +939,7 @@ export default function Letty() {
                         <span style={{ fontSize: 16 }}>{t.sIcon}</span>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontSize: 13, fontWeight: 600, color: "#0f172a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>{t.chName}</div>
-                          <div style={{ fontSize: 11, color: "#94a3b8" }}>{t.type} • {t.date}</div>
+                          <div style={{ fontSize: 11, color: "#94a3b8" }}>{t.type} â¢ {t.date}</div>
                         </div>
                         <div style={{ fontWeight: 800, fontSize: 15, color: scoreColor(p) }}>{t.obtained}/{t.max}</div>
                       </div>
@@ -950,11 +950,11 @@ export default function Letty() {
           </div>
         )}
 
-        {/* ════ ANALYTICS TAB ════ */}
+        {/* ââââ ANALYTICS TAB ââââ */}
         {tab === "analytics" && (
           <div style={{ animation: "fadeUp .3s ease" }}>
             <Glass style={{ padding: "22px 24px", marginBottom: 14 }}>
-              <div style={{ fontWeight: 700, fontSize: 17, marginBottom: 16, color: "#0f172a" }}>📊 Subject Progress</div>
+              <div style={{ fontWeight: 700, fontSize: 17, marginBottom: 16, color: "#0f172a" }}>ð Subject Progress</div>
               <ResponsiveContainer width="100%" height={240}>
                 <BarChart data={stats.ss.map(s => ({ name: `${s.icon} ${s.name.slice(0, 5)}`, Done: s.done, "In Prog": s.prog, Left: s.total - s.done - s.prog }))}>
                   <XAxis dataKey="name" tick={{ fontSize: 12 }} /><YAxis tick={{ fontSize: 12 }} /><Tooltip />
@@ -966,7 +966,7 @@ export default function Letty() {
             </Glass>
             {Object.keys(testAnalytics).length > 0 && (
               <Glass style={{ padding: "22px 24px" }}>
-                <div style={{ fontWeight: 700, fontSize: 17, marginBottom: 16, color: "#0f172a" }}>🎯 Test Averages</div>
+                <div style={{ fontWeight: 700, fontSize: 17, marginBottom: 16, color: "#0f172a" }}>ð¯ Test Averages</div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(180px,1fr))", gap: 10 }}>
                   {Object.entries(testAnalytics).map(([name, d]) => (
                     <div key={name} style={{ background: `${d.color}0a`, border: `1px solid ${d.color}22`, borderRadius: 14, padding: "16px 18px", textAlign: "center" as const }}>
@@ -983,27 +983,27 @@ export default function Letty() {
           </div>
         )}
 
-        {/* ════ COMMON TAB ════ */}
+        {/* ââââ COMMON TAB ââââ */}
         {tab === "common" && (
           <div style={{ animation: "fadeUp .3s ease" }}>
             {/* Header */}
             <div style={{ background: "linear-gradient(135deg,#7c3aed,#6d28d9cc)", borderRadius: 18, padding: "20px 24px", marginBottom: 14, color: "white", display: "flex", alignItems: "center", gap: 18, boxShadow: "0 6px 24px #7c3aed33" }}>
-              <span style={{ fontSize: 40 }}>🗂️</span>
+              <span style={{ fontSize: 40 }}>ðï¸</span>
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 900, fontSize: 22 }}>Common Resources</div>
-                <div style={{ fontSize: 13, opacity: .85, marginTop: 2 }}>Letty • {commonResources.length} saved resource{commonResources.length !== 1 ? "s" : ""}</div>
+                <div style={{ fontSize: 13, opacity: .85, marginTop: 2 }}>Letty â¢ {commonResources.length} saved resource{commonResources.length !== 1 ? "s" : ""}</div>
                 <div style={{ fontSize: 12, opacity: .7, marginTop: 4 }}>Links, notes, and general study materials</div>
               </div>
             </div>
 
             {/* Add Resource Form */}
             <Glass style={{ padding: "20px 22px", marginBottom: 14 }}>
-              <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 14, color: "#0f172a" }}>➕ Add Resource</div>
+              <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 14, color: "#0f172a" }}>â Add Resource</div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
                 <div>
                   <div style={{ fontSize: 12, fontWeight: 600, color: "#64748b", marginBottom: 4 }}>Title <span style={{ color: "#ef4444" }}>*</span></div>
                   <input
-                    placeholder="e.g. Chapter 3 Notes, Formula Sheet…"
+                    placeholder="e.g. Chapter 3 Notes, Formula Sheetâ¦"
                     value={commonForm.title}
                     onChange={e => setCommonForm(f => ({ ...f, title: e.target.value }))}
                     style={{ width: "100%", padding: "9px 12px", borderRadius: 10, border: "1px solid #e2e8f0", fontSize: 13, boxSizing: "border-box" as const, outline: "none" }}
@@ -1013,7 +1013,7 @@ export default function Letty() {
                   <div style={{ fontSize: 12, fontWeight: 600, color: "#64748b", marginBottom: 4 }}>Google Drive / URL</div>
                   <input
                     type="url"
-                    placeholder="https://drive.google.com/…"
+                    placeholder="https://drive.google.com/â¦"
                     value={commonForm.link}
                     onChange={e => setCommonForm(f => ({ ...f, link: e.target.value }))}
                     style={{ width: "100%", padding: "9px 12px", borderRadius: 10, border: "1px solid #e2e8f0", fontSize: 13, boxSizing: "border-box" as const, outline: "none" }}
@@ -1023,7 +1023,7 @@ export default function Letty() {
               <div style={{ marginBottom: 12 }}>
                 <div style={{ fontSize: 12, fontWeight: 600, color: "#64748b", marginBottom: 4 }}>Notes</div>
                 <textarea
-                  placeholder="Add any notes or description…"
+                  placeholder="Add any notes or descriptionâ¦"
                   value={commonForm.notes}
                   onChange={e => setCommonForm(f => ({ ...f, notes: e.target.value }))}
                   style={{ width: "100%", padding: "9px 12px", borderRadius: 10, border: "1px solid #e2e8f0", fontSize: 13, boxSizing: "border-box" as const, outline: "none", resize: "vertical" as const, minHeight: 72, fontFamily: "inherit" }}
@@ -1034,16 +1034,16 @@ export default function Letty() {
                 disabled={!commonForm.title.trim() || commonSaving}
                 style={{ background: !commonForm.title.trim() || commonSaving ? "#e2e8f0" : "linear-gradient(135deg,#7c3aed,#6d28d9)", color: !commonForm.title.trim() || commonSaving ? "#94a3b8" : "white", border: "none", borderRadius: 12, padding: "10px 22px", fontWeight: 700, fontSize: 14, cursor: !commonForm.title.trim() || commonSaving ? "default" : "pointer", transition: "all .2s" }}
               >
-                {commonSaving ? "Saving…" : "Save Resource"}
+                {commonSaving ? "Savingâ¦" : "Save Resource"}
               </button>
             </Glass>
 
             {/* Resource List */}
             {commonLoading ? (
-              <div style={{ textAlign: "center" as const, padding: 40, color: "#94a3b8", fontSize: 14 }}>Loading…</div>
+              <div style={{ textAlign: "center" as const, padding: 40, color: "#94a3b8", fontSize: 14 }}>Loadingâ¦</div>
             ) : commonResources.length === 0 ? (
               <Glass style={{ padding: "32px 24px", textAlign: "center" as const }}>
-                <div style={{ fontSize: 36, marginBottom: 10 }}>🗂️</div>
+                <div style={{ fontSize: 36, marginBottom: 10 }}>ðï¸</div>
                 <div style={{ fontWeight: 600, color: "#64748b", fontSize: 15 }}>No resources yet</div>
                 <div style={{ color: "#94a3b8", fontSize: 13, marginTop: 4 }}>Add your first link, note, or resource above.</div>
               </Glass>
@@ -1056,17 +1056,17 @@ export default function Letty() {
                     {r.link && (
                       <a href={r.link} target="_blank" rel="noopener noreferrer"
                         style={{ color: "#2563eb", fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
-                        🔗 {r.link}
+                        ð {r.link}
                       </a>
                     )}
                     <div style={{ display: "flex", gap: 6, flexShrink: 0, marginLeft: "auto" }}>
                       <button onClick={() => setEditingResource({ ...r })}
                         style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 6, padding: "3px 8px", cursor: "pointer", fontSize: 12, color: "#2563eb", fontWeight: 600 }}>
-                        ✏️ Edit
+                        âï¸ Edit
                       </button>
                       <button onClick={() => { if (window.confirm(`Delete "${r.title}"?`)) deleteCommonRes(r.id); }}
                         style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 6, padding: "3px 8px", cursor: "pointer", fontSize: 13, color: "#dc2626" }}>
-                        🗑️
+                        ðï¸
                       </button>
                     </div>
                   </div>
@@ -1076,7 +1076,7 @@ export default function Letty() {
           </div>
         )}
 
-        {/* ════ SUBJECT VIEW ════ */}
+        {/* ââââ SUBJECT VIEW ââââ */}
         {LETTY_SUBJECTS.map(sub => {
           if (tab !== sub.id) return null;
           const chapters = getChapters(sub);
@@ -1099,7 +1099,7 @@ export default function Letty() {
                       { l: "In Progress", c: chapters.filter(c => getCh(c.id).status === "in_progress").length, cl: "#fcd34d" },
                       { l: "Completed", c: chapters.filter(c => getCh(c.id).status === "completed").length, cl: "#6ee7b7" },
                       { l: "Revised", c: chapters.filter(c => getCh(c.id).status === "revised").length, cl: "#c4b5fd" },
-                      { l: "🚩 Flagged", c: chapters.filter(c => getCh(c.id).revision).length, cl: "#fca5a5" },
+                      { l: "ð© Flagged", c: chapters.filter(c => getCh(c.id).revision).length, cl: "#fca5a5" },
                     ].filter(x => x.c > 0).map(x => <span key={x.l}><strong style={{ color: x.cl, fontSize: 15 }}>{x.c}</strong> {x.l}</span>)}
                   </div>
                 </div>
@@ -1114,7 +1114,7 @@ export default function Letty() {
 
               {sections.map(sec => (
                 <div key={sec.name || "m"} style={{ marginBottom: 18 }}>
-                  {sec.name && <div style={{ fontWeight: 700, color: sub.color, fontSize: 14, marginBottom: 8, paddingBottom: 6, borderBottom: `2px solid ${sub.color}22` }}>📌 {sec.name}</div>}
+                  {sec.name && <div style={{ fontWeight: 700, color: sub.color, fontSize: 14, marginBottom: 8, paddingBottom: 6, borderBottom: `2px solid ${sub.color}22` }}>ð {sec.name}</div>}
                   {sec.chs.map(ch => {
                     const d = getCh(ch.id);
                     const sm = STATUS_META[d.status];
@@ -1129,9 +1129,9 @@ export default function Letty() {
                           </button>
                           <div style={{ flex: 1, fontWeight: 600, fontSize: 14, color: "#1e293b", minWidth: 80 }}>{ch.name}</div>
                           <div style={{ display: "flex", gap: 5 }}>
-                            <button onClick={() => toggleFlag(ch.id)} style={{ background: d.revision ? "#fef2f2" : "white", border: `1px solid ${d.revision ? "#fca5a5" : "#e5e7eb"}`, borderRadius: 8, padding: "5px 8px", cursor: "pointer", fontSize: 13 }}>{d.revision ? "🚩" : "🏳️"}</button>
-                            <button onClick={() => setNoteModal({ id: ch.id, name: ch.name, note: d.notes || "" })} style={{ background: d.notes ? "#eff6ff" : "white", border: `1px solid ${d.notes ? "#93c5fd" : "#e5e7eb"}`, borderRadius: 8, padding: "5px 8px", cursor: "pointer", fontSize: 13 }}>{d.notes ? "📝" : "📄"}</button>
-                            <button onClick={() => setPaperModal({ id: ch.id, name: ch.name, subjectId: sub.id, subjectName: sub.name })} style={{ background: hasPapers(d.papers) ? "#f0fdf4" : "white", border: `1px solid ${hasPapers(d.papers) ? "#86efac" : "#e5e7eb"}`, borderRadius: 8, padding: "5px 8px", cursor: "pointer", fontSize: 13 }}>📎</button>
+                            <button onClick={() => toggleFlag(ch.id)} style={{ background: d.revision ? "#fef2f2" : "white", border: `1px solid ${d.revision ? "#fca5a5" : "#e5e7eb"}`, borderRadius: 8, padding: "5px 8px", cursor: "pointer", fontSize: 13 }}>{d.revision ? "ð©" : "ð³ï¸"}</button>
+                            <button onClick={() => setNoteModal({ id: ch.id, name: ch.name, note: d.notes || "" })} style={{ background: d.notes ? "#eff6ff" : "white", border: `1px solid ${d.notes ? "#93c5fd" : "#e5e7eb"}`, borderRadius: 8, padding: "5px 8px", cursor: "pointer", fontSize: 13 }}>{d.notes ? "ð" : "ð"}</button>
+                            <button onClick={() => setPaperModal({ id: ch.id, name: ch.name, subjectId: sub.id, subjectName: sub.name })} style={{ background: hasPapers(d.papers) ? "#f0fdf4" : "white", border: `1px solid ${hasPapers(d.papers) ? "#86efac" : "#e5e7eb"}`, borderRadius: 8, padding: "5px 8px", cursor: "pointer", fontSize: 13 }}>ð</button>
                             <button onClick={() => { setTestModal({ id: ch.id, name: ch.name }); setTestForm({ type: "Class Test", date: new Date().toISOString().slice(0, 10), obtained: "", max: "", notes: "" }); }}
                               style={{ background: "white", border: "1px solid #e5e7eb", borderRadius: 8, padding: "5px 10px", cursor: "pointer", fontSize: 12, fontWeight: 700, color: "#475569" }}>+ Test</button>
                           </div>
@@ -1144,7 +1144,7 @@ export default function Letty() {
                                 <div key={t.id} style={{ background: "white", borderRadius: 8, padding: "3px 10px", fontSize: 12, border: "1px solid #e5e7eb", display: "flex", gap: 5, alignItems: "center" }}>
                                   <span style={{ color: "#94a3b8" }}>{t.type}</span>
                                   <span style={{ fontWeight: 700, color: scoreColor(p) }}>{t.obtained}/{t.max} ({p}%)</span>
-                                  <button onClick={() => delTest(ch.id, t.id)} style={{ background: "none", border: "none", cursor: "pointer", color: "#d1d5db", fontSize: 11 }}>✕</button>
+                                  <button onClick={() => delTest(ch.id, t.id)} style={{ background: "none", border: "none", cursor: "pointer", color: "#d1d5db", fontSize: 11 }}>â</button>
                                 </div>
                               );
                             })}
@@ -1160,8 +1160,8 @@ export default function Letty() {
           );
         })}
 
-        {/* ════ TEST MODAL ════ */}
-        <Modal open={!!testModal} onClose={() => setTestModal(null)} title="📝 Add Test Score">
+        {/* ââââ TEST MODAL ââââ */}
+        <Modal open={!!testModal} onClose={() => setTestModal(null)} title="ð Add Test Score">
           {testModal && <>
             <div style={{ color: "#94a3b8", fontSize: 13, marginBottom: 14, marginTop: -8 }}>{testModal.name}</div>
             <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Test Type</div>
@@ -1178,10 +1178,10 @@ export default function Letty() {
             </div>
             {testForm.obtained && testForm.max && +testForm.max > 0 && (
               <div style={{ textAlign: "center" as const, padding: "8px 0", fontSize: 28, fontWeight: 900, color: scoreColor(pctCalc(+testForm.obtained, +testForm.max)) }}>
-                {pctCalc(+testForm.obtained, +testForm.max)}% {pctCalc(+testForm.obtained, +testForm.max) >= 80 ? "🎉" : pctCalc(+testForm.obtained, +testForm.max) >= 60 ? "👍" : "📖"}
+                {pctCalc(+testForm.obtained, +testForm.max)}% {pctCalc(+testForm.obtained, +testForm.max) >= 80 ? "ð" : pctCalc(+testForm.obtained, +testForm.max) >= 60 ? "ð" : "ð"}
               </div>
             )}
-            <textarea placeholder="Notes (optional)…" value={testForm.notes} onChange={e => setTestForm({ ...testForm, notes: e.target.value })} style={inp({ minHeight: 60, resize: "vertical" as const, marginBottom: 14 })} />
+            <textarea placeholder="Notes (optional)â¦" value={testForm.notes} onChange={e => setTestForm({ ...testForm, notes: e.target.value })} style={inp({ minHeight: 60, resize: "vertical" as const, marginBottom: 14 })} />
             <div style={{ display: "flex", gap: 10 }}>
               <button onClick={() => setTestModal(null)} style={{ flex: 1, padding: 11, borderRadius: 12, border: "1px solid #e2e8f0", background: "white", cursor: "pointer", fontWeight: 600, fontSize: 14 }}>Cancel</button>
               <button onClick={() => { addTest(testModal.id); setTestModal(null); }} style={{ flex: 1, padding: 11, borderRadius: 12, border: "none", background: accentGrad, color: "white", cursor: "pointer", fontWeight: 700, fontSize: 14 }}>Save Score</button>
@@ -1189,12 +1189,12 @@ export default function Letty() {
           </>}
         </Modal>
 
-        {/* ════ NOTE MODAL ════ */}
-        <Modal open={!!noteModal} onClose={() => setNoteModal(null)} title="📄 Chapter Notes">
+        {/* ââââ NOTE MODAL ââââ */}
+        <Modal open={!!noteModal} onClose={() => setNoteModal(null)} title="ð Chapter Notes">
           {noteModal && <>
             <div style={{ color: "#94a3b8", fontSize: 13, marginBottom: 12, marginTop: -8 }}>{noteModal.name}</div>
             <textarea value={noteModal.note} onChange={e => setNoteModal({ ...noteModal, note: e.target.value })}
-              placeholder="Study notes, formulae, reminders…" style={inp({ minHeight: 120, resize: "vertical" as const, marginBottom: 14 })} />
+              placeholder="Study notes, formulae, remindersâ¦" style={inp({ minHeight: 120, resize: "vertical" as const, marginBottom: 14 })} />
             <div style={{ display: "flex", gap: 10 }}>
               <button onClick={() => setNoteModal(null)} style={{ flex: 1, padding: 11, borderRadius: 12, border: "1px solid #e2e8f0", background: "white", cursor: "pointer", fontWeight: 600, fontSize: 14 }}>Cancel</button>
               <button onClick={() => { saveNote(noteModal.id, noteModal.note); setNoteModal(null); }} style={{ flex: 1, padding: 11, borderRadius: 12, border: "none", background: accentGrad, color: "white", cursor: "pointer", fontWeight: 700, fontSize: 14 }}>Save Note</button>
@@ -1202,12 +1202,12 @@ export default function Letty() {
           </>}
         </Modal>
 
-        {/* ════ PAPERS MODAL ════ */}
-        <Modal open={!!paperModal} onClose={() => setPaperModal(null)} title="📎 Papers & Resources">
+        {/* ââââ PAPERS MODAL ââââ */}
+        <Modal open={!!paperModal} onClose={() => setPaperModal(null)} title="ð Papers & Resources">
           {paperModal && <>
             <div style={{ color: "#94a3b8", fontSize: 13, marginBottom: 12, marginTop: -8 }}>{paperModal.name}</div>
             <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 16, background: "#f8fafc", borderRadius: 8, padding: "8px 12px" }}>
-              Upload to Google Drive → Right click → Share → Copy link → Paste below
+              Upload to Google Drive â Right click â Share â Copy link â Paste below
             </div>
             {resourcesLoading ? (
               <div style={{ textAlign: "center", padding: "20px 0", color: "#94a3b8", fontSize: 13 }}>Loading...</div>
@@ -1221,10 +1221,10 @@ export default function Letty() {
                       <div key={r.id} style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 6 }}>
                         <a href={r.link} target="_blank" rel="noreferrer"
                           style={{ flex: 1, fontSize: 12, color, wordBreak: "break-all" as const, padding: "6px 8px", background: "white", borderRadius: 7, border: `1px solid ${border}`, textDecoration: "none" }}>
-                          🔗 {r.link}
+                          ð {r.link}
                         </a>
                         <button onClick={() => handleDeleteResource(r.id)}
-                          style={{ background: "#fee2e2", border: "none", borderRadius: 7, padding: "6px 8px", cursor: "pointer", color: "#dc2626", fontSize: 12, fontWeight: 700, flexShrink: 0 }}>✕</button>
+                          style={{ background: "#fee2e2", border: "none", borderRadius: 7, padding: "6px 8px", cursor: "pointer", color: "#dc2626", fontSize: 12, fontWeight: 700, flexShrink: 0 }}>â</button>
                       </div>
                     ))}
                     <div style={{ display: "flex", gap: 6, marginTop: section.length ? 6 : 0 }}>
@@ -1243,8 +1243,8 @@ export default function Letty() {
           </>}
         </Modal>
 
-        {/* ════ EDIT COMMON RESOURCE MODAL ════ */}
-        <Modal open={!!editingResource} onClose={() => setEditingResource(null)} title="✏️ Edit Resource">
+        {/* ââââ EDIT COMMON RESOURCE MODAL ââââ */}
+        <Modal open={!!editingResource} onClose={() => setEditingResource(null)} title="âï¸ Edit Resource">
           {editingResource && <>
             <div style={{ fontSize: 12, fontWeight: 600, color: "#64748b", marginBottom: 4 }}>Title <span style={{ color: "#ef4444" }}>*</span></div>
             <input
@@ -1257,7 +1257,7 @@ export default function Letty() {
               type="url"
               value={editingResource.link}
               onChange={e => setEditingResource(r => r && ({ ...r, link: e.target.value }))}
-              placeholder="https://drive.google.com/…"
+              placeholder="https://drive.google.com/â¦"
               style={{ width: "100%", padding: "9px 12px", borderRadius: 10, border: "1px solid #e2e8f0", fontSize: 14, boxSizing: "border-box" as const, outline: "none", marginBottom: 10 }}
             />
             <div style={{ fontSize: 12, fontWeight: 600, color: "#64748b", marginBottom: 4 }}>Notes</div>
@@ -1272,13 +1272,13 @@ export default function Letty() {
                 onClick={saveEditResource}
                 disabled={!editingResource.title.trim() || commonSaving}
                 style={{ flex: 1, padding: 11, borderRadius: 12, border: "none", background: !editingResource.title.trim() || commonSaving ? "#e2e8f0" : "linear-gradient(135deg,#7c3aed,#6d28d9)", color: !editingResource.title.trim() || commonSaving ? "#94a3b8" : "white", cursor: !editingResource.title.trim() || commonSaving ? "default" : "pointer", fontWeight: 700, fontSize: 14 }}>
-                {commonSaving ? "Saving…" : "Save Changes"}
+                {commonSaving ? "Savingâ¦" : "Save Changes"}
               </button>
             </div>
           </>}
         </Modal>
 
-        {/* ════ STATUS FILTER MODAL ════ */}
+        {/* ââââ STATUS FILTER MODAL ââââ */}
         <Modal open={!!statusModal} onClose={() => setStatusModal(null)} title={`${statusModal?.label || ""} Chapters`}>
           {statusModal && (() => {
             const matchFn = (d: ChapterData) =>
@@ -1326,7 +1326,7 @@ export default function Letty() {
         </Modal>
       </div>
 
-      {/* ════ FOOTER ════ */}
+      {/* ââââ FOOTER ââââ */}
       <footer style={{ background: "linear-gradient(135deg,#0f172a,#064e3b)", color: "white", marginTop: 40, padding: "28px 20px 20px" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
@@ -1343,10 +1343,10 @@ export default function Letty() {
             ))}
           </div>
           <div style={{ borderTop: "1px solid rgba(255,255,255,.07)", paddingTop: 14, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
-            <div style={{ fontSize: 12, opacity: .35 }}>Built with ❤️ for Letty • {new Date().getFullYear()} • All the best! 🎯</div>
+            <div style={{ fontSize: 12, opacity: .35 }}>Built with â¤ï¸ for Letty â¢ {new Date().getFullYear()} â¢ All the best! ð¯</div>
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#34d399", boxShadow: "0 0 6px #34d399", animation: "pulse2 2s infinite" }} />
-              <span style={{ fontSize: 11, opacity: .4 }}>Live • letty.study</span>
+              <span style={{ fontSize: 11, opacity: .4 }}>Live â¢ letty.study</span>
             </div>
           </div>
         </div>
