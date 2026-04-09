@@ -213,11 +213,12 @@ function getCountdown() {
 /* ───────── Subjects ───────── */
 const LETTY_SUBJECTS: SubjectDef[] = [
   { id: "maths", name: "Mathematics", icon: "📐", color: "#2563eb",
-    chapters: ["Rational Numbers","Linear Equations in One Variable","Understanding Quadrilaterals","Data Handling","Squares and Square Roots","Cubes and Cube Roots","Comparing Quantities","Algebraic Expressions and Identities","Mensuration","Exponents and Powers","Direct and Inverse Proportions","Factorisation","Introduction to Graphs"] },
-
+    sections: [
+      { name: "Ganita Prakash – Part 1", chapters: ["A Square and a Cube","Power Play","A Story of Numbers","Quadrilaterals","Number Play","We Distribute, Yet Things Multiply","Proportional Reasoning-1"] },
+      { name: "Ganita Prakash – Part 2", chapters: ["Fractions in Disguise","The Baudhayana–Pythagoras Theorem","Proportional Reasoning-2","Exploring Some Geometric Themes","Tales by Dots and Lines","Algebra Play","Area"] },
+    ] }
   { id: "science", name: "Science", icon: "🔬", color: "#059669",
-    chapters: ["Crop Production and Management","Microorganisms: Friend and Foe","Synthetic Fibres and Plastics","Materials: Metals and Non-Metals","Coal and Petroleum","Combustion and Flame","Conservation of Plants and Animals","Cell – Structure and Functions","Reproduction in Animals","Reaching the Age of Adolescence","Motion","Force and Pressure","Friction","Sound","Chemical Effects of Electric Current","Some Natural Phenomena","Light"] },
-
+    chapters: ["Exploring the Investigative World of Science","The Invisible Living World: Beyond Our Naked Eye","Health: The Ultimate Treasure","Electricity: Magnetic and Heating Effects","Exploring Forces","Pressure, Winds, Storms and Cyclones","Particulate Nature of Matter","Nature of Matter: Elements, Compounds and Mixtures","The Amazing World of Solutes, Solvents and Solutions","Light: Mirrors and Lenses","Keeping Time with the Skies","How Nature Works in Harmony","Our Home: Earth, a Unique Life Sustaining Planet"] }
   { id: "english", name: "English", icon: "📖", color: "#d97706",
     sections: [
       { name: "Honeydew – Prose", chapters: ["The Best Christmas Present in the World","The Tsunami","Glimpses of the Past","Bepin Choudhury's Lapse of Memory","The Summit Within","This is Jody's Fawn","A Visit to Cambridge","A Short Monsoon Diary","The Great Stone Face – I","The Great Stone Face – II"] },
@@ -385,17 +386,15 @@ const LETTY_SUBJECTS: SubjectDef[] = [
 
   { id: "hindi", name: "Hindi", icon: "🪔", color: "#dc2626",
     sections: [
-      { name: "Vasant Bhag 3", chapters: ["ध्वनि – Dhwani","लाख की चूड़ियाँ – Laakh Ki Chudiyan","बस की यात्रा – Bus Ki Yatra","दीवानों की हस्ती – Deevanon Ki Hasti","चिट्ठियों की अनूठी दुनिया – Chitthiyon Ki Anoothi Duniya","भगवान के डाकिए – Bhagvan Ke Daakiye","क्या निराश हुआ जाए – Kya Nirash Hua Jaye","यह सबसे कठिन समय नहीं – Yeh Sabse Kathin Samay Nahin","कबीर की साखियाँ – Kabir Ki Saakhiyan","कामचोर – Kamchor","जब सिनेमा ने बोलना सीखा – Jab Sinema Ne Bolna Seekha","सूरदास के पद – Surdas Ke Pad","जहाँ पहिया है – Jahaan Pahiya Hai","अकबरी लोटा – Akbari Lota","सूर के पद – Sur Ke Pad","पानी की कहानी – Paani Ki Kahani","बाज और साँप – Baaj Aur Samp","टोपी – Topi"] },
-      { name: "Durva Bhag 3", chapters: ["गुड़िया – Gudiya","दो गौरैया – Do Gauraiya","चिट्ठियों में यूरोप – Chitthiyon Mein Europe","ओस – Os","नाटक में नाटक – Natak Mein Natak","सागर यात्रा – Sagar Yatra","उठ किसान ओ – Uth Kisaan O","सस्ते का चक्कर – Saste Ka Chakkar","एक खिलाड़ी की कुछ यादें – Ek Khilaadi Ki Kuch Yaadein","बस की सैर – Bus Ki Sair","हिन्दी ने जिनकी जिंदगी बदल दी – Hindi Ne Jinki Zindagi Badal Di","आषाढ़ का पहला दिन – Aashadh Ka Pehla Din","अन्याय के खिलाफ – Anyaya Ke Khilaf","बच्चों के प्रिय श्री केशव शंकर पिल्लई","फर्श पर – Farsh Par","बड़ी अम्मा की बात – Badi Amma Ki Baat","वह सुबह कभी तो आएगी – Voh Subah Kabhi To Aayegi"] },
-    ] },
-
+      { name: "Malhar", chapters: ["Laakh Ki Chudiyaan","Bus Ki Yaatra","Deevanon Ki Hasti","Bhagvan Ke Daakiye","Kya Nirash Hua Jaye","Yeh Sabse Kathin Samay Nahin","Kabir Ki Saakhiyaan","Sudama Charit","Jahaan Pahiya Hai","Akbari Lota"] },
+    ] }
   { id: "sst", name: "Social Studies", icon: "🌍", color: "#7c3aed",
     sections: [
-      { name: "History – Our Pasts III", chapters: ["How, When and Where","From Trade to Territory: The Company Establishes Power","Ruling the Countryside","Tribals, Dikus and the Vision of a Golden Age","When People Rebel: 1857 and After","Weavers, Iron Smelters and Factory Owners","Civilising the Native, Educating the Nation","Women, Caste and Reform","The Making of the National Movement: 1870s–1947","India After Independence"] },
-      { name: "Geography – Resources and Development", chapters: ["Resources","Land, Soil, Water, Natural Vegetation and Wildlife Resources","Mineral and Power Resources","Agriculture","Industries","Human Resources"] },
-      { name: "Political Science – Social and Political Life III", chapters: ["The Indian Constitution","Understanding Secularism","Why Do We Need a Parliament?","Understanding Laws","Judiciary","Understanding Our Criminal Justice System","Understanding Marginalisation","Confronting Marginalisation","Public Facilities","Law and Social Justice"] },
-    ] },
-
+      { name: "Exploring Society – Theme A: Land and People", chapters: ["Natural Resources and Their Use"] },
+      { name: "Exploring Society – Theme B: Tapestry of the Past", chapters: ["Reshaping India's Political Map","The Rise of the Marathas","The Colonial Era in India"] },
+      { name: "Exploring Society – Theme D: Governance and Democracy", chapters: ["Universal Franchise and India's Electoral System","The Parliamentary System: Legislature and Executive"] },
+      { name: "Exploring Society – Theme E: Economy", chapters: ["Factors of Production"] },
+    ] }
   { id: "sanskrit", name: "Sanskrit", icon: "🕉️", color: "#b45309",
     chapters: ["सुभाषितानि – Subhashitani","बिलस्य वाणी न कदापि मे श्रुता – Bilasya Vani Na Kadapi Me Shruta","डिजीभारतम् – DigiiBharatam","सदैव पुरतो निधेहि चरणम् – Sadaiva Purato Nidhehi Charanam","कण्टकेनैव कण्टकम् – Kantakenaiva Kantakam","गृहं शून्यं सुतां विना – Griham Shunyam Sutam Vina","भारतजनताऽहम् – Bharat Janataaham","संसारसागरस्य नायकाः – Sansarasagarasya Nayakah","सप्तभगिन्यः – Saptabhaginyah","अश्वः एव मम प्राणाः – Ashvah Eva Mama Pranah","समवायो हि दुर्जयः – Samavayo Hi Durjayah","कः रक्षति कः रक्षितः – Kah Rakshati Kah Rakshitah","क्षितौ राजते भारतस्वर्णभूमिः – Kshitau Rajate Bharatasvarnadbbhumih","आर्यभटः – Aryabhatah","मातृवाणी – Matrivani"] },
 ];
