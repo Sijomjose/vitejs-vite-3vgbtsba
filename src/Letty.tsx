@@ -220,8 +220,23 @@ const LETTY_SUBJECTS: SubjectDef[] = [
   { id: "science", name: "Science", icon: "🔬", color: "#059669",
     chapters: ["Exploring the Investigative World of Science","The Invisible Living World: Beyond Our Naked Eye","Health: The Ultimate Treasure","Electricity: Magnetic and Heating Effects","Exploring Forces","Pressure, Winds, Storms and Cyclones","Particulate Nature of Matter","Nature of Matter: Elements, Compounds and Mixtures","The Amazing World of Solutes, Solvents and Solutions","Light: Mirrors and Lenses","Keeping Time with the Skies","How Nature Works in Harmony","Our Home: Earth, a Unique Life Sustaining Planet"] },
   { id: "english", name: "English", icon: "📖", color: "#d97706",
-    sections: [
-      { name: "Honeydew â Prose", chapters: ["The Best Christmas Present in the World","The Tsunami","Glimpses of the Past","Bepin Choudhury's Lapse of Memory","The Summit Within","This is Jody's Fawn","A Visit to Cambridge","A Short Monsoon Diary","The Great Stone Face â I","The Great Stone Face â II"] },
+    chapters: [
+      "The Wit that Won Hearts",
+      "A Concrete Example",
+      "Wisdom Paves the Way",
+      "A Tale of Valour: Major Somnath Sharma and the Battle of Badgam",
+      "Somebody's Mother",
+      "Verghese Kurien—I Too Had A Dream",
+      "The Case of the Fifth Word",
+      "The Magic Brush of Dreams",
+      "Spectacular Wonders",
+      "The Cherry Tree",
+      "Harvest Hymn",
+      "Waiting for the Rain",
+      "Feathered Friend",
+      "Magnifying Glass",
+      "Bibha Chowdhuri: The Beam of Light that Lit the Path for Women in Indian Science"
+    ] },
       { name: "Honeydew â Poetry", chapters: ["The Ant and the Cricket","Geography Lesson","Macavity: The Mystery Cat","The Last Bargain","The School Boy","The Duck and the Kangaroo","When I Set Out for Lyonnesse","On the Grasshopper and Cricket"] },
       { name: "It So Happened (Supplementary)", chapters: ["How the Camel Got His Hump","Children at Work","The Selfish Giant","The Treasure Within","Princess September","The Fight","The Open Window","Jalebis","The Comet â I","The Comet â II"] },
     ] },
@@ -385,8 +400,18 @@ const LETTY_SUBJECTS: SubjectDef[] = [
     ] },
 
   { id: "hindi", name: "Hindi", icon: "🫔", color: "#dc2626",
-    sections: [
-      { name: "Malhar", chapters: ["Laakh Ki Chudiyaan","Bus Ki Yaatra","Deevanon Ki Hasti","Bhagvan Ke Daakiye","Kya Nirash Hua Jaye","Yeh Sabse Kathin Samay Nahin","Kabir Ki Saakhiyaan","Sudama Charit","Jahaan Pahiya Hai","Akbari Lota"] },
+    chapters: [
+      "स्वदेश (कविता)",
+      "दो गौरैया (कहानी)",
+      "एक आशीर्वाद (कविता)",
+      "हरिद्वार (पत्र)",
+      "कबीर के दोहे",
+      "एक टोकरी भर मिट्टी (कहानी)",
+      "मत बाँधो (कविता)",
+      "नए मेहमान (एकांकी)",
+      "आदमी का अनुपात (कविता)",
+      "तरुण के स्वप्न (उद्बोधन)"
+    ] },
     ] },
   { id: "sst", name: "Social Studies", icon: "🌍", color: "#7c3aed",
     sections: [
@@ -396,7 +421,21 @@ const LETTY_SUBJECTS: SubjectDef[] = [
       { name: "Exploring Society â Theme E: Economy", chapters: ["Factors of Production"] },
     ] },
   { id: "sanskrit", name: "Sanskrit", icon: "🕉️", color: "#b45309",
-    chapters: ["à¤¸à¥à¤­à¤¾à¤·à¤¿à¤¤à¤¾à¤¨à¤¿ â Subhashitani","à¤¬à¤¿à¤²à¤¸à¥à¤¯ à¤µà¤¾à¤£à¥ à¤¨ à¤à¤¦à¤¾à¤ªà¤¿ à¤®à¥ à¤¶à¥à¤°à¥à¤¤à¤¾ â Bilasya Vani Na Kadapi Me Shruta","à¤¡à¤¿à¤à¥à¤­à¤¾à¤°à¤¤à¤®à¥ â DigiiBharatam","à¤¸à¤¦à¥à¤µ à¤ªà¥à¤°à¤¤à¥ à¤¨à¤¿à¤§à¥à¤¹à¤¿ à¤à¤°à¤£à¤®à¥ â Sadaiva Purato Nidhehi Charanam","à¤à¤£à¥à¤à¤à¥à¤¨à¥à¤µ à¤à¤£à¥à¤à¤à¤®à¥ â Kantakenaiva Kantakam","à¤à¥à¤¹à¤ à¤¶à¥à¤¨à¥à¤¯à¤ à¤¸à¥à¤¤à¤¾à¤ à¤µà¤¿à¤¨à¤¾ â Griham Shunyam Sutam Vina","à¤­à¤¾à¤°à¤¤à¤à¤¨à¤¤à¤¾à¤½à¤¹à¤®à¥ â Bharat Janataaham","à¤¸à¤à¤¸à¤¾à¤°à¤¸à¤¾à¤à¤°à¤¸à¥à¤¯ à¤¨à¤¾à¤¯à¤à¤¾à¤ â Sansarasagarasya Nayakah","à¤¸à¤ªà¥à¤¤à¤­à¤à¤¿à¤¨à¥à¤¯à¤ â Saptabhaginyah","à¤à¤¶à¥à¤µà¤ à¤à¤µ à¤®à¤® à¤ªà¥à¤°à¤¾à¤£à¤¾à¤ â Ashvah Eva Mama Pranah","à¤¸à¤®à¤µà¤¾à¤¯à¥ à¤¹à¤¿ à¤¦à¥à¤°à¥à¤à¤¯à¤ â Samavayo Hi Durjayah","à¤à¤ à¤°à¤à¥à¤·à¤¤à¤¿ à¤à¤ à¤°à¤à¥à¤·à¤¿à¤¤à¤ â Kah Rakshati Kah Rakshitah","à¤à¥à¤·à¤¿à¤¤à¥ à¤°à¤¾à¤à¤¤à¥ à¤­à¤¾à¤°à¤¤à¤¸à¥à¤µà¤°à¥à¤£à¤­à¥à¤®à¤¿à¤ â Kshitau Rajate Bharatasvarnadbbhumih","à¤à¤°à¥à¤¯à¤­à¤à¤ â Aryabhatah","à¤®à¤¾à¤¤à¥à¤µà¤¾à¤£à¥ â Matrivani"] },
+    chapters: [
+      "संगच्छध्वं संवदध्वम्",
+      "अल्पानामपि वस्तूनां संहितः कार्यसाधिका",
+      "सुभाषितरसं पीत्वा जीवनं सफलं कुरु",
+      "प्रणम्यो देशभक्तोऽयं गोपबन्धुर्महामनाः",
+      "गीता सुगीता कर्तव्या",
+      "डिजिभारतम् – युगपरिवर्तनम्",
+      "मञ्जुलमञ्जूषा सुन्दरसुरभाषा",
+      "पश्यत कोणमैशान्यं भारतस्य मनोहरम्",
+      "कोऽरुकृ ? कोऽरुकृ ? कोऽरुकृ ?",
+      "सन्निमित्ते वरं त्यागः (क–भागः)",
+      "सन्निमित्ते वरं त्यागः (ख–भागः)",
+      "सम्यग्वर्णप्रयोगेन ब्रह्मलोके महीयते",
+      "वर्णोच्चारण-शिक्षा"
+    ] },
 ];
 
 function getChapters(sub: SubjectDef): Chapter[] {
