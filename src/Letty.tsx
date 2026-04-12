@@ -237,9 +237,7 @@ const LETTY_SUBJECTS: SubjectDef[] = [
       "Magnifying Glass",
       "Bibha Chowdhuri: The Beam of Light that Lit the Path for Women in Indian Science"
     ] },
-      { name: "Honeydew â Poetry", chapters: ["The Ant and the Cricket","Geography Lesson","Macavity: The Mystery Cat","The Last Bargain","The School Boy","The Duck and the Kangaroo","When I Set Out for Lyonnesse","On the Grasshopper and Cricket"] },
-      { name: "It So Happened (Supplementary)", chapters: ["How the Camel Got His Hump","Children at Work","The Selfish Giant","The Treasure Within","Princess September","The Fight","The Open Window","Jalebis","The Comet â I","The Comet â II"] },
-    ] },
+
 
   { id: "enggrammar", name: "English Grammar", icon: "✏️", color: "#0891b2",
     sections: [
