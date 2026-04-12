@@ -1246,10 +1246,10 @@ export default function App() {
                 </div>
               </div>
 
-              {(() => { let chIdx = 0; return sections.map(sec => (
+              {sections.map(sec => (
                 <div key={sec.name || "m"} style={{ marginBottom: 18 }}>
                   {sec.name && <div style={{ fontWeight: 700, color: sub.color, fontSize: 14, marginBottom: 8, paddingBottom: 6, borderBottom: `2px solid ${sub.color}22` }}>📌 {sec.name}</div>}
-                  {sec.chs.map(ch => {
+                  {sec.chs.map((ch, chIdx) => {
                     const d = getCh(ch.id);
                     const sm = STATUS_META[d.status];
                     const tests = d.tests || [];
