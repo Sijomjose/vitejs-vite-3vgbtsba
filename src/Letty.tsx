@@ -1151,10 +1151,10 @@ export default function Letty() {
                 </div>
               </div>
 
-              {(() => { let chIdx = 0; return sections.map(sec => (
+              {sections.map(sec => (
                 <div key={sec.name || "m"} style={{ marginBottom: 18 }}>
                   {sec.name && <div style={{ fontWeight: 700, color: sub.color, fontSize: 14, marginBottom: 8, paddingBottom: 6, borderBottom: `2px solid ${sub.color}22` }}>📌 {sec.name}</div>}
-                  {sec.chs.map(ch => {
+                  {sec.chs.map((ch, chIdx) => {
                     const d = getCh(ch.id);
                     const sm = STATUS_META[d.status];
                     const tests = d.tests || [];
@@ -1166,7 +1166,7 @@ export default function Letty() {
                             style={{ background: sm.color, color: "white", border: "none", borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" as const }}>
                             {sm.icon} {sm.label}
                           </button>
-                          <div style={{ flex: 1, fontWeight: 600, fontSize: 14, color: "#1e293b", minWidth: 80 }}>{(() => { chIdx++; return `${chIdx}. ${ch.name}`; })()}</div>
+                          <div style={{ flex: 1, fontWeight: 600, fontSize: 14, color: "#1e293b", minWidth: 80 }}>{chIdx + 1}. {ch.name}</div>
                           <div style={{ display: "flex", gap: 5 }}>
                             <button onClick={() => toggleFlag(ch.id)} style={{ background: d.revision ? "#fef2f2" : "white", border: `1px solid ${d.revision ? "#fca5a5" : "#e5e7eb"}`, borderRadius: 8, padding: "5px 8px", cursor: "pointer", fontSize: 13 }}>{d.revision ? "🚩" : "🏳️"}</button>
                             <button onClick={() => setNoteModal({ id: ch.id, name: ch.name, note: d.notes || "" })} style={{ background: d.notes ? "#eff6ff" : "white", border: `1px solid ${d.notes ? "#93c5fd" : "#e5e7eb"}`, borderRadius: 8, padding: "5px 8px", cursor: "pointer", fontSize: 13 }}>{d.notes ? "📝" : "📄"}</button>
