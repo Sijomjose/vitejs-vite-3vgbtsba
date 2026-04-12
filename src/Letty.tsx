@@ -212,14 +212,14 @@ function getCountdown() {
 
 /* âââââââââ Subjects âââââââââ */
 const LETTY_SUBJECTS: SubjectDef[] = [
-  { id: "maths", name: "Mathematics", icon: "ð", color: "#2563eb",
+  { id: "maths", name: "Mathematics", icon: "📐", color: "#2563eb",
     sections: [
       { name: "Ganita Prakash â Part 1", chapters: ["A Square and a Cube","Power Play","A Story of Numbers","Quadrilaterals","Number Play","We Distribute, Yet Things Multiply","Proportional Reasoning-1"] },
       { name: "Ganita Prakash â Part 2", chapters: ["Fractions in Disguise","The BaudhayanaâPythagoras Theorem","Proportional Reasoning-2","Exploring Some Geometric Themes","Tales by Dots and Lines","Algebra Play","Area"] },
     ] },
-  { id: "science", name: "Science", icon: "ð¬", color: "#059669",
+  { id: "science", name: "Science", icon: "🔬", color: "#059669",
     chapters: ["Exploring the Investigative World of Science","The Invisible Living World: Beyond Our Naked Eye","Health: The Ultimate Treasure","Electricity: Magnetic and Heating Effects","Exploring Forces","Pressure, Winds, Storms and Cyclones","Particulate Nature of Matter","Nature of Matter: Elements, Compounds and Mixtures","The Amazing World of Solutes, Solvents and Solutions","Light: Mirrors and Lenses","Keeping Time with the Skies","How Nature Works in Harmony","Our Home: Earth, a Unique Life Sustaining Planet"] },
-  { id: "english", name: "English", icon: "ð", color: "#d97706",
+  { id: "english", name: "English", icon: "📖", color: "#d97706",
     sections: [
       { name: "Honeydew â Prose", chapters: ["The Best Christmas Present in the World","The Tsunami","Glimpses of the Past","Bepin Choudhury's Lapse of Memory","The Summit Within","This is Jody's Fawn","A Visit to Cambridge","A Short Monsoon Diary","The Great Stone Face â I","The Great Stone Face â II"] },
       { name: "Honeydew â Poetry", chapters: ["The Ant and the Cricket","Geography Lesson","Macavity: The Mystery Cat","The Last Bargain","The School Boy","The Duck and the Kangaroo","When I Set Out for Lyonnesse","On the Grasshopper and Cricket"] },
@@ -384,18 +384,18 @@ const LETTY_SUBJECTS: SubjectDef[] = [
       ]},
     ] },
 
-  { id: "hindi", name: "Hindi", icon: "ðª", color: "#dc2626",
+  { id: "hindi", name: "Hindi", icon: "🫔", color: "#dc2626",
     sections: [
       { name: "Malhar", chapters: ["Laakh Ki Chudiyaan","Bus Ki Yaatra","Deevanon Ki Hasti","Bhagvan Ke Daakiye","Kya Nirash Hua Jaye","Yeh Sabse Kathin Samay Nahin","Kabir Ki Saakhiyaan","Sudama Charit","Jahaan Pahiya Hai","Akbari Lota"] },
     ] },
-  { id: "sst", name: "Social Studies", icon: "ð", color: "#7c3aed",
+  { id: "sst", name: "Social Studies", icon: "🌍", color: "#7c3aed",
     sections: [
       { name: "Exploring Society â Theme A: Land and People", chapters: ["Natural Resources and Their Use"] },
       { name: "Exploring Society â Theme B: Tapestry of the Past", chapters: ["Reshaping India's Political Map","The Rise of the Marathas","The Colonial Era in India"] },
       { name: "Exploring Society â Theme D: Governance and Democracy", chapters: ["Universal Franchise and India's Electoral System","The Parliamentary System: Legislature and Executive"] },
       { name: "Exploring Society â Theme E: Economy", chapters: ["Factors of Production"] },
     ] },
-  { id: "sanskrit", name: "Sanskrit", icon: "ðï¸", color: "#b45309",
+  { id: "sanskrit", name: "Sanskrit", icon: "🕉️", color: "#b45309",
     chapters: ["à¤¸à¥à¤­à¤¾à¤·à¤¿à¤¤à¤¾à¤¨à¤¿ â Subhashitani","à¤¬à¤¿à¤²à¤¸à¥à¤¯ à¤µà¤¾à¤£à¥ à¤¨ à¤à¤¦à¤¾à¤ªà¤¿ à¤®à¥ à¤¶à¥à¤°à¥à¤¤à¤¾ â Bilasya Vani Na Kadapi Me Shruta","à¤¡à¤¿à¤à¥à¤­à¤¾à¤°à¤¤à¤®à¥ â DigiiBharatam","à¤¸à¤¦à¥à¤µ à¤ªà¥à¤°à¤¤à¥ à¤¨à¤¿à¤§à¥à¤¹à¤¿ à¤à¤°à¤£à¤®à¥ â Sadaiva Purato Nidhehi Charanam","à¤à¤£à¥à¤à¤à¥à¤¨à¥à¤µ à¤à¤£à¥à¤à¤à¤®à¥ â Kantakenaiva Kantakam","à¤à¥à¤¹à¤ à¤¶à¥à¤¨à¥à¤¯à¤ à¤¸à¥à¤¤à¤¾à¤ à¤µà¤¿à¤¨à¤¾ â Griham Shunyam Sutam Vina","à¤­à¤¾à¤°à¤¤à¤à¤¨à¤¤à¤¾à¤½à¤¹à¤®à¥ â Bharat Janataaham","à¤¸à¤à¤¸à¤¾à¤°à¤¸à¤¾à¤à¤°à¤¸à¥à¤¯ à¤¨à¤¾à¤¯à¤à¤¾à¤ â Sansarasagarasya Nayakah","à¤¸à¤ªà¥à¤¤à¤­à¤à¤¿à¤¨à¥à¤¯à¤ â Saptabhaginyah","à¤à¤¶à¥à¤µà¤ à¤à¤µ à¤®à¤® à¤ªà¥à¤°à¤¾à¤£à¤¾à¤ â Ashvah Eva Mama Pranah","à¤¸à¤®à¤µà¤¾à¤¯à¥ à¤¹à¤¿ à¤¦à¥à¤°à¥à¤à¤¯à¤ â Samavayo Hi Durjayah","à¤à¤ à¤°à¤à¥à¤·à¤¤à¤¿ à¤à¤ à¤°à¤à¥à¤·à¤¿à¤¤à¤ â Kah Rakshati Kah Rakshitah","à¤à¥à¤·à¤¿à¤¤à¥ à¤°à¤¾à¤à¤¤à¥ à¤­à¤¾à¤°à¤¤à¤¸à¥à¤µà¤°à¥à¤£à¤­à¥à¤®à¤¿à¤ â Kshitau Rajate Bharatasvarnadbbhumih","à¤à¤°à¥à¤¯à¤­à¤à¤ â Aryabhatah","à¤®à¤¾à¤¤à¥à¤µà¤¾à¤£à¥ â Matrivani"] },
 ];
 
@@ -411,9 +411,9 @@ function getChapters(sub: SubjectDef): Chapter[] {
 const STATUSES = ["not_started", "in_progress", "completed", "revised"] as const;
 const STATUS_META: Record<string, { label: string; color: string; icon: string; bg: string }> = {
   not_started: { label: "Not Started", color: "#94a3b8", icon: "â¬", bg: "#f8fafc" },
-  in_progress: { label: "In Progress", color: "#f59e0b", icon: "ð", bg: "#fffbeb" },
-  completed:   { label: "Completed",   color: "#10b981", icon: "â", bg: "#ecfdf5" },
-  revised:     { label: "Revised",     color: "#8b5cf6", icon: "ð", bg: "#f5f3ff" },
+  in_progress: { label: "In Progress", color: "#f59e0b", icon: "🔄", bg: "#fffbeb" },
+  completed:   { label: "Completed",   color: "#10b981", icon: "✅", bg: "#ecfdf5" },
+  revised:     { label: "Revised",     color: "#8b5cf6", icon: "🌟", bg: "#f5f3ff" },
 };
 
 const TEST_TYPES = [
@@ -423,7 +423,7 @@ const TEST_TYPES = [
 
 const PAPER_TYPES = [
   { key: "qp",        label: "ð Question Paper", color: "#2563eb", bg: "#eff6ff", border: "#93c5fd" },
-  { key: "ma",        label: "â Model Answer",   color: "#059669", bg: "#f0fdf4", border: "#86efac" },
+  { key: "ma",        label: "✅ Model Answer",   color: "#059669", bg: "#f0fdf4", border: "#86efac" },
   { key: "as",        label: "ð Answer Sheet",   color: "#d97706", bg: "#fffbeb", border: "#fcd34d" },
   { key: "resources", label: "ð Resources",      color: "#7c3aed", bg: "#f5f3ff", border: "#ddd6fe" },
 ];
@@ -779,7 +779,7 @@ export default function Letty() {
           <div style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}>
             {[
               { label: "Total Chapters", val: `${stats.don}/${stats.tot}`, ico: "ð" },
-              { label: "In Progress", val: stats.ss.reduce((a, b) => a + b.prog, 0), ico: "ð" },
+              { label: "In Progress", val: stats.ss.reduce((a, b) => a + b.prog, 0), ico: "🔄" },
               { label: "Flagged", val: stats.ss.reduce((a, b) => a + b.flagged, 0), ico: "ð©" },
               { label: "Tests", val: allTests.length, ico: "ð" },
             ].map(s => (
@@ -874,7 +874,7 @@ export default function Letty() {
                     </div>
                   </div>
                   <div style={{ display: "flex", gap: 8, marginTop: 10, fontSize: 11 }}>
-                    {s.prog > 0 && <span style={{ color: "#f59e0b" }}>ð {s.prog}</span>}
+                    {s.prog > 0 && <span style={{ color: "#f59e0b" }}>🔄 {s.prog}</span>}
                     {s.flagged > 0 && <span style={{ color: "#ef4444" }}>ð© {s.flagged}</span>}
                   </div>
                 </Glass>
@@ -1178,7 +1178,7 @@ export default function Letty() {
             </div>
             {testForm.obtained && testForm.max && +testForm.max > 0 && (
               <div style={{ textAlign: "center" as const, padding: "8px 0", fontSize: 28, fontWeight: 900, color: scoreColor(pctCalc(+testForm.obtained, +testForm.max)) }}>
-                {pctCalc(+testForm.obtained, +testForm.max)}% {pctCalc(+testForm.obtained, +testForm.max) >= 80 ? "ð" : pctCalc(+testForm.obtained, +testForm.max) >= 60 ? "ð" : "ð"}
+                {pctCalc(+testForm.obtained, +testForm.max)}% {pctCalc(+testForm.obtained, +testForm.max) >= 80 ? "ð" : pctCalc(+testForm.obtained, +testForm.max) >= 60 ? "ð" : "📖"}
               </div>
             )}
             <textarea placeholder="Notes (optional)â¦" value={testForm.notes} onChange={e => setTestForm({ ...testForm, notes: e.target.value })} style={inp({ minHeight: 60, resize: "vertical" as const, marginBottom: 14 })} />
