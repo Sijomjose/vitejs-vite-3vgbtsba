@@ -879,6 +879,7 @@ export default function App() {
         @keyframes pulse2{0%,100%{opacity:1}50%{opacity:.4}}
         @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
         @keyframes shimmer{0%{background-position:-300% 0}100%{background-position:300% 0}}
+        html{scrollbar-gutter:stable both-edges}
         *{box-sizing:border-box}
         ::-webkit-scrollbar{width:5px}
         ::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#a5b4fc,#818cf8);border-radius:10px}
