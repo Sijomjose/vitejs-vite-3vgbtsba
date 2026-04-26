@@ -959,9 +959,19 @@ export default function App() {
               </div>
             ))}
           </div>
-          <div style={{ background: "rgba(255,255,255,.06)", borderRadius: 20, height: 6, overflow: "hidden" }}>
-            <div style={{ background: `linear-gradient(90deg,${glow}88,${glow})`, height: "100%", width: `${countdown.pct}%`, borderRadius: 20, transition: "width 1s", boxShadow: `0 0 10px ${glow}` }} />
-          </div>
+          {[
+            { label: "Days",   pct: countdown.pct,              color: glow,      color2: `${glow}88` },
+            { label: "Home",   pct: bothData.home   ? pctCalc(Object.values(bothData.home).filter(c => ["completed","revised"].includes(c.status)).length, SUBJECTS.reduce((a, s) => a + getChapters(s).length, 0)) : 0, color: "#818cf8", color2: "#6366f188" },
+            { label: "School", pct: bothData.school ? pctCalc(Object.values(bothData.school).filter(c => ["completed","revised"].includes(c.status)).length, SCHOOL_SUBJECTS.reduce((a, s) => a + getChapters(s).length, 0)) : 0, color: "#f59e0b", color2: "#f59e0b88" },
+          ].map(({ label, pct, color, color2 }) => (
+            <div key={label} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+              <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 1, color: "#64748b", textTransform: "uppercase" as const, width: 42, flexShrink: 0 }}>{label}</div>
+              <div style={{ flex: 1, background: "rgba(255,255,255,.06)", borderRadius: 20, height: 6, overflow: "hidden" }}>
+                <div style={{ background: `linear-gradient(90deg,${color2},${color})`, height: "100%", width: `${pct}%`, borderRadius: 20, transition: "width 1s", boxShadow: `0 0 8px ${color}` }} />
+              </div>
+              <div style={{ fontSize: 10, fontWeight: 800, color, width: 30, textAlign: "right" as const }}>{pct}%</div>
+            </div>
+          ))}
         </Glass>
 
         {/* ════ TABS + SEARCH ════ */}
