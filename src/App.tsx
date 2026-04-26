@@ -904,7 +904,7 @@ export default function App() {
         }
       `}</style>
 
-      <div className="page-wrap" style={{ maxWidth: 1440, margin: "0 auto", padding: "16px 20px" }}>
+      <div className="page-wrap" style={{ maxWidth: 1920, margin: "0 auto", padding: "16px 12px" }}>
 
         {/* ════ HEADER ════ */}
         <div className="header-card" style={{ background: accentGrad, borderRadius: 20, padding: "22px 28px", marginBottom: 16, color: "white", position: "relative", overflow: "hidden" }}>
@@ -1515,7 +1515,7 @@ export default function App() {
 
       {/* ════ FOOTER ════ */}
       <footer style={{ background: "linear-gradient(135deg,#0f172a 0%,#1e1b4b 60%,#1e0f3a 100%)", color: "white", marginTop: 40, padding: "28px 20px 20px", borderTop: "1px solid rgba(99,102,241,.2)" }}>
-        <div className="footer-inner" style={{ maxWidth: 1440, margin: "0 auto" }}>
+        <div className="footer-inner" style={{ maxWidth: 1920, margin: "0 auto", padding: "0 12px" }}>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
             {stats.ss.map(s => (
               <div key={s.id} style={{ flex: 1, minWidth: 100, background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.07)", borderRadius: 10, padding: "8px 12px" }}>
