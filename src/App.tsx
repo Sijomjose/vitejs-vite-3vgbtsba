@@ -888,12 +888,17 @@ export default function App() {
         .status-btn:hover{filter:brightness(1.1);transform:scale(1.04)}
         .action-btn:hover{background:#f0f4ff!important;border-color:#a5b4fc!important;transform:scale(1.08)}
         .chapter-glass:hover{box-shadow:0 4px 24px rgba(99,102,241,.1)!important}
+        @media(max-width:600px){
+          .page-wrap{padding:8px 8px!important}
+          .header-card{border-radius:14px!important;padding:16px 18px!important}
+          .dash-grid{grid-template-columns:1fr!important}
+        }
       `}</style>
 
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "16px 20px" }}>
+      <div className="page-wrap" style={{ maxWidth: 1100, margin: "0 auto", padding: "16px 20px" }}>
 
         {/* ════ HEADER ════ */}
-        <div style={{ background: accentGrad, borderRadius: 20, padding: "22px 28px", marginBottom: 16, color: "white", position: "relative", overflow: "hidden" }}>
+        <div className="header-card" style={{ background: accentGrad, borderRadius: 20, padding: "22px 28px", marginBottom: 16, color: "white", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: -60, right: -30, width: 200, height: 200, borderRadius: "50%", background: "rgba(255,255,255,.08)" }} />
           <div style={{ position: "absolute", bottom: -50, left: 60, width: 140, height: 140, borderRadius: "50%", background: "rgba(255,255,255,.05)" }} />
           <div style={{ position: "absolute", top: 10, right: 160, width: 70, height: 70, borderRadius: "50%", background: "rgba(255,255,255,.06)" }} />
@@ -956,7 +961,8 @@ export default function App() {
           <div style={{ display: "flex", justifyContent: "center", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
             {[
               { val: String(countdown.days).padStart(3, "0"), label: "DAYS" },
-              { val: String(countdown.secs).padStart(2, "0"), label: "SEC" },
+              { val: String(countdown.hrs).padStart(2, "0"), label: "HRS" },
+              { val: String(countdown.mins).padStart(2, "0"), label: "MIN" },
             ].map((u, idx) => (
               <div key={u.label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 {idx > 0 && <div style={{ display: "flex", flexDirection: "column", gap: 8, paddingBottom: 24 }}>
@@ -1040,7 +1046,7 @@ export default function App() {
                 </Glass>
               ))}
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div className="dash-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 12 }}>
               <Glass style={{ padding: "18px 20px" }}>
                 <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 12, color: "#0f172a" }}>📊 Status Overview</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 16 }}>

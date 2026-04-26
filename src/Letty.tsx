@@ -793,6 +793,11 @@ export default function Letty() {
         .tab-bar-l{scrollbar-width:none}
         .status-btn:hover{filter:brightness(1.1);transform:scale(1.04)}
         .action-btn:hover{background:#ecfdf5!important;border-color:#6ee7b7!important;transform:scale(1.08)}
+        @media(max-width:600px){
+          .page-wrap-l{padding:8px 8px!important}
+          .header-card-l{border-radius:14px!important;padding:16px 18px!important}
+          .dash-grid-l{grid-template-columns:1fr!important}
+        }
       `}</style>
 
       {/* ════ TOP NAV BAR ════ */}
@@ -801,10 +806,10 @@ export default function Letty() {
         <span style={{ padding: "6px 14px", borderRadius: 10, background: "#065f46", color: "white", fontWeight: 700, fontSize: 13 }}>🎀 Letty's</span>
       </div>
 
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "16px 20px" }}>
+      <div className="page-wrap-l" style={{ maxWidth: 1100, margin: "0 auto", padding: "16px 20px" }}>
 
         {/* ════ HEADER ════ */}
-        <div style={{ background: accentGrad, borderRadius: 20, padding: "22px 28px", marginBottom: 16, color: "white", position: "relative", overflow: "hidden" }}>
+        <div className="header-card-l" style={{ background: accentGrad, borderRadius: 20, padding: "22px 28px", marginBottom: 16, color: "white", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: -60, right: -30, width: 200, height: 200, borderRadius: "50%", background: "rgba(255,255,255,.08)" }} />
           <div style={{ position: "absolute", bottom: -50, left: 60, width: 140, height: 140, borderRadius: "50%", background: "rgba(255,255,255,.05)" }} />
           <div style={{ position: "absolute", top: 10, right: 160, width: 70, height: 70, borderRadius: "50%", background: "rgba(255,255,255,.06)" }} />
@@ -859,7 +864,6 @@ export default function Letty() {
               { val: String(countdown.days).padStart(3, "0"), label: "DAYS" },
               { val: String(countdown.hrs).padStart(2, "0"), label: "HRS" },
               { val: String(countdown.mins).padStart(2, "0"), label: "MIN" },
-              { val: String(countdown.secs).padStart(2, "0"), label: "SEC" },
             ].map((u, idx) => (
               <div key={u.label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 {idx > 0 && <div style={{ display: "flex", flexDirection: "column", gap: 8, paddingBottom: 24 }}>
@@ -942,7 +946,7 @@ export default function Letty() {
                 </Glass>
               ))}
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div className="dash-grid-l" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 12 }}>
               <Glass style={{ padding: "18px 20px" }}>
                 <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 12, color: "#0f172a" }}>📊 Status Overview</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
