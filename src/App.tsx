@@ -901,7 +901,7 @@ export default function App() {
           <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
             <div style={{ fontSize: 38 }}>{isSchool ? "🏫" : "📚"}</div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 900, fontSize: 24, letterSpacing: -0.5 }}>Savvy's {isSchool ? "School" : "Home"} Tracker</div>
+              <div style={{ fontWeight: 900, fontSize: 24, letterSpacing: -0.5 }}>Savvy's {isSchool ? "School" : "Study"} Tracker</div>
               <div style={{ fontSize: 13, opacity: .8, marginTop: 2 }}>Class 10 • CBSE NCERT{saving ? " • ☁️ Syncing…" : ""}</div>
             </div>
             <div style={{ position: "relative", width: 80, height: 80 }}>
@@ -956,8 +956,6 @@ export default function App() {
           <div style={{ display: "flex", justifyContent: "center", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
             {[
               { val: String(countdown.days).padStart(3, "0"), label: "DAYS" },
-              { val: String(countdown.hrs).padStart(2, "0"), label: "HRS" },
-              { val: String(countdown.mins).padStart(2, "0"), label: "MIN" },
               { val: String(countdown.secs).padStart(2, "0"), label: "SEC" },
             ].map((u, idx) => (
               <div key={u.label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
