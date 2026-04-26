@@ -879,7 +879,7 @@ export default function App() {
         @keyframes pulse2{0%,100%{opacity:1}50%{opacity:.4}}
         @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
         @keyframes shimmer{0%{background-position:-300% 0}100%{background-position:300% 0}}
-        html{scrollbar-gutter:stable both-edges}
+        html,body{margin:0;padding:0;width:100%;overflow-x:hidden}
         *{box-sizing:border-box}
         ::-webkit-scrollbar{width:5px}
         ::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#a5b4fc,#818cf8);border-radius:10px}
@@ -905,7 +905,7 @@ export default function App() {
         }
       `}</style>
 
-      <div className="page-wrap" style={{ maxWidth: 1920, margin: "0 auto", padding: "16px 12px" }}>
+      <div className="page-wrap" style={{ width: "100%", padding: "16px 12px" }}>
 
         {/* ════ HEADER ════ */}
         <div className="header-card" style={{ background: accentGrad, borderRadius: 20, padding: "22px 28px", marginBottom: 16, color: "white", position: "relative", overflow: "hidden" }}>
@@ -1516,7 +1516,7 @@ export default function App() {
 
       {/* ════ FOOTER ════ */}
       <footer style={{ background: "linear-gradient(135deg,#0f172a 0%,#1e1b4b 60%,#1e0f3a 100%)", color: "white", marginTop: 40, padding: "28px 20px 20px", borderTop: "1px solid rgba(99,102,241,.2)" }}>
-        <div className="footer-inner" style={{ maxWidth: 1920, margin: "0 auto", padding: "0 12px" }}>
+        <div className="footer-inner" style={{ width: "100%", padding: "0 12px" }}>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
             {stats.ss.map(s => (
               <div key={s.id} style={{ flex: 1, minWidth: 100, background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.07)", borderRadius: 10, padding: "8px 12px" }}>
