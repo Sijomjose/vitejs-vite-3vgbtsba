@@ -5,7 +5,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-/* âââââââââ Supabase Config âââââââââ */
+/* ───────── Supabase Config ───────── */
 const SUPA_URL = "https://mlfgdutctvbvqwebqajp.supabase.co";
 const SUPA_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1sZmdkdXRjdHZidnF3ZWJxYWpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMzQ2MDIsImV4cCI6MjA4OTgxMDYwMn0.TPBeT6y-fFGAgcME_mmKqBUYHFUMVB1FO3wrAhneKW4";
@@ -14,7 +14,7 @@ const LS_KEY = "letty_v4";
 const EXAM_DATE = new Date("2027-03-15T00:00:00");
 const START_DATE = new Date("2026-04-04T00:00:00");
 
-/* âââââââââ Types âââââââââ */
+/* ───────── Types ───────── */
 interface ChapterResource {
   id: string;
   tracker: string;
@@ -59,7 +59,7 @@ interface SubjectStat extends SubjectDef {
   total: number; done: number; prog: number; flagged: number; pct: number;
 }
 
-/* âââââââââ Data helpers âââââââââ */
+/* ───────── Data helpers ───────── */
 async function fetchData(rowId: string): Promise<Record<string, ChapterData> | null> {
   try {
     const res = await fetch(
@@ -210,7 +210,7 @@ function getCountdown() {
   };
 }
 
-/* âââââââââ Subjects âââââââââ */
+/* ───────── Subjects ───────── */
 const LETTY_SUBJECTS: SubjectDef[] = [
   { id: "maths", name: "Mathematics", icon: "📐", color: "#2563eb",
     sections: [
@@ -476,7 +476,7 @@ function ensureArr(v: unknown): string[] {
 function hasPapers(p: Record<string, string[]> | null | undefined): boolean {
   return !!p && PAPER_TYPES.some(({ key }) => ensureArr(p[key]).some(Boolean));
 }
-/* âââââââââ UI Components âââââââââ */
+/* ───────── UI Components ───────── */
 
 function CircleProgress({ value, size = 72, stroke = 7, color = "#2563eb", bg = "#e2e8f0" }: {
   value: number; size?: number; stroke?: number; color?: string; bg?: string;
@@ -562,9 +562,9 @@ function Digit({ ch, glow }: { ch: string; glow: string }) {
   );
 }
 
-/* âââââââââââââââââââââââââââââââââââ
+/* ═══════════════════════════════════
    LETTY COMPONENT
-   âââââââââââââââââââââââââââââââââââ */
+   ═══════════════════════════════════ */
 export default function Letty() {
   const [data, setData] = useState<Record<string, ChapterData>>({});
   const [loading, setLoading] = useState(true);
@@ -719,7 +719,7 @@ export default function Letty() {
     setChapterResources(prev => prev.filter(r => r.id !== id));
   };
 
-  /* ââ Stats ââ */
+  /* ── Stats ── */
   const stats = useMemo(() => {
     const ss: SubjectStat[] = LETTY_SUBJECTS.map(s => {
       const chs = getChapters(s);
@@ -766,16 +766,16 @@ export default function Letty() {
     outline: "none", transition: "border .2s", ...extra,
   });
 
-  /* ââ Loading ââ */
+  /* ── Loading ── */
   if (loading) return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", fontFamily: "system-ui", gap: 12 }}>
       <div style={{ width: 24, height: 24, border: "3px solid #e2e8f0", borderTop: "3px solid #059669", borderRadius: "50%", animation: "spin .8s linear infinite" }} />
-      <span style={{ fontSize: 16, color: "#64748b" }}>Loading Letty's Trackerâ¦</span>
+      <span style={{ fontSize: 16, color: "#64748b" }}>Loading Letty's Tracker…</span>
       <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
     </div>
   );
 
-  /* âââââââââ RENDER âââââââââ */
+  /* ═════════ RENDER ═════════ */
   return (
     <div style={{ fontFamily: "'Inter','Segoe UI',system-ui,sans-serif", background: "linear-gradient(180deg,#ecfdf5 0%,#f8fafc 100%)" }}>
       <style>{`
@@ -786,7 +786,7 @@ export default function Letty() {
         ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:10px}
       `}</style>
 
-      {/* ââââ TOP NAV BAR ââââ */}
+      {/* ════ TOP NAV BAR ════ */}
       <div style={{ background: "white", borderBottom: "1px solid #e2e8f0", padding: "10px 20px", display: "flex", gap: 12, alignItems: "center" }}>
         <a href="/" style={{ textDecoration: "none", padding: "6px 14px", borderRadius: 10, background: "#f1f5f9", color: "#475569", fontWeight: 600, fontSize: 13 }}>📚 Savvy's</a>
         <span style={{ padding: "6px 14px", borderRadius: 10, background: "#065f46", color: "white", fontWeight: 700, fontSize: 13 }}>🎀 Letty's</span>
@@ -794,14 +794,14 @@ export default function Letty() {
 
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "16px 20px" }}>
 
-        {/* ââââ HEADER ââââ */}
+        {/* ════ HEADER ════ */}
         <div style={{ background: accentGrad, borderRadius: 20, padding: "22px 28px", marginBottom: 16, color: "white", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: -60, right: -30, width: 200, height: 200, borderRadius: "50%", background: "rgba(255,255,255,.08)" }} />
           <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
             <div style={{ fontSize: 38 }}>🎀</div>
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 900, fontSize: 24, letterSpacing: -0.5 }}>Letty's Study Tracker</div>
-              <div style={{ fontSize: 13, opacity: .8, marginTop: 2 }}>Grade 8 â¢ CBSE NCERT{saving ? " â¢ âï¸ Syncingâ¦" : ""}</div>
+              <div style={{ fontSize: 13, opacity: .8, marginTop: 2 }}>Grade 8 • CBSE NCERT{saving ? " • ☁️ Syncing…" : ""}</div>
             </div>
             <div style={{ position: "relative", width: 80, height: 80 }}>
               <CircleProgress value={stats.pct} size={80} stroke={8} color="white" bg="rgba(255,255,255,.2)" />
@@ -828,14 +828,14 @@ export default function Letty() {
           </div>
         </div>
 
-        {/* ââââ COUNTDOWN ââââ */}
+        {/* ════ COUNTDOWN ════ */}
         <Glass style={{ padding: "20px 24px", marginBottom: 16, background: "linear-gradient(135deg,#0f172a,#1e1b4b)", color: "white", border: `1.5px solid ${glow}33` }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <div style={{ width: 36, height: 36, borderRadius: 10, background: `${glow}22`, border: `1px solid ${glow}44`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>🎯</div>
               <div>
                 <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 3, color: "#94a3b8", textTransform: "uppercase" as const }}>Annual Exam Countdown</div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0" }}>Grade 8 Annual Exam â¢ Mar 15, 2027</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0" }}>Grade 8 Annual Exam • Mar 15, 2027</div>
               </div>
             </div>
             <div style={{ background: `${glow}22`, border: `1px solid ${glow}44`, borderRadius: 20, padding: "4px 14px" }}>
@@ -875,7 +875,7 @@ export default function Letty() {
           ))}
         </Glass>
 
-        {/* ââââ TABS + SEARCH ââââ */}
+        {/* ════ TABS + SEARCH ════ */}
         <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap", alignItems: "center" }}>
           {["dashboard", ...LETTY_SUBJECTS.map(s => s.id), "analytics", "common"].map(t => {
             const sub = LETTY_SUBJECTS.find(s => s.id === t);
@@ -896,12 +896,12 @@ export default function Letty() {
             );
           })}
           {tab !== "dashboard" && tab !== "analytics" && tab !== "common" && (
-            <input placeholder="🔍 Search chaptersâ¦" value={search} onChange={e => setSearch(e.target.value)}
+            <input placeholder="🔍 Search chapters…" value={search} onChange={e => setSearch(e.target.value)}
               style={{ ...inp({ maxWidth: 220, marginLeft: "auto", background: "white", fontSize: 13 }) }} />
           )}
         </div>
 
-        {/* ââââ DASHBOARD ââââ */}
+        {/* ════ DASHBOARD ════ */}
         {tab === "dashboard" && (
           <div style={{ animation: "fadeUp .3s ease" }}>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(200px,1fr))", gap: 12, marginBottom: 16 }}>
@@ -984,7 +984,7 @@ export default function Letty() {
                         <span style={{ fontSize: 16 }}>{t.sIcon}</span>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontSize: 13, fontWeight: 600, color: "#0f172a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>{t.chName}</div>
-                          <div style={{ fontSize: 11, color: "#94a3b8" }}>{t.type} â¢ {t.date}</div>
+                          <div style={{ fontSize: 11, color: "#94a3b8" }}>{t.type} • {t.date}</div>
                         </div>
                         <div style={{ fontWeight: 800, fontSize: 15, color: scoreColor(p) }}>{t.obtained}/{t.max}</div>
                       </div>
@@ -995,7 +995,7 @@ export default function Letty() {
           </div>
         )}
 
-        {/* ââââ ANALYTICS TAB ââââ */}
+        {/* ════ ANALYTICS TAB ════ */}
         {tab === "analytics" && (
           <div style={{ animation: "fadeUp .3s ease" }}>
             <Glass style={{ padding: "22px 24px", marginBottom: 14 }}>
@@ -1028,7 +1028,7 @@ export default function Letty() {
           </div>
         )}
 
-        {/* ââââ COMMON TAB ââââ */}
+        {/* ════ COMMON TAB ════ */}
         {tab === "common" && (
           <div style={{ animation: "fadeUp .3s ease" }}>
             {/* Header */}
@@ -1036,7 +1036,7 @@ export default function Letty() {
               <span style={{ fontSize: 40 }}>🗂️</span>
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 900, fontSize: 22 }}>Common Resources</div>
-                <div style={{ fontSize: 13, opacity: .85, marginTop: 2 }}>Letty â¢ {commonResources.length} saved resource{commonResources.length !== 1 ? "s" : ""}</div>
+                <div style={{ fontSize: 13, opacity: .85, marginTop: 2 }}>Letty • {commonResources.length} saved resource{commonResources.length !== 1 ? "s" : ""}</div>
                 <div style={{ fontSize: 12, opacity: .7, marginTop: 4 }}>Links, notes, and general study materials</div>
               </div>
             </div>
@@ -1048,7 +1048,7 @@ export default function Letty() {
                 <div>
                   <div style={{ fontSize: 12, fontWeight: 600, color: "#64748b", marginBottom: 4 }}>Title <span style={{ color: "#ef4444" }}>*</span></div>
                   <input
-                    placeholder="e.g. Chapter 3 Notes, Formula Sheetâ¦"
+                    placeholder="e.g. Chapter 3 Notes, Formula Sheet…"
                     value={commonForm.title}
                     onChange={e => setCommonForm(f => ({ ...f, title: e.target.value }))}
                     style={{ width: "100%", padding: "9px 12px", borderRadius: 10, border: "1px solid #e2e8f0", fontSize: 13, boxSizing: "border-box" as const, outline: "none" }}
@@ -1058,7 +1058,7 @@ export default function Letty() {
                   <div style={{ fontSize: 12, fontWeight: 600, color: "#64748b", marginBottom: 4 }}>Google Drive / URL</div>
                   <input
                     type="url"
-                    placeholder="https://drive.google.com/â¦"
+                    placeholder="https://drive.google.com/…"
                     value={commonForm.link}
                     onChange={e => setCommonForm(f => ({ ...f, link: e.target.value }))}
                     style={{ width: "100%", padding: "9px 12px", borderRadius: 10, border: "1px solid #e2e8f0", fontSize: 13, boxSizing: "border-box" as const, outline: "none" }}
@@ -1068,7 +1068,7 @@ export default function Letty() {
               <div style={{ marginBottom: 12 }}>
                 <div style={{ fontSize: 12, fontWeight: 600, color: "#64748b", marginBottom: 4 }}>Notes</div>
                 <textarea
-                  placeholder="Add any notes or descriptionâ¦"
+                  placeholder="Add any notes or description…"
                   value={commonForm.notes}
                   onChange={e => setCommonForm(f => ({ ...f, notes: e.target.value }))}
                   style={{ width: "100%", padding: "9px 12px", borderRadius: 10, border: "1px solid #e2e8f0", fontSize: 13, boxSizing: "border-box" as const, outline: "none", resize: "vertical" as const, minHeight: 72, fontFamily: "inherit" }}
@@ -1079,13 +1079,13 @@ export default function Letty() {
                 disabled={!commonForm.title.trim() || commonSaving}
                 style={{ background: !commonForm.title.trim() || commonSaving ? "#e2e8f0" : "linear-gradient(135deg,#7c3aed,#6d28d9)", color: !commonForm.title.trim() || commonSaving ? "#94a3b8" : "white", border: "none", borderRadius: 12, padding: "10px 22px", fontWeight: 700, fontSize: 14, cursor: !commonForm.title.trim() || commonSaving ? "default" : "pointer", transition: "all .2s" }}
               >
-                {commonSaving ? "Savingâ¦" : "Save Resource"}
+                {commonSaving ? "Saving…" : "Save Resource"}
               </button>
             </Glass>
 
             {/* Resource List */}
             {commonLoading ? (
-              <div style={{ textAlign: "center" as const, padding: 40, color: "#94a3b8", fontSize: 14 }}>Loadingâ¦</div>
+              <div style={{ textAlign: "center" as const, padding: 40, color: "#94a3b8", fontSize: 14 }}>Loading…</div>
             ) : commonResources.length === 0 ? (
               <Glass style={{ padding: "32px 24px", textAlign: "center" as const }}>
                 <div style={{ fontSize: 36, marginBottom: 10 }}>🗂️</div>
@@ -1121,7 +1121,7 @@ export default function Letty() {
           </div>
         )}
 
-        {/* ââââ SUBJECT VIEW ââââ */}
+        {/* ════ SUBJECT VIEW ════ */}
         {LETTY_SUBJECTS.map(sub => {
           if (tab !== sub.id) return null;
           const chapters = getChapters(sub);
@@ -1205,7 +1205,7 @@ export default function Letty() {
           );
         })}
 
-        {/* ââââ TEST MODAL ââââ */}
+        {/* ════ TEST MODAL ════ */}
         <Modal open={!!testModal} onClose={() => setTestModal(null)} title="📝 Add Test Score">
           {testModal && <>
             <div style={{ color: "#94a3b8", fontSize: 13, marginBottom: 14, marginTop: -8 }}>{testModal.name}</div>
@@ -1226,7 +1226,7 @@ export default function Letty() {
                 {pctCalc(+testForm.obtained, +testForm.max)}% {pctCalc(+testForm.obtained, +testForm.max) >= 80 ? "🎉" : pctCalc(+testForm.obtained, +testForm.max) >= 60 ? "👍" : "📖"}
               </div>
             )}
-            <textarea placeholder="Notes (optional)â¦" value={testForm.notes} onChange={e => setTestForm({ ...testForm, notes: e.target.value })} style={inp({ minHeight: 60, resize: "vertical" as const, marginBottom: 14 })} />
+            <textarea placeholder="Notes (optional)…" value={testForm.notes} onChange={e => setTestForm({ ...testForm, notes: e.target.value })} style={inp({ minHeight: 60, resize: "vertical" as const, marginBottom: 14 })} />
             <div style={{ display: "flex", gap: 10 }}>
               <button onClick={() => setTestModal(null)} style={{ flex: 1, padding: 11, borderRadius: 12, border: "1px solid #e2e8f0", background: "white", cursor: "pointer", fontWeight: 600, fontSize: 14 }}>Cancel</button>
               <button onClick={() => { addTest(testModal.id); setTestModal(null); }} style={{ flex: 1, padding: 11, borderRadius: 12, border: "none", background: accentGrad, color: "white", cursor: "pointer", fontWeight: 700, fontSize: 14 }}>Save Score</button>
@@ -1234,12 +1234,12 @@ export default function Letty() {
           </>}
         </Modal>
 
-        {/* ââââ NOTE MODAL ââââ */}
+        {/* ════ NOTE MODAL ════ */}
         <Modal open={!!noteModal} onClose={() => setNoteModal(null)} title="📄 Chapter Notes">
           {noteModal && <>
             <div style={{ color: "#94a3b8", fontSize: 13, marginBottom: 12, marginTop: -8 }}>{noteModal.name}</div>
             <textarea value={noteModal.note} onChange={e => setNoteModal({ ...noteModal, note: e.target.value })}
-              placeholder="Study notes, formulae, remindersâ¦" style={inp({ minHeight: 120, resize: "vertical" as const, marginBottom: 14 })} />
+              placeholder="Study notes, formulae, reminders…" style={inp({ minHeight: 120, resize: "vertical" as const, marginBottom: 14 })} />
             <div style={{ display: "flex", gap: 10 }}>
               <button onClick={() => setNoteModal(null)} style={{ flex: 1, padding: 11, borderRadius: 12, border: "1px solid #e2e8f0", background: "white", cursor: "pointer", fontWeight: 600, fontSize: 14 }}>Cancel</button>
               <button onClick={() => { saveNote(noteModal.id, noteModal.note); setNoteModal(null); }} style={{ flex: 1, padding: 11, borderRadius: 12, border: "none", background: accentGrad, color: "white", cursor: "pointer", fontWeight: 700, fontSize: 14 }}>Save Note</button>
@@ -1247,12 +1247,12 @@ export default function Letty() {
           </>}
         </Modal>
 
-        {/* ââââ PAPERS MODAL ââââ */}
+        {/* ════ PAPERS MODAL ════ */}
         <Modal open={!!paperModal} onClose={() => setPaperModal(null)} title="📎 Papers & Resources">
           {paperModal && <>
             <div style={{ color: "#94a3b8", fontSize: 13, marginBottom: 12, marginTop: -8 }}>{paperModal.name}</div>
             <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 16, background: "#f8fafc", borderRadius: 8, padding: "8px 12px" }}>
-              Upload to Google Drive â Right click â Share â Copy link â Paste below
+              Upload to Google Drive → Right click → Share → Copy link → Paste below
             </div>
             {resourcesLoading ? (
               <div style={{ textAlign: "center", padding: "20px 0", color: "#94a3b8", fontSize: 13 }}>Loading...</div>
@@ -1288,7 +1288,7 @@ export default function Letty() {
           </>}
         </Modal>
 
-        {/* ââââ EDIT COMMON RESOURCE MODAL ââââ */}
+        {/* ════ EDIT COMMON RESOURCE MODAL ════ */}
         <Modal open={!!editingResource} onClose={() => setEditingResource(null)} title="✏️ Edit Resource">
           {editingResource && <>
             <div style={{ fontSize: 12, fontWeight: 600, color: "#64748b", marginBottom: 4 }}>Title <span style={{ color: "#ef4444" }}>*</span></div>
@@ -1302,7 +1302,7 @@ export default function Letty() {
               type="url"
               value={editingResource.link}
               onChange={e => setEditingResource(r => r && ({ ...r, link: e.target.value }))}
-              placeholder="https://drive.google.com/â¦"
+              placeholder="https://drive.google.com/…"
               style={{ width: "100%", padding: "9px 12px", borderRadius: 10, border: "1px solid #e2e8f0", fontSize: 14, boxSizing: "border-box" as const, outline: "none", marginBottom: 10 }}
             />
             <div style={{ fontSize: 12, fontWeight: 600, color: "#64748b", marginBottom: 4 }}>Notes</div>
@@ -1317,13 +1317,13 @@ export default function Letty() {
                 onClick={saveEditResource}
                 disabled={!editingResource.title.trim() || commonSaving}
                 style={{ flex: 1, padding: 11, borderRadius: 12, border: "none", background: !editingResource.title.trim() || commonSaving ? "#e2e8f0" : "linear-gradient(135deg,#7c3aed,#6d28d9)", color: !editingResource.title.trim() || commonSaving ? "#94a3b8" : "white", cursor: !editingResource.title.trim() || commonSaving ? "default" : "pointer", fontWeight: 700, fontSize: 14 }}>
-                {commonSaving ? "Savingâ¦" : "Save Changes"}
+                {commonSaving ? "Saving…" : "Save Changes"}
               </button>
             </div>
           </>}
         </Modal>
 
-        {/* ââââ STATUS FILTER MODAL ââââ */}
+        {/* ════ STATUS FILTER MODAL ════ */}
         <Modal open={!!statusModal} onClose={() => setStatusModal(null)} title={`${statusModal?.label || ""} Chapters`}>
           {statusModal && (() => {
             const matchFn = (d: ChapterData) =>
@@ -1371,7 +1371,7 @@ export default function Letty() {
         </Modal>
       </div>
 
-      {/* ââââ FOOTER ââââ */}
+      {/* ════ FOOTER ════ */}
       <footer style={{ background: "linear-gradient(135deg,#0f172a,#064e3b)", color: "white", marginTop: 40, padding: "28px 20px 20px" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
@@ -1388,10 +1388,10 @@ export default function Letty() {
             ))}
           </div>
           <div style={{ borderTop: "1px solid rgba(255,255,255,.07)", paddingTop: 14, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
-            <div style={{ fontSize: 12, opacity: .35 }}>Built with ❤️ for Letty â¢ {new Date().getFullYear()} â¢ All the best! 🎯</div>
+            <div style={{ fontSize: 12, opacity: .35 }}>Built with ❤️ for Letty • {new Date().getFullYear()} • All the best! 🎯</div>
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#34d399", boxShadow: "0 0 6px #34d399", animation: "pulse2 2s infinite" }} />
-              <span style={{ fontSize: 11, opacity: .4 }}>Live â¢ letty.study</span>
+              <span style={{ fontSize: 11, opacity: .4 }}>Live • letty.study</span>
             </div>
           </div>
         </div>
