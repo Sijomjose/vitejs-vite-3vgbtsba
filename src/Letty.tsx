@@ -777,13 +777,22 @@ export default function Letty() {
 
   /* ═════════ RENDER ═════════ */
   return (
-    <div style={{ fontFamily: "'Inter','Segoe UI',system-ui,sans-serif", background: "linear-gradient(180deg,#ecfdf5 0%,#f8fafc 100%)" }}>
+    <div style={{ fontFamily: "'Inter','Segoe UI',system-ui,sans-serif", background: "linear-gradient(145deg,#ecfdf5 0%,#f8fafc 55%,#f0fdf9 100%)", minHeight: "100vh" }}>
       <style>{`
         @keyframes modalIn{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:none}}
         @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+        @keyframes cardIn{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
         @keyframes pulse2{0%,100%{opacity:1}50%{opacity:.4}}
+        @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+        @keyframes shimmer{0%{background-position:-300% 0}100%{background-position:300% 0}}
         *{box-sizing:border-box}
-        ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:10px}
+        ::-webkit-scrollbar{width:5px}
+        ::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#6ee7b7,#34d399);border-radius:10px}
+        ::-webkit-scrollbar-track{background:transparent}
+        .tab-bar-l::-webkit-scrollbar{display:none}
+        .tab-bar-l{scrollbar-width:none}
+        .status-btn:hover{filter:brightness(1.1);transform:scale(1.04)}
+        .action-btn:hover{background:#ecfdf5!important;border-color:#6ee7b7!important;transform:scale(1.08)}
       `}</style>
 
       {/* ════ TOP NAV BAR ════ */}
@@ -797,6 +806,9 @@ export default function Letty() {
         {/* ════ HEADER ════ */}
         <div style={{ background: accentGrad, borderRadius: 20, padding: "22px 28px", marginBottom: 16, color: "white", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: -60, right: -30, width: 200, height: 200, borderRadius: "50%", background: "rgba(255,255,255,.08)" }} />
+          <div style={{ position: "absolute", bottom: -50, left: 60, width: 140, height: 140, borderRadius: "50%", background: "rgba(255,255,255,.05)" }} />
+          <div style={{ position: "absolute", top: 10, right: 160, width: 70, height: 70, borderRadius: "50%", background: "rgba(255,255,255,.06)" }} />
+          <div style={{ position: "absolute", top: -20, left: -30, width: 100, height: 100, borderRadius: "50%", background: "rgba(255,255,255,.04)" }} />
           <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
             <div style={{ fontSize: 38 }}>🎀</div>
             <div style={{ flex: 1 }}>
@@ -819,7 +831,7 @@ export default function Letty() {
               { label: "Flagged", val: stats.ss.reduce((a, b) => a + b.flagged, 0), ico: "🚩" },
               { label: "Tests", val: allTests.length, ico: "📝" },
             ].map(s => (
-              <div key={s.label} style={{ background: "rgba(255,255,255,.15)", borderRadius: 12, padding: "6px 14px", display: "flex", alignItems: "center", gap: 6 }}>
+              <div key={s.label} style={{ background: "rgba(255,255,255,.18)", backdropFilter: "blur(8px)", borderRadius: 14, padding: "6px 14px", display: "flex", alignItems: "center", gap: 6, border: "1px solid rgba(255,255,255,.25)", boxShadow: "0 2px 8px rgba(0,0,0,.1)" }}>
                 <span style={{ fontSize: 14 }}>{s.ico}</span>
                 <span style={{ fontWeight: 800, fontSize: 15 }}>{s.val}</span>
                 <span style={{ fontSize: 11, opacity: .7 }}>{s.label}</span>
@@ -867,16 +879,16 @@ export default function Letty() {
           ].map(({ label, pct, color, color2 }) => (
             <div key={label} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
               <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 1, color: "#64748b", textTransform: "uppercase" as const, width: 58, flexShrink: 0 }}>{label}</div>
-              <div style={{ flex: 1, background: "rgba(255,255,255,.06)", borderRadius: 20, height: 6, overflow: "hidden" }}>
-                <div style={{ background: `linear-gradient(90deg,${color2},${color})`, height: "100%", width: `${pct}%`, borderRadius: 20, transition: "width 1s", boxShadow: `0 0 8px ${color}` }} />
+              <div style={{ flex: 1, background: "rgba(255,255,255,.07)", borderRadius: 20, height: 8, overflow: "hidden", boxShadow: "inset 0 1px 3px rgba(0,0,0,.2)" }}>
+                <div style={{ background: `linear-gradient(90deg,${color2},${color})`, height: "100%", width: `${pct}%`, borderRadius: 20, transition: "width 1.2s cubic-bezier(.4,0,.2,1)", boxShadow: `0 0 12px ${color}88` }} />
               </div>
-              <div style={{ fontSize: 10, fontWeight: 800, color, width: 30, textAlign: "right" as const }}>{pct}%</div>
+              <div style={{ fontSize: 10, fontWeight: 800, color, width: 32, textAlign: "right" as const, textShadow: `0 0 8px ${color}88` }}>{pct}%</div>
             </div>
           ))}
         </Glass>
 
         {/* ════ TABS + SEARCH ════ */}
-        <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap", alignItems: "center" }}>
+        <div className="tab-bar-l" style={{ display: "flex", gap: 6, marginBottom: 14, alignItems: "center", overflowX: "auto", padding: "3px 3px 8px" }}>
           {["dashboard", ...LETTY_SUBJECTS.map(s => s.id), "analytics", "common"].map(t => {
             const sub = LETTY_SUBJECTS.find(s => s.id === t);
             const active = tab === t;
@@ -884,12 +896,14 @@ export default function Letty() {
             return (
               <button key={t} onClick={() => { setTab(t); setSearch(""); }}
                 style={{
-                  padding: "8px 16px", borderRadius: 12, border: "none", cursor: "pointer",
-                  fontWeight: active ? 700 : 500, fontSize: 13,
-                  background: active ? tabColor : "white",
-                  color: active ? "white" : "#475569",
-                  boxShadow: active ? `0 2px 12px ${sub ? sub.color + "44" : "rgba(0,0,0,.15)"}` : "0 1px 3px rgba(0,0,0,.06)",
-                  transition: "all .2s",
+                  padding: "8px 18px", borderRadius: 50, cursor: "pointer", flexShrink: 0,
+                  fontWeight: active ? 700 : 500, fontSize: 13, whiteSpace: "nowrap" as const,
+                  border: active ? "none" : "1.5px solid #e5e7eb",
+                  background: active ? `linear-gradient(135deg,${tabColor},${tabColor}dd)` : "white",
+                  color: active ? "white" : "#64748b",
+                  boxShadow: active ? `0 3px 14px ${tabColor}55, 0 1px 3px rgba(0,0,0,.1)` : "0 1px 4px rgba(0,0,0,.05)",
+                  transform: active ? "translateY(-2px)" : "none",
+                  transition: "all .22s cubic-bezier(.4,0,.2,1)",
                 }}>
                 {t === "dashboard" ? "🏠 Dashboard" : t === "analytics" ? "📊 Analytics" : t === "common" ? "🗂️ Common" : `${sub!.icon} ${sub!.name}`}
               </button>
@@ -918,9 +932,12 @@ export default function Letty() {
                       <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 800, color: s.color }}>{s.pct}%</div>
                     </div>
                   </div>
-                  <div style={{ display: "flex", gap: 8, marginTop: 10, fontSize: 11 }}>
-                    {s.prog > 0 && <span style={{ color: "#f59e0b" }}>🔄 {s.prog}</span>}
-                    {s.flagged > 0 && <span style={{ color: "#ef4444" }}>🚩 {s.flagged}</span>}
+                  <div style={{ display: "flex", gap: 6, marginTop: 8, fontSize: 11, flexWrap: "wrap" }}>
+                    {s.prog > 0 && <span style={{ background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 6, padding: "2px 7px", color: "#b45309", fontWeight: 700 }}>🔄 {s.prog}</span>}
+                    {s.flagged > 0 && <span style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 6, padding: "2px 7px", color: "#b91c1c", fontWeight: 700 }}>🚩 {s.flagged}</span>}
+                  </div>
+                  <div style={{ marginTop: 10, background: "#f0f2f8", borderRadius: 99, height: 5, overflow: "hidden" }}>
+                    <div style={{ height: "100%", width: `${s.pct}%`, background: `linear-gradient(90deg,${s.color}99,${s.color})`, borderRadius: 99, transition: "width 1.2s cubic-bezier(.4,0,.2,1)", boxShadow: `0 0 6px ${s.color}66` }} />
                   </div>
                 </Glass>
               ))}
@@ -1159,7 +1176,12 @@ export default function Letty() {
 
               {sections.map(sec => (
                 <div key={sec.name || "m"} style={{ marginBottom: 18 }}>
-                  {sec.name && <div style={{ fontWeight: 700, color: sub.color, fontSize: 14, marginBottom: 8, paddingBottom: 6, borderBottom: `2px solid ${sub.color}22` }}>📌 {sec.name}</div>}
+                  {sec.name && (
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, marginTop: 4 }}>
+                      <div style={{ background: `${sub.color}15`, border: `1.5px solid ${sub.color}33`, borderRadius: 8, padding: "4px 13px", fontWeight: 700, color: sub.color, fontSize: 13, whiteSpace: "nowrap" as const, boxShadow: `0 1px 6px ${sub.color}22` }}>📌 {sec.name}</div>
+                      <div style={{ flex: 1, height: 1.5, background: `linear-gradient(90deg,${sub.color}44,transparent)`, borderRadius: 1 }} />
+                    </div>
+                  )}
                   {sec.chs.map((ch, chIdx) => {
                     const d = getCh(ch.id);
                     const sm = STATUS_META[d.status];
@@ -1168,17 +1190,17 @@ export default function Letty() {
                     return (
                       <Glass key={ch.id} style={{ padding: "12px 16px", marginBottom: 8, borderLeft: `4px solid ${sm.color}`, background: sm.bg }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                          <button onClick={() => cycleStatus(ch.id)}
-                            style={{ background: sm.color, color: "white", border: "none", borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" as const }}>
+                          <button className="status-btn" onClick={() => cycleStatus(ch.id)}
+                            style={{ background: `linear-gradient(135deg,${sm.color},${sm.color}cc)`, color: "white", border: "none", borderRadius: 20, padding: "4px 14px", fontSize: 11, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" as const, boxShadow: `0 2px 8px ${sm.color}55`, transition: "all .15s ease" }}>
                             {sm.icon} {sm.label}
                           </button>
                           <div style={{ flex: 1, fontWeight: 600, fontSize: 14, color: "#1e293b", minWidth: 80 }}>{chIdx + 1}. {ch.name}</div>
-                          <div style={{ display: "flex", gap: 5 }}>
-                            <button onClick={() => toggleFlag(ch.id)} style={{ background: d.revision ? "#fef2f2" : "white", border: `1px solid ${d.revision ? "#fca5a5" : "#e5e7eb"}`, borderRadius: 8, padding: "5px 8px", cursor: "pointer", fontSize: 13 }}>{d.revision ? "🚩" : "🏳️"}</button>
-                            <button onClick={() => setNoteModal({ id: ch.id, name: ch.name, note: d.notes || "" })} style={{ background: d.notes ? "#eff6ff" : "white", border: `1px solid ${d.notes ? "#93c5fd" : "#e5e7eb"}`, borderRadius: 8, padding: "5px 8px", cursor: "pointer", fontSize: 13 }}>{d.notes ? "📝" : "📄"}</button>
-                            <button onClick={() => setPaperModal({ id: ch.id, name: ch.name, subjectId: sub.id, subjectName: sub.name })} style={{ background: hasPapers(d.papers) ? "#f0fdf4" : "white", border: `1px solid ${hasPapers(d.papers) ? "#86efac" : "#e5e7eb"}`, borderRadius: 8, padding: "5px 8px", cursor: "pointer", fontSize: 13 }}>📎</button>
-                            <button onClick={() => { setTestModal({ id: ch.id, name: ch.name }); setTestForm({ type: "Class Test", date: new Date().toISOString().slice(0, 10), obtained: "", max: "", notes: "" }); }}
-                              style={{ background: "white", border: "1px solid #e5e7eb", borderRadius: 8, padding: "5px 10px", cursor: "pointer", fontSize: 12, fontWeight: 700, color: "#475569" }}>+ Test</button>
+                          <div style={{ display: "flex", gap: 4 }}>
+                            <button className="action-btn" onClick={() => toggleFlag(ch.id)} title="Flag for revision" style={{ background: d.revision ? "#fef2f2" : "white", border: `1.5px solid ${d.revision ? "#fca5a5" : "#e5e7eb"}`, borderRadius: 8, padding: "5px 8px", cursor: "pointer", fontSize: 13, transition: "all .15s" }}>{d.revision ? "🚩" : "🏳️"}</button>
+                            <button className="action-btn" onClick={() => setNoteModal({ id: ch.id, name: ch.name, note: d.notes || "" })} title="Notes" style={{ background: d.notes ? "#eff6ff" : "white", border: `1.5px solid ${d.notes ? "#93c5fd" : "#e5e7eb"}`, borderRadius: 8, padding: "5px 8px", cursor: "pointer", fontSize: 13, transition: "all .15s" }}>{d.notes ? "📝" : "📄"}</button>
+                            <button className="action-btn" onClick={() => setPaperModal({ id: ch.id, name: ch.name, subjectId: sub.id, subjectName: sub.name })} title="Papers & Resources" style={{ background: hasPapers(d.papers) ? "#f0fdf4" : "white", border: `1.5px solid ${hasPapers(d.papers) ? "#86efac" : "#e5e7eb"}`, borderRadius: 8, padding: "5px 8px", cursor: "pointer", fontSize: 13, transition: "all .15s" }}>📎</button>
+                            <button className="action-btn" onClick={() => { setTestModal({ id: ch.id, name: ch.name }); setTestForm({ type: "Class Test", date: new Date().toISOString().slice(0, 10), obtained: "", max: "", notes: "" }); }}
+                              title="Add test score" style={{ background: "white", border: "1.5px solid #e5e7eb", borderRadius: 8, padding: "5px 10px", cursor: "pointer", fontSize: 12, fontWeight: 700, color: "#475569", transition: "all .15s" }}>+ Test</button>
                           </div>
                         </div>
                         {tests.length > 0 && (
