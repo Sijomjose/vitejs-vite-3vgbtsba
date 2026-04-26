@@ -905,7 +905,7 @@ export default function App() {
         }
       `}</style>
 
-      <div className="page-wrap" style={{ width: "100%", padding: "16px 50px" }}>
+      <div className="page-wrap" style={{ width: "100%", padding: "16px 80px" }}>
 
         {/* ════ HEADER ════ */}
         <div className="header-card" style={{ background: accentGrad, borderRadius: 20, padding: "22px 28px", marginBottom: 16, color: "white", position: "relative", overflow: "hidden" }}>
@@ -1032,18 +1032,18 @@ export default function App() {
         {/* ════ DASHBOARD ════ */}
         {tab === "dashboard" && (
           <div style={{ animation: "fadeUp .3s ease" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(180px,1fr))", gap: 12, marginBottom: 16 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(155px,1fr))", gap: 16, marginBottom: 20 }}>
               {stats.ss.map(s => (
-                <Glass key={s.id} hover onClick={() => setTab(s.id)} style={{ padding: "18px 20px", borderTop: `4px solid ${s.color}` }}>
+                <Glass key={s.id} hover onClick={() => setTab(s.id)} style={{ padding: "22px 24px", borderTop: `4px solid ${s.color}` }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <div>
-                      <div style={{ fontSize: 28 }}>{s.icon}</div>
-                      <div style={{ fontWeight: 700, fontSize: 14, marginTop: 6, color: "#0f172a" }}>{s.name}</div>
-                      <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 2 }}>{s.done}/{s.total} chapters</div>
+                      <div style={{ fontSize: 32 }}>{s.icon}</div>
+                      <div style={{ fontWeight: 700, fontSize: 15, marginTop: 7, color: "#0f172a" }}>{s.name}</div>
+                      <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 3 }}>{s.done}/{s.total} chapters</div>
                     </div>
                     <div style={{ position: "relative" }}>
-                      <CircleProgress value={s.pct} size={62} stroke={6} color={s.color} />
-                      <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 800, color: s.color }}>{s.pct}%</div>
+                      <CircleProgress value={s.pct} size={70} stroke={7} color={s.color} />
+                      <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 800, color: s.color }}>{s.pct}%</div>
                     </div>
                   </div>
                   <div style={{ display: "flex", gap: 6, marginTop: 8, fontSize: 11, flexWrap: "wrap" }}>
@@ -1516,7 +1516,7 @@ export default function App() {
 
       {/* ════ FOOTER ════ */}
       <footer style={{ background: "linear-gradient(135deg,#0f172a 0%,#1e1b4b 60%,#1e0f3a 100%)", color: "white", marginTop: 40, padding: "28px 20px 20px", borderTop: "1px solid rgba(99,102,241,.2)" }}>
-        <div className="footer-inner" style={{ width: "100%", padding: "0 50px" }}>
+        <div className="footer-inner" style={{ width: "100%", padding: "0 80px" }}>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
             {stats.ss.map(s => (
               <div key={s.id} style={{ flex: 1, minWidth: 100, background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.07)", borderRadius: 10, padding: "8px 12px" }}>
