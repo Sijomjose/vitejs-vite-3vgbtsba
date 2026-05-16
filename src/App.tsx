@@ -4,6 +4,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { ENGLISH_GRAMMAR_ID } from "./CommonEnglishGrammar";
 
 /* ───────── Supabase Config ───────── */
 const SUPA_URL = "https://mlfgdutctvbvqwebqajp.supabase.co";
@@ -84,14 +85,14 @@ interface SubjectDef {
   sections?: { name: string; chapters: string[] }[];
 }
 interface SubjectStat extends SubjectDef {
-  total: number; done: number; prog: number; flagged: number; pct: number;
+  total: number; done: number; prog: number; flagged: number; pct: number; scorePct: number | null; testCount: number;
 }
 
 /* ───────── Data helpers ───────── */
-async function fetchData(mode: string): Promise<Record<string, ChapterData> | null> {
+async function fetchDataByRowId(rowId: string): Promise<Record<string, ChapterData> | null> {
   try {
     const res = await fetch(
-      `${SUPA_URL}/rest/v1/tracker_data?id=eq.${ROW_IDS[mode]}&select=data`,
+      `${SUPA_URL}/rest/v1/tracker_data?id=eq.${rowId}&select=data`,
       { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
     );
     const d = (await res.json())?.[0]?.data;
@@ -99,17 +100,26 @@ async function fetchData(mode: string): Promise<Record<string, ChapterData> | nu
   } catch { return null; }
 }
 
-async function saveData(mode: string, data: Record<string, ChapterData>) {
+async function saveDataByRowId(rowId: string, data: Record<string, ChapterData>): Promise<boolean> {
   try {
-    await fetch(`${SUPA_URL}/rest/v1/tracker_data`, {
+    const res = await fetch(`${SUPA_URL}/rest/v1/tracker_data`, {
       method: "POST",
       headers: {
         apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`,
         "Content-Type": "application/json", Prefer: "resolution=merge-duplicates",
       },
-      body: JSON.stringify({ id: ROW_IDS[mode], data }),
+      body: JSON.stringify({ id: rowId, data }),
     });
-  } catch { /* silent */ }
+    return res.ok;
+  } catch { return false; }
+}
+
+async function fetchData(mode: string): Promise<Record<string, ChapterData> | null> {
+  return fetchDataByRowId(ROW_IDS[mode]);
+}
+
+async function saveData(mode: string, data: Record<string, ChapterData>): Promise<boolean> {
+  return saveDataByRowId(ROW_IDS[mode], data);
 }
 
 async function fetchCommonResources(pageType: string): Promise<CommonResource[]> {
@@ -266,7 +276,7 @@ function migrateLocalStorage() {
     try {
       const old = localStorage.getItem(from);
       if (old && !localStorage.getItem(to)) localStorage.setItem(to, old);
-    } catch {}
+    } catch { /* ignore localStorage migration failure */ }
   });
 }
 
@@ -519,6 +529,8 @@ const SCHOOL_SUBJECTS: SubjectDef[] = [
     ] },
 ];
 
+const SAVVY_TRACKER_SUBJECTS = SUBJECTS.filter(s => s.id !== ENGLISH_GRAMMAR_ID);
+
 function getChapters(sub: SubjectDef): Chapter[] {
   if (sub.chapters) return sub.chapters.map((c, i) => ({ id: `${sub.id}__${i}`, name: c }));
   const out: Chapter[] = [];
@@ -549,6 +561,14 @@ const PAPER_TYPES = [
 ];
 
 function pctCalc(a: number, b: number) { return b > 0 ? Math.round((a / b) * 100) : 0; }
+function chapterProgress(dataSet: Record<string, ChapterData>, subjects: SubjectDef[]) {
+  const chapters = subjects.flatMap(getChapters);
+  const done = chapters.filter(c => ["completed", "revised"].includes(dataSet[c.id]?.status || "")).length;
+  return { done, total: chapters.length, pct: pctCalc(done, chapters.length) };
+}
+function subjectProgress(dataSet: Record<string, ChapterData>, subjects: SubjectDef[]) {
+  return chapterProgress(dataSet, subjects).pct;
+}
 function scoreColor(p: number) { return p >= 80 ? "#10b981" : p >= 60 ? "#f59e0b" : "#ef4444"; }
 function ensureArr(v: unknown): string[] {
   if (!v) return [""];
@@ -652,6 +672,7 @@ export default function App() {
   const [data, setData] = useState<Record<string, ChapterData>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [tab, setTab] = useState("dashboard");
   const [search, setSearch] = useState("");
 
@@ -667,7 +688,9 @@ export default function App() {
   const [countdown, setCountdown] = useState(getCountdown());
   const [hovSlice, setHovSlice] = useState<number | null>(null);
   const [bothData, setBothData] = useState<Record<string, Record<string, ChapterData>>>({ home: {}, school: {} });
-  const [statusModal, setStatusModal] = useState<{ filter: string; label: string; color: string } | null>(null);
+  const [statusModal, setStatusModal] = useState<{ filter: string; label: string; color: string; modeKey?: "home" | "school"; subjectId?: string } | null>(null);
+  const [testsModal, setTestsModal] = useState<{ title: string; subjectId?: string } | null>(null);
+  const [progressModal, setProgressModal] = useState<{ kind: "days" | "home" | "school"; title: string } | null>(null);
 
   // Common resources
   const [commonResources, setCommonResources] = useState<CommonResource[]>([]);
@@ -676,7 +699,7 @@ export default function App() {
   const [commonForm, setCommonForm] = useState({ title: "", link: "", notes: "" });
   const [editingResource, setEditingResource] = useState<CommonResource | null>(null);
   const isSchool = mode === "school";
-  const activeSubjects = useMemo(() => isSchool ? SCHOOL_SUBJECTS : SUBJECTS, [isSchool]);
+  const activeSubjects = useMemo(() => isSchool ? SCHOOL_SUBJECTS : SAVVY_TRACKER_SUBJECTS, [isSchool]);
 
   useEffect(() => {
     migrateLocalStorage();
@@ -692,22 +715,26 @@ export default function App() {
     setLoading(true); setData({}); setTab("dashboard"); setSearch("");
     (async () => {
       let d = await fetchData(mode);
-      if (d) { setData(d); setBothData(prev => ({ ...prev, [mode]: d! })); try { localStorage.setItem(LS_KEYS[mode], JSON.stringify(d)); } catch {} }
-      else { try { const s = localStorage.getItem(LS_KEYS[mode]); if (s) { d = JSON.parse(s); setData(d!); setBothData(prev => ({ ...prev, [mode]: d! })); await saveData(mode, d!); } } catch {} }
+      if (d) { setData(d); setBothData(prev => ({ ...prev, [mode]: d! })); try { localStorage.setItem(LS_KEYS[mode], JSON.stringify(d)); } catch { /* ignore localStorage write failure */ } }
+      else { try { const s = localStorage.getItem(LS_KEYS[mode]); if (s) { d = JSON.parse(s); setData(d!); setBothData(prev => ({ ...prev, [mode]: d! })); await saveData(mode, d!); } } catch { /* ignore localStorage read failure */ } }
       setLoading(false);
       // fetch other mode in background for status modal
       const other = mode === "home" ? "school" : "home";
       const od = await fetchData(other);
       if (od) { setBothData(prev => ({ ...prev, [other]: od })); }
-      else { try { const s = localStorage.getItem(LS_KEYS[other]); if (s) setBothData(prev => ({ ...prev, [other]: JSON.parse(s) })); } catch {} }
+      else { try { const s = localStorage.getItem(LS_KEYS[other]); if (s) setBothData(prev => ({ ...prev, [other]: JSON.parse(s) })); } catch { /* ignore localStorage read failure */ } }
     })();
   }, [mode]);
 
   const persist = useCallback(async (d: Record<string, ChapterData>) => {
     setData(d);
     setBothData(prev => ({ ...prev, [mode]: d }));
-    try { localStorage.setItem(LS_KEYS[mode], JSON.stringify(d)); } catch {}
-    setSaving(true); await saveData(mode, d); setSaving(false);
+    try { localStorage.setItem(LS_KEYS[mode], JSON.stringify(d)); } catch { /* ignore localStorage write failure */ }
+    setSaving(true);
+    setSaveError(null);
+    const ok = await saveData(mode, d);
+    setSaving(false);
+    if (!ok) setSaveError("Could not save to Supabase. Changes may only be saved on this device until the connection is fixed.");
   }, [mode]);
 
   useEffect(() => {
@@ -718,23 +745,29 @@ export default function App() {
 
   const addCommonResource = async () => {
     if (!commonForm.title.trim()) return;
+    setSaveError(null);
     setCommonSaving(true);
     const r = await insertCommonResource({ page_type: mode, title: commonForm.title.trim(), link: commonForm.link.trim(), notes: commonForm.notes.trim() });
     if (r) { setCommonResources(prev => [...prev, r]); setCommonForm({ title: "", link: "", notes: "" }); }
+    else setSaveError("Could not save this common resource to Supabase.");
     setCommonSaving(false);
   };
 
   const saveEditResource = async () => {
     if (!editingResource || !editingResource.title.trim()) return;
+    setSaveError(null);
     setCommonSaving(true);
     const ok = await patchCommonResource(editingResource.id, { title: editingResource.title.trim(), link: editingResource.link.trim(), notes: editingResource.notes.trim() });
     if (ok) { setCommonResources(prev => prev.map(r => r.id === editingResource.id ? { ...editingResource, updated_at: new Date().toISOString() } : r)); setEditingResource(null); }
+    else setSaveError("Could not update this common resource in Supabase.");
     setCommonSaving(false);
   };
 
   const deleteCommonRes = async (id: string) => {
+    setSaveError(null);
     const ok = await removeCommonResource(id);
     if (ok) setCommonResources(prev => prev.filter(r => r.id !== id));
+    else setSaveError("Could not delete this common resource from Supabase.");
   };
 
   const getCh = (id: string): ChapterData => data[id] || { status: "not_started", revision: false, tests: [], notes: "" };
@@ -792,6 +825,7 @@ export default function App() {
     if (!paperModal) return;
     const link = newLinkInputs[ptKey]?.trim();
     if (!link) return;
+    setSaveError(null);
     const row = await insertChapterResource({
       tracker: ROW_IDS[mode],
       subject: paperModal.subjectId,
@@ -802,23 +836,37 @@ export default function App() {
     if (row) {
       setChapterResources(prev => [...prev, row]);
       setNewLinkInputs(prev => ({ ...prev, [ptKey]: "" }));
-    }
+    } else setSaveError("Could not save this chapter resource to Supabase.");
   };
 
   const handleDeleteResource = async (id: string) => {
-    await deleteChapterResource(id);
-    setChapterResources(prev => prev.filter(r => r.id !== id));
+    setSaveError(null);
+    const ok = await deleteChapterResource(id);
+    if (ok) setChapterResources(prev => prev.filter(r => r.id !== id));
+    else setSaveError("Could not delete this chapter resource from Supabase.");
   };
 
   /* ── Stats ── */
   const stats = useMemo(() => {
-    const ss: SubjectStat[] = activeSubjects.map(s => {
-      const chs = getChapters(s);
-      const done = chs.filter(c => ["completed", "revised"].includes(getCh(c.id).status)).length;
-      const prog = chs.filter(c => getCh(c.id).status === "in_progress").length;
-      const flagged = chs.filter(c => getCh(c.id).revision).length;
-      return { ...s, total: chs.length, done, prog, flagged, pct: pctCalc(done, chs.length) };
-    });
+	    const ss: SubjectStat[] = activeSubjects.map(s => {
+	      const chs = getChapters(s);
+	      const done = chs.filter(c => ["completed", "revised"].includes(getCh(c.id).status)).length;
+	      const prog = chs.filter(c => getCh(c.id).status === "in_progress").length;
+	      const flagged = chs.filter(c => getCh(c.id).revision).length;
+	      const testTotals = chs.reduce((sum, c) => {
+	        (getCh(c.id).tests || []).forEach(t => {
+	          const obtained = Number(t.obtained);
+	          const max = Number(t.max);
+	          if (Number.isFinite(obtained) && Number.isFinite(max) && max > 0) {
+	            sum.obtained += obtained;
+	            sum.max += max;
+	            sum.count += 1;
+	          }
+	        });
+	        return sum;
+	      }, { obtained: 0, max: 0, count: 0 });
+	      return { ...s, total: chs.length, done, prog, flagged, pct: pctCalc(done, chs.length), scorePct: testTotals.max > 0 ? pctCalc(testTotals.obtained, testTotals.max) : null, testCount: testTotals.count };
+	    });
     const tot = ss.reduce((a, b) => a + b.total, 0);
     const don = ss.reduce((a, b) => a + b.done, 0);
     return { ss, tot, don, pct: pctCalc(don, tot) };
@@ -826,10 +874,10 @@ export default function App() {
   }, [data, activeSubjects]);
 
   const allTests = useMemo(() => {
-    const out: (TestEntry & { chName: string; sIcon: string; sColor: string })[] = [];
-    activeSubjects.forEach(s => getChapters(s).forEach(c => {
-      (getCh(c.id).tests || []).forEach(t => out.push({ ...t, chName: c.name, sIcon: s.icon, sColor: s.color }));
-    }));
+	    const out: (TestEntry & { chName: string; sId: string; sName: string; sIcon: string; sColor: string })[] = [];
+	    activeSubjects.forEach(s => getChapters(s).forEach(c => {
+	      (getCh(c.id).tests || []).forEach(t => out.push({ ...t, chName: c.name, sId: s.id, sName: s.name, sIcon: s.icon, sColor: s.color }));
+	    }));
     out.sort((a, b) => +new Date(b.date) - +new Date(a.date));
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -848,6 +896,16 @@ export default function App() {
     return bySubject;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, activeSubjects]);
+
+  const openStatusDetail = (filter: string, label: string, color: string, subjectId?: string) => {
+    setStatusModal({ filter, label, color, modeKey: mode, subjectId });
+  };
+
+  const openTestsDetail = (subjectId?: string, subjectName?: string) => {
+    setTestsModal({ title: subjectName ? `${subjectName} Tests` : `${isSchool ? "School" : "Savvy's"} Tests`, subjectId });
+  };
+
+  const totalCountdownDays = Math.ceil((+EXAM_DATE - +START_DATE) / 86400000);
 
   const glow = countdown.days > 60 ? "#10b981" : countdown.days > 30 ? "#f59e0b" : "#ef4444";
   const accentGrad = isSchool
@@ -919,32 +977,38 @@ export default function App() {
               <div style={{ fontWeight: 900, fontSize: 24, letterSpacing: -0.5 }}>Savvy's {isSchool ? "School" : "Study"} Tracker</div>
               <div style={{ fontSize: 13, opacity: .8, marginTop: 2 }}>Class 10 • CBSE NCERT{saving ? " • ☁️ Syncing…" : ""}</div>
             </div>
-            <div style={{ position: "relative", width: 80, height: 80 }}>
-              <CircleProgress value={stats.pct} size={80} stroke={8} color="white" bg="rgba(255,255,255,.2)" />
-              <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                <div style={{ fontSize: 20, fontWeight: 900 }}>{stats.pct}%</div>
-                <div style={{ fontSize: 9, opacity: .7, fontWeight: 600 }}>DONE</div>
-              </div>
-            </div>
+	            <button type="button" onClick={() => openStatusDetail("done", "Completed / Revised", "#10b981")}
+	              title="Open completed chapters"
+	              style={{ position: "relative", width: 80, height: 80, cursor: "pointer", background: "transparent", border: "none", padding: 0, color: "white" }}>
+	              <CircleProgress value={stats.pct} size={80} stroke={8} color="white" bg="rgba(255,255,255,.2)" />
+	              <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+	                <div style={{ fontSize: 20, fontWeight: 900 }}>{stats.pct}%</div>
+	                <div style={{ fontSize: 9, opacity: .7, fontWeight: 600 }}>DONE</div>
+	              </div>
+	            </button>
           </div>
           {/* Quick stats ribbon */}
           <div style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}>
             {[
-              { label: "Chapters", val: `${stats.don}/${stats.tot}`, ico: "📑" },
-              { label: "In Progress", val: stats.ss.reduce((a, b) => a + b.prog, 0), ico: "🔄" },
-              { label: "Flagged", val: stats.ss.reduce((a, b) => a + b.flagged, 0), ico: "🚩" },
-              { label: "Tests", val: allTests.length, ico: "📝" },
+              { label: "Chapters", val: `${stats.don}/${stats.tot}`, ico: "📑", onClick: () => openStatusDetail("done", "Completed / Revised", "#10b981") },
+              { label: "In Progress", val: stats.ss.reduce((a, b) => a + b.prog, 0), ico: "🔄", onClick: () => openStatusDetail("in_progress", "In Progress", "#f59e0b") },
+              { label: "Flagged", val: stats.ss.reduce((a, b) => a + b.flagged, 0), ico: "🚩", onClick: () => openStatusDetail("flagged", "Flagged", "#ef4444") },
+              { label: "Tests", val: allTests.length, ico: "📝", onClick: () => openTestsDetail() },
             ].map(s => (
-              <div key={s.label} style={{ background: "rgba(255,255,255,.18)", backdropFilter: "blur(8px)", borderRadius: 14, padding: "6px 14px", display: "flex", alignItems: "center", gap: 6, border: "1px solid rgba(255,255,255,.25)", boxShadow: "0 2px 8px rgba(0,0,0,.1)" }}>
+              <button type="button" key={s.label} onClick={s.onClick} title={`Open ${s.label}`} style={{ background: "rgba(255,255,255,.18)", backdropFilter: "blur(8px)", borderRadius: 14, padding: "6px 14px", display: "flex", alignItems: "center", gap: 6, border: "1px solid rgba(255,255,255,.25)", boxShadow: "0 2px 8px rgba(0,0,0,.1)", cursor: "pointer", color: "white", fontFamily: "inherit" }}>
                 <span style={{ fontSize: 14 }}>{s.ico}</span>
                 <span style={{ fontWeight: 800, fontSize: 15 }}>{s.val}</span>
                 <span style={{ fontSize: 11, opacity: .75 }}>{s.label}</span>
-              </div>
+              </button>
             ))}
             <div style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
               <a href="/l"
                 style={{ background: "rgba(255,105,180,.35)", border: "1.5px solid rgba(255,182,193,.6)", borderRadius: 12, padding: "6px 14px", cursor: "pointer", color: "white", fontWeight: 700, fontSize: 12, display: "flex", alignItems: "center", gap: 5, textDecoration: "none" }}>
                 🎀 Letty's
+              </a>
+              <a href="/common"
+                style={{ background: "rgba(124,58,237,.35)", border: "1.5px solid rgba(196,181,253,.65)", borderRadius: 12, padding: "6px 14px", cursor: "pointer", color: "white", fontWeight: 700, fontSize: 12, display: "flex", alignItems: "center", gap: 5, textDecoration: "none" }}>
+                🗂️ Common
               </a>
               <button onClick={() => setMode(m => m === "home" ? "school" : "home")}
                 style={{ background: "rgba(255,255,255,.2)", border: "1px solid rgba(255,255,255,.3)", borderRadius: 12, padding: "6px 14px", cursor: "pointer", color: "white", fontWeight: 700, fontSize: 12, display: "flex", alignItems: "center", gap: 5 }}>
@@ -953,6 +1017,11 @@ export default function App() {
             </div>
           </div>
         </div>
+        {saveError && (
+          <div style={{ margin: "-4px 0 16px", padding: "10px 14px", borderRadius: 12, border: "1px solid #fecaca", background: "#fef2f2", color: "#991b1b", fontSize: 13, fontWeight: 700 }}>
+            {saveError}
+          </div>
+        )}
 
         {/* ════ COUNTDOWN ════ */}
         <Glass style={{ padding: "20px 24px", marginBottom: 16, background: "linear-gradient(135deg,#0f172a,#1e1b4b)", color: "white", border: `1.5px solid ${glow}33` }}>
@@ -986,19 +1055,20 @@ export default function App() {
               </div>
             ))}
           </div>
-          {[
-            { label: "Days",   pct: countdown.pct,              color: glow,      color2: `${glow}88` },
-            { label: "Home",   pct: bothData.home   ? pctCalc(Object.values(bothData.home).filter(c => ["completed","revised"].includes(c.status)).length, SUBJECTS.reduce((a, s) => a + getChapters(s).length, 0)) : 0, color: "#818cf8", color2: "#6366f188" },
-            { label: "School", pct: bothData.school ? pctCalc(Object.values(bothData.school).filter(c => ["completed","revised"].includes(c.status)).length, SCHOOL_SUBJECTS.reduce((a, s) => a + getChapters(s).length, 0)) : 0, color: "#f59e0b", color2: "#f59e0b88" },
-          ].map(({ label, pct, color, color2 }) => (
-            <div key={label} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
-              <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 1, color: "#64748b", textTransform: "uppercase" as const, width: 42, flexShrink: 0 }}>{label}</div>
-              <div style={{ flex: 1, background: "rgba(255,255,255,.07)", borderRadius: 20, height: 8, overflow: "hidden", boxShadow: "inset 0 1px 3px rgba(0,0,0,.2)" }}>
-                <div style={{ background: `linear-gradient(90deg,${color2},${color})`, height: "100%", width: `${pct}%`, borderRadius: 20, transition: "width 1.2s cubic-bezier(.4,0,.2,1)", boxShadow: `0 0 12px ${color}88` }} />
-              </div>
-              <div style={{ fontSize: 10, fontWeight: 800, color, width: 32, textAlign: "right" as const, textShadow: `0 0 8px ${color}88` }}>{pct}%</div>
-            </div>
-          ))}
+	          {[
+	            { label: "Days", kind: "days" as const, pct: countdown.pct, color: glow, color2: `${glow}88` },
+	            { label: "Home", kind: "home" as const, pct: bothData.home ? subjectProgress(bothData.home, SAVVY_TRACKER_SUBJECTS) : 0, color: "#818cf8", color2: "#6366f188" },
+	            { label: "School", kind: "school" as const, pct: bothData.school ? subjectProgress(bothData.school, SCHOOL_SUBJECTS) : 0, color: "#f59e0b", color2: "#f59e0b88" },
+	          ].map(({ label, kind, pct, color, color2 }) => (
+	            <button type="button" key={label} onClick={() => setProgressModal({ kind, title: `${label} Progress` })}
+	              style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, marginBottom: 6, background: "transparent", border: "none", padding: 0, cursor: "pointer", fontFamily: "inherit" }}>
+	              <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 1, color: "#64748b", textTransform: "uppercase" as const, width: 42, flexShrink: 0 }}>{label}</div>
+	              <div style={{ flex: 1, background: "rgba(255,255,255,.07)", borderRadius: 20, height: 8, overflow: "hidden", boxShadow: "inset 0 1px 3px rgba(0,0,0,.2)" }}>
+	                <div style={{ background: `linear-gradient(90deg,${color2},${color})`, height: "100%", width: `${pct}%`, borderRadius: 20, transition: "width 1.2s cubic-bezier(.4,0,.2,1)", boxShadow: `0 0 12px ${color}88` }} />
+	              </div>
+	              <div style={{ fontSize: 10, fontWeight: 800, color, width: 32, textAlign: "right" as const, textShadow: `0 0 8px ${color}88` }}>{pct}%</div>
+	            </button>
+	          ))}
         </Glass>
 
         {/* ════ TABS + SEARCH ════ */}
@@ -1032,26 +1102,32 @@ export default function App() {
         {/* ════ DASHBOARD ════ */}
         {tab === "dashboard" && (
           <div style={{ animation: "fadeUp .3s ease" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(155px,1fr))", gap: 16, marginBottom: 20 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 16, marginBottom: 20 }}>
               {stats.ss.map(s => (
-                <Glass key={s.id} hover onClick={() => setTab(s.id)} style={{ padding: "22px 24px", borderTop: `4px solid ${s.color}` }}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <div>
-                      <div style={{ fontSize: 32 }}>{s.icon}</div>
-                      <div style={{ fontWeight: 700, fontSize: 15, marginTop: 7, color: "#0f172a" }}>{s.name}</div>
-                      <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 3 }}>{s.done}/{s.total} chapters</div>
-                    </div>
-                    <div style={{ position: "relative" }}>
-                      <CircleProgress value={s.pct} size={70} stroke={7} color={s.color} />
-                      <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 800, color: s.color }}>{s.pct}%</div>
-                    </div>
+                <Glass key={s.id} hover onClick={() => setTab(s.id)} style={{ padding: "18px 20px", borderTop: `4px solid ${s.color}` }}>
+                  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 14 }}>
+                    <div style={{ minWidth: 0 }}>
+		                      <div style={{ fontSize: 32 }}>{s.icon}</div>
+		                      <div style={{ fontWeight: 700, fontSize: 15, marginTop: 7, color: "#0f172a" }}>{s.name}</div>
+			                      <button type="button" onClick={(e) => { e.stopPropagation(); openStatusDetail("done", `${s.name} Completed / Revised`, "#10b981", s.id); }}
+			                        style={{ fontSize: 12, color: "#64748b", marginTop: 3, cursor: "pointer", background: "transparent", border: "none", padding: 0, fontFamily: "inherit" }}>{s.done}/{s.total} chapters</button>
+			                    </div>
+			                <button type="button" onClick={(e) => { e.stopPropagation(); openStatusDetail("done", `${s.name} Completed / Revised`, "#10b981", s.id); }}
+			                  title={`Open completed ${s.name} chapters`}
+			                  style={{ position: "relative", cursor: "pointer", background: "transparent", border: "none", padding: 0, flex: "0 0 auto" }}>
+		                      <CircleProgress value={s.pct} size={66} stroke={7} color={s.color} />
+		                      <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 800, color: s.color }}>{s.pct}%</div>
+		                    </button>
                   </div>
+                  <button type="button" onClick={(e) => { e.stopPropagation(); openTestsDetail(s.id, s.name); }}
+                    title={s.testCount > 0 ? `Open ${s.name} test scores` : `No ${s.name} test scores yet`}
+                    style={{ width: "100%", marginTop: 12, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, borderRadius: 10, border: `1px solid ${s.scorePct === null ? "#e2e8f0" : `${scoreColor(s.scorePct)}44`}`, background: s.scorePct === null ? "#f8fafc" : `${scoreColor(s.scorePct)}12`, color: s.scorePct === null ? "#64748b" : scoreColor(s.scorePct), cursor: "pointer", padding: "7px 10px", fontFamily: "inherit" }}>
+                    <span style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase" as const, color: "#64748b" }}>Test score</span>
+                    <span style={{ fontSize: 13, fontWeight: 900 }}>{s.scorePct === null ? "No tests" : `${s.scorePct}%`}</span>
+                  </button>
                   <div style={{ display: "flex", gap: 6, marginTop: 8, fontSize: 11, flexWrap: "wrap" }}>
-                    {s.prog > 0 && <span style={{ background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 6, padding: "2px 7px", color: "#b45309", fontWeight: 700 }}>🔄 {s.prog}</span>}
-                    {s.flagged > 0 && <span style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 6, padding: "2px 7px", color: "#b91c1c", fontWeight: 700 }}>🚩 {s.flagged}</span>}
-                  </div>
-                  <div style={{ marginTop: 10, background: "#f0f2f8", borderRadius: 99, height: 5, overflow: "hidden" }}>
-                    <div style={{ height: "100%", width: `${s.pct}%`, background: `linear-gradient(90deg,${s.color}99,${s.color})`, borderRadius: 99, transition: "width 1.2s cubic-bezier(.4,0,.2,1)", boxShadow: `0 0 6px ${s.color}66` }} />
+		                    {s.prog > 0 && <button onClick={(e) => { e.stopPropagation(); openStatusDetail("in_progress", `${s.name} In Progress`, "#f59e0b", s.id); }} style={{ background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 6, padding: "2px 7px", color: "#b45309", fontWeight: 700, cursor: "pointer" }}>🔄 {s.prog}</button>}
+		                    {s.flagged > 0 && <button onClick={(e) => { e.stopPropagation(); openStatusDetail("flagged", `${s.name} Flagged`, "#ef4444", s.id); }} style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 6, padding: "2px 7px", color: "#b91c1c", fontWeight: 700, cursor: "pointer" }}>🚩 {s.flagged}</button>}
                   </div>
                 </Glass>
               ))}
@@ -1082,31 +1158,31 @@ export default function App() {
                   </ResponsiveContainer>
                   <div style={{ flex: 1 }}>
                     {[
-                      { label: "Completed", val: stats.don, color: "#10b981", idx: 0, filter: "completed" },
+                      { label: "Completed", val: stats.don, color: "#10b981", idx: 0, filter: "done" },
                       { label: "In Progress", val: stats.ss.reduce((a, b) => a + b.prog, 0), color: "#f59e0b", idx: 1, filter: "in_progress" },
                       { label: "Not Started", val: stats.tot - stats.don - stats.ss.reduce((a, b) => a + b.prog, 0), color: "#94a3b8", idx: 2, filter: "not_started" },
                       { label: "Flagged", val: stats.ss.reduce((a, b) => a + b.flagged, 0), color: "#ef4444", idx: -1, filter: "flagged" },
                     ].map(r => (
-                      <div key={r.label}
-                        onMouseEnter={() => r.idx >= 0 && setHovSlice(r.idx)}
-                        onMouseLeave={() => setHovSlice(null)}
-                        onClick={() => setStatusModal({ filter: r.filter, label: r.label, color: r.color })}
-                        style={{ display: "flex", justifyContent: "space-between", padding: "5px 6px", fontSize: 13, borderRadius: 6, cursor: "pointer",
-                          background: hovSlice === r.idx ? `${r.color}18` : "transparent",
-                          transition: "background 0.15s",
-                        }}>
+	                      <button key={r.label}
+	                        onMouseEnter={() => r.idx >= 0 && setHovSlice(r.idx)}
+	                        onMouseLeave={() => setHovSlice(null)}
+	                        onClick={() => setStatusModal({ filter: r.filter, label: r.label, color: r.color, modeKey: mode })}
+	                        style={{ width: "100%", border: "none", display: "flex", justifyContent: "space-between", padding: "5px 6px", fontSize: 13, borderRadius: 6, cursor: "pointer", fontFamily: "inherit",
+	                          background: hovSlice === r.idx ? `${r.color}18` : "transparent",
+	                          transition: "background 0.15s",
+	                        }}>
                         <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
                           <span style={{ width: 8, height: 8, borderRadius: 4, background: r.color, display: "inline-block",
                             transform: hovSlice === r.idx ? "scale(1.4)" : "scale(1)", transition: "transform 0.15s" }} />{r.label}
-                        </span>
-                        <span style={{ fontWeight: 700, color: r.color }}>{r.val}</span>
-                      </div>
+	                        </span>
+	                        <span style={{ fontWeight: 700, color: r.color }}>{r.val}</span>
+	                      </button>
                     ))}
                   </div>
                 </div>
               </Glass>
               <Glass style={{ padding: "18px 20px" }}>
-                <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 12, color: "#0f172a" }}>📝 Recent Tests</div>
+                <div onClick={() => openTestsDetail()} title="Open all tests" style={{ fontWeight: 700, fontSize: 15, marginBottom: 12, color: "#0f172a", cursor: "pointer" }}>📝 Recent Tests</div>
                 {allTests.length === 0 ? <div style={{ color: "#94a3b8", fontSize: 14, textAlign: "center" as const, padding: 20 }}>No test scores yet!</div> :
                   allTests.slice(0, 6).map((t, i) => {
                     const p = pctCalc(+t.obtained, +t.max);
@@ -1267,25 +1343,35 @@ export default function App() {
               <div style={{ background: `linear-gradient(135deg,${sub.color},${sub.color}cc)`, borderRadius: 18, padding: "20px 24px", marginBottom: 14, color: "white", display: "flex", alignItems: "center", gap: 18, boxShadow: `0 6px 24px ${sub.color}33` }}>
                 <span style={{ fontSize: 40 }}>{sub.icon}</span>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 900, fontSize: 22 }}>{sub.name}</div>
-                  <div style={{ fontSize: 13, opacity: .85, marginTop: 2 }}>{done}/{chapters.length} chapters complete</div>
-                  <div style={{ marginTop: 10, display: "flex", gap: 12, flexWrap: "wrap", fontSize: 12 }}>
-                    {[
-                      { l: "Not Started", c: chapters.filter(c => getCh(c.id).status === "not_started").length, cl: "rgba(255,255,255,.5)" },
-                      { l: "In Progress", c: chapters.filter(c => getCh(c.id).status === "in_progress").length, cl: "#fcd34d" },
-                      { l: "Completed", c: chapters.filter(c => getCh(c.id).status === "completed").length, cl: "#6ee7b7" },
-                      { l: "Revised", c: chapters.filter(c => getCh(c.id).status === "revised").length, cl: "#c4b5fd" },
-                      { l: "🚩 Flagged", c: chapters.filter(c => getCh(c.id).revision).length, cl: "#fca5a5" },
-                    ].filter(x => x.c > 0).map(x => <span key={x.l}><strong style={{ color: x.cl, fontSize: 15 }}>{x.c}</strong> {x.l}</span>)}
-                  </div>
+	                  <div style={{ fontWeight: 900, fontSize: 22 }}>{sub.name}</div>
+	                  <button onClick={() => openStatusDetail("done", `${sub.name} Completed / Revised`, "#10b981", sub.id)}
+	                    style={{ background: "transparent", border: "none", color: "white", padding: 0, font: "inherit", fontSize: 13, opacity: .85, marginTop: 2, cursor: "pointer", textAlign: "left" }}>
+	                    {done}/{chapters.length} chapters complete
+	                  </button>
+	                  <div style={{ marginTop: 10, display: "flex", gap: 12, flexWrap: "wrap", fontSize: 12 }}>
+	                    {[
+	                      { l: "Not Started", f: "not_started", c: chapters.filter(c => getCh(c.id).status === "not_started").length, cl: "rgba(255,255,255,.5)" },
+	                      { l: "In Progress", f: "in_progress", c: chapters.filter(c => getCh(c.id).status === "in_progress").length, cl: "#fcd34d" },
+	                      { l: "Completed", f: "completed", c: chapters.filter(c => getCh(c.id).status === "completed").length, cl: "#6ee7b7" },
+	                      { l: "Revised", f: "revised", c: chapters.filter(c => getCh(c.id).status === "revised").length, cl: "#c4b5fd" },
+	                      { l: "🚩 Flagged", f: "flagged", c: chapters.filter(c => getCh(c.id).revision).length, cl: "#fca5a5" },
+	                    ].filter(x => x.c > 0).map(x => (
+	                      <button key={x.l} onClick={() => openStatusDetail(x.f, `${sub.name} ${x.l.replace("🚩 ", "")}`, x.cl, sub.id)}
+	                        style={{ background: "rgba(255,255,255,.12)", border: "1px solid rgba(255,255,255,.18)", borderRadius: 999, padding: "3px 8px", color: "white", cursor: "pointer", font: "inherit" }}>
+	                        <strong style={{ color: x.cl, fontSize: 15 }}>{x.c}</strong> {x.l}
+	                      </button>
+	                    ))}
+	                  </div>
                 </div>
-                <div style={{ position: "relative" }}>
-                  <CircleProgress value={pctCalc(done, chapters.length)} size={82} stroke={8} color="white" bg="rgba(255,255,255,.2)" />
-                  <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                    <div style={{ fontSize: 18, fontWeight: 900 }}>{pctCalc(done, chapters.length)}%</div>
-                    <div style={{ fontSize: 8, opacity: .7, fontWeight: 700 }}>DONE</div>
-                  </div>
-                </div>
+	                <button type="button" onClick={() => openStatusDetail("done", `${sub.name} Completed / Revised`, "#10b981", sub.id)}
+	                  title={`Open completed ${sub.name} chapters`}
+	                  style={{ position: "relative", cursor: "pointer", background: "transparent", border: "none", padding: 0, color: "white" }}>
+	                  <CircleProgress value={pctCalc(done, chapters.length)} size={82} stroke={8} color="white" bg="rgba(255,255,255,.2)" />
+	                  <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+	                    <div style={{ fontSize: 18, fontWeight: 900 }}>{pctCalc(done, chapters.length)}%</div>
+	                    <div style={{ fontSize: 8, opacity: .7, fontWeight: 700 }}>DONE</div>
+	                  </div>
+	                </button>
               </div>
 
               {sections.map(sec => (
@@ -1457,18 +1543,92 @@ export default function App() {
               </button>
             </div>
           </>}
-        </Modal>
+	        </Modal>
 
-        {/* ════ STATUS FILTER MODAL ════ */}
-        <Modal open={!!statusModal} onClose={() => setStatusModal(null)} title={`${statusModal?.label || ""} Chapters`}>
-          {statusModal && (() => {
-            const matchFn = (d: ChapterData) =>
-              statusModal.filter === "flagged" ? d.revision : d.status === statusModal.filter;
-            const getD = (modeKey: string, id: string): ChapterData =>
-              (bothData[modeKey]?.[id]) || { status: "not_started", revision: false, tests: [], notes: "" };
-            const sections: React.ReactNode[] = [];
-            (["home", "school"] as const).forEach(m => {
-              const subjects = m === "home" ? SUBJECTS : SCHOOL_SUBJECTS;
+	        {/* ════ TESTS LIST MODAL ════ */}
+		        <Modal open={!!testsModal} onClose={() => setTestsModal(null)} title={testsModal?.title || "Tests"}>
+		          {testsModal && (() => {
+		            const visibleTests = testsModal.subjectId ? allTests.filter(t => t.sId === testsModal.subjectId) : allTests;
+		            return visibleTests.length === 0 ? (
+		              <div style={{ color: "#94a3b8", textAlign: "center" as const, padding: "20px 0", fontSize: 14 }}>
+		                No test scores yet.
+		              </div>
+		            ) : (
+		              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+		                {visibleTests.map((t, i) => {
+		                  const p = pctCalc(+t.obtained, +t.max);
+		                  return (
+		                    <div key={`${t.id}-${i}`} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 0", borderBottom: i < visibleTests.length - 1 ? "1px solid #f1f5f9" : "none" }}>
+		                      <span style={{ fontSize: 18 }}>{t.sIcon}</span>
+		                      <div style={{ flex: 1, minWidth: 0 }}>
+		                        <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a" }}>{t.chName}</div>
+		                        <div style={{ fontSize: 11, color: "#94a3b8" }}>{t.type} • {t.date}</div>
+		                      </div>
+		                      <div style={{ fontWeight: 900, fontSize: 14, color: scoreColor(p) }}>{t.obtained}/{t.max}</div>
+		                    </div>
+		                  );
+		                })}
+		              </div>
+		            );
+		          })()}
+		        </Modal>
+
+	        {/* ════ COUNTDOWN / PROGRESS DETAIL MODAL ════ */}
+	        <Modal open={!!progressModal} onClose={() => setProgressModal(null)} title={progressModal?.title || "Progress"}>
+	          {progressModal && (() => {
+	            if (progressModal.kind === "days") {
+	              return (
+	                <div>
+	                  <div style={{ fontSize: 34, fontWeight: 950, color: glow, marginBottom: 8 }}>
+	                    {countdown.days}/{totalCountdownDays} days
+	                  </div>
+	                  <div style={{ color: "#64748b", fontSize: 13, lineHeight: 1.6 }}>
+	                    Remaining days out of the full countdown period.
+	                    <br />
+	                    Exam date: Feb 15, 2027
+	                  </div>
+	                </div>
+	              );
+	            }
+
+	            const subjects = progressModal.kind === "home" ? SAVVY_TRACKER_SUBJECTS : SCHOOL_SUBJECTS;
+	            const source = bothData[progressModal.kind] || {};
+	            const total = chapterProgress(source, subjects);
+	            return (
+	              <div>
+	                <div style={{ fontSize: 34, fontWeight: 950, color: progressModal.kind === "home" ? "#6366f1" : "#f59e0b", marginBottom: 8 }}>
+	                  {total.done}/{total.total}
+	                </div>
+	                <div style={{ color: "#64748b", fontSize: 13, marginBottom: 12 }}>
+	                  Completed or revised chapters out of total chapters.
+	                </div>
+	                {subjects.map(subject => {
+	                  const row = chapterProgress(source, [subject]);
+	                  return (
+	                    <div key={subject.id} style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: "7px 0", borderBottom: "1px solid #f1f5f9", fontSize: 13 }}>
+	                      <span style={{ color: subject.color, fontWeight: 800 }}>{subject.icon} {subject.name}</span>
+	                      <span style={{ color: "#0f172a", fontWeight: 900 }}>{row.done}/{row.total}</span>
+	                    </div>
+	                  );
+	                })}
+	              </div>
+	            );
+	          })()}
+	        </Modal>
+
+	        {/* ════ STATUS FILTER MODAL ════ */}
+	        <Modal open={!!statusModal} onClose={() => setStatusModal(null)} title={`${statusModal?.label || ""} Chapters`}>
+	          {statusModal && (() => {
+	            const matchFn = (d: ChapterData) =>
+	              statusModal.filter === "flagged" ? d.revision :
+	              statusModal.filter === "done" ? ["completed", "revised"].includes(d.status) :
+	              d.status === statusModal.filter;
+	            const getD = (modeKey: string, id: string): ChapterData =>
+	              (bothData[modeKey]?.[id]) || { status: "not_started", revision: false, tests: [], notes: "" };
+	            const sections: React.ReactNode[] = [];
+	            (statusModal.modeKey ? [statusModal.modeKey] : ["home", "school"] as const).forEach(m => {
+	              const subjects = (m === "home" ? SAVVY_TRACKER_SUBJECTS : SCHOOL_SUBJECTS)
+	                .filter(s => !statusModal.subjectId || s.id === statusModal.subjectId);
               const matched = subjects.flatMap(s =>
                 getChapters(s)
                   .filter(c => matchFn(getD(m, c.id)))
@@ -1518,16 +1678,23 @@ export default function App() {
       <footer style={{ background: "linear-gradient(135deg,#0f172a 0%,#1e1b4b 60%,#1e0f3a 100%)", color: "white", marginTop: 40, padding: "28px 20px 20px", borderTop: "1px solid rgba(99,102,241,.2)" }}>
         <div className="footer-inner" style={{ width: "100%", padding: "0 80px" }}>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
-            {stats.ss.map(s => (
-              <div key={s.id} style={{ flex: 1, minWidth: 100, background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.07)", borderRadius: 10, padding: "8px 12px" }}>
+	            {stats.ss.map(s => (
+	              <div key={s.id} onClick={() => openStatusDetail("done", `${s.name} Completed / Revised`, "#10b981", s.id)}
+	                title={`Open completed ${s.name} chapters`}
+	                style={{ flex: 1, minWidth: 100, background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.07)", borderRadius: 10, padding: "8px 12px", cursor: "pointer" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
                   <span style={{ fontSize: 11, opacity: .6 }}>{s.icon} {s.name}</span>
                   <span style={{ fontSize: 11, fontWeight: 800, color: s.color }}>{s.pct}%</span>
                 </div>
-                <div style={{ background: "rgba(255,255,255,.08)", borderRadius: 10, height: 4 }}>
-                  <div style={{ background: s.color, borderRadius: 10, height: 4, width: `${s.pct}%`, transition: "width .8s", boxShadow: `0 0 6px ${s.color}88` }} />
-                </div>
-              </div>
+	                <div style={{ background: "rgba(255,255,255,.08)", borderRadius: 10, height: 4 }}>
+	                  <div style={{ background: s.color, borderRadius: 10, height: 4, width: `${s.pct}%`, transition: "width .8s", boxShadow: `0 0 6px ${s.color}88` }} />
+	                </div>
+	                <button type="button" onClick={(e) => { e.stopPropagation(); openTestsDetail(s.id, s.name); }}
+	                  title={s.testCount > 0 ? `Open ${s.name} test scores` : `No ${s.name} test scores yet`}
+	                  style={{ marginTop: 6, background: "transparent", border: "none", padding: 0, color: s.scorePct === null ? "rgba(255,255,255,.35)" : scoreColor(s.scorePct), cursor: "pointer", fontSize: 10, fontWeight: 800, fontFamily: "inherit" }}>
+		                  Score {s.scorePct === null ? "No tests" : `${s.scorePct}%`}
+	                </button>
+	              </div>
             ))}
           </div>
           <div style={{ borderTop: "1px solid rgba(255,255,255,.07)", paddingTop: 14, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>

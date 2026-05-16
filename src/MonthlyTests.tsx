@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 
 const SUPA_URL = "https://mlfgdutctvbvqwebqajp.supabase.co";
 const SUPA_KEY =
@@ -413,6 +413,24 @@ function buttonStyle(extra: CSSProperties = {}): CSSProperties {
   };
 }
 
+function Modal({ open, onClose, title, children }: {
+  open: boolean; onClose: () => void; title: string; children: ReactNode;
+}) {
+  if (!open) return null;
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(15,23,42,.52)", backdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 999, padding: 16 }}
+      onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+      <div style={{ background: "#fff", borderRadius: 16, padding: "22px 24px", width: "100%", maxWidth: 520, maxHeight: "90vh", overflowY: "auto", boxShadow: "0 25px 60px rgba(15,23,42,.25)" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 14 }}>
+          <div style={{ fontSize: 18, fontWeight: 950, color: "#0f172a" }}>{title}</div>
+          <button onClick={onClose} style={buttonStyle({ width: 36, height: 36, padding: 0, display: "grid", placeItems: "center" })}>✕</button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 export default function MonthlyTests() {
   const [unlocked, setUnlocked] = useState(false);
   const [pinInput, setPinInput] = useState("");
@@ -421,6 +439,7 @@ export default function MonthlyTests() {
   const [selectedTestId, setSelectedTestId] = useState("");
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [draftMarks, setDraftMarks] = useState<Record<string, string>>({});
+  const [detailModal, setDetailModal] = useState<{ kind: "students" | "comparable" | "savio" | "rank"; title: string } | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -698,28 +717,28 @@ export default function MonthlyTests() {
         </div>
       </section>
 
-      <section className="monthly-grid" style={{ marginBottom: 14 }}>
-        <div style={cardStyle({ padding: 14 })}>
-          <div style={{ color: "#64748b", fontSize: 12, fontWeight: 900 }}>Students</div>
-          <div style={{ fontSize: 26, fontWeight: 950 }}>{selectedTest.students.length}</div>
-        </div>
-        <div style={cardStyle({ padding: 14 })}>
-          <div style={{ color: "#64748b", fontSize: 12, fontWeight: 900 }}>Comparable rows</div>
-          <div style={{ fontSize: 26, fontWeight: 950 }}>{completeCount}</div>
-        </div>
-        <div style={cardStyle({ padding: 14 })}>
-          <div style={{ color: "#64748b", fontSize: 12, fontWeight: 900 }}>Savio total</div>
-          <div style={{ fontSize: 26, fontWeight: 950 }}>
-            {savioSummary ? `${savioSummary.stats.total}/${savioSummary.stats.maxAvailable}` : "-"}
-          </div>
-        </div>
-        <div style={cardStyle({ padding: 14 })}>
-          <div style={{ color: "#64748b", fontSize: 12, fontWeight: 900 }}>Savio rank / percentile</div>
-          <div style={{ fontSize: 26, fontWeight: 950 }}>
-            {savioSummary?.rank ? `#${savioSummary.rank.rank} / ${formatNumber(savioSummary.rank.percentile, 2)}` : "Incomplete"}
-          </div>
-        </div>
-      </section>
+	      <section className="monthly-grid" style={{ marginBottom: 14 }}>
+	        <button type="button" onClick={() => setDetailModal({ kind: "students", title: "All Students" })} style={cardStyle({ padding: 14, textAlign: "left", cursor: "pointer", font: "inherit", color: "inherit" })}>
+	          <div style={{ color: "#64748b", fontSize: 12, fontWeight: 900 }}>Students</div>
+	          <div style={{ fontSize: 26, fontWeight: 950 }}>{selectedTest.students.length}</div>
+	        </button>
+	        <button type="button" onClick={() => setDetailModal({ kind: "comparable", title: "Comparable Rows" })} style={cardStyle({ padding: 14, textAlign: "left", cursor: "pointer", font: "inherit", color: "inherit" })}>
+	          <div style={{ color: "#64748b", fontSize: 12, fontWeight: 900 }}>Comparable rows</div>
+	          <div style={{ fontSize: 26, fontWeight: 950 }}>{completeCount}</div>
+	        </button>
+	        <button type="button" onClick={() => setDetailModal({ kind: "savio", title: "Savio Total" })} style={cardStyle({ padding: 14, textAlign: "left", cursor: "pointer", font: "inherit", color: "inherit" })}>
+	          <div style={{ color: "#64748b", fontSize: 12, fontWeight: 900 }}>Savio total</div>
+	          <div style={{ fontSize: 26, fontWeight: 950 }}>
+	            {savioSummary ? `${savioSummary.stats.total}/${savioSummary.stats.maxAvailable}` : "-"}
+	          </div>
+	        </button>
+	        <button type="button" onClick={() => setDetailModal({ kind: "rank", title: "Savio Rank / Percentile" })} style={cardStyle({ padding: 14, textAlign: "left", cursor: "pointer", font: "inherit", color: "inherit" })}>
+	          <div style={{ color: "#64748b", fontSize: 12, fontWeight: 900 }}>Savio rank / percentile</div>
+	          <div style={{ fontSize: 26, fontWeight: 950 }}>
+	            {savioSummary?.rank ? `#${savioSummary.rank.rank} / ${formatNumber(savioSummary.rank.percentile, 2)}` : "Incomplete"}
+	          </div>
+	        </button>
+	      </section>
 
       <section style={cardStyle({ padding: 14, marginBottom: 14 })}>
         <div className="monthly-toolbar" style={{ marginBottom: 12 }}>
@@ -921,9 +940,74 @@ export default function MonthlyTests() {
                 </tr>
               ))}
             </tbody>
-          </table>
-        </div>
-      </section>
-    </main>
-  );
-}
+	          </table>
+	        </div>
+	      </section>
+
+	      <Modal open={!!detailModal} onClose={() => setDetailModal(null)} title={detailModal?.title || "Details"}>
+	        {detailModal && (() => {
+	          const rowLine = (student: MonthlyStudent, index: number) => {
+	            const stats = rowStats(selectedTest, student);
+	            const rank = rankMap[student.id];
+	            return (
+	              <div key={student.id} style={{ display: "grid", gridTemplateColumns: "36px minmax(0, 1fr) auto", gap: 10, alignItems: "center", padding: "8px 0", borderBottom: "1px solid #edf2f7" }}>
+	                <div style={{ color: "#64748b", fontWeight: 900, fontSize: 12 }}>{index + 1}</div>
+	                <div style={{ minWidth: 0 }}>
+	                  <div style={{ fontWeight: student.name.toUpperCase().includes("SAVIO SIJO") ? 950 : 800, color: "#0f172a", fontSize: 13 }}>{student.name}</div>
+	                  <div style={{ color: "#94a3b8", fontSize: 11 }}>Roll {student.rollNo || "-"}</div>
+	                </div>
+	                <div style={{ textAlign: "right", fontSize: 12, color: "#475569", fontWeight: 800 }}>
+	                  {stats.maxAvailable ? `${stats.total}/${stats.maxAvailable}` : "-"} {rank ? `#${rank.rank}` : ""}
+	                </div>
+	              </div>
+	            );
+	          };
+
+	          if (detailModal.kind === "students") return (
+	            <div>{sortedStudents.map(rowLine)}</div>
+	          );
+
+	          if (detailModal.kind === "comparable") {
+	            const comparable = sortedStudents.filter(student => rowStats(selectedTest, student).complete);
+	            return comparable.length ? <div>{comparable.map(rowLine)}</div> : <div style={{ color: "#94a3b8", textAlign: "center", padding: "20px 0" }}>No comparable rows.</div>;
+	          }
+
+	          const savio = selectedTest.students.find(student => student.name.toUpperCase().includes("SAVIO SIJO"));
+	          if (!savio) return <div style={{ color: "#94a3b8", textAlign: "center", padding: "20px 0" }}>Savio Sijo is not in this test.</div>;
+	          const savioStats = rowStats(selectedTest, savio);
+	          const savioRank = rankMap[savio.id];
+
+	          if (detailModal.kind === "savio") return (
+	            <div>
+	              {SUBJECTS.map(subject => (
+	                <div key={subject.key} style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: "8px 0", borderBottom: "1px solid #edf2f7", fontSize: 13 }}>
+	                  <span style={{ color: "#475569", fontWeight: 800 }}>{subject.label}</span>
+	                  <span style={{ color: "#0f172a", fontWeight: 950 }}>{markToInput(savio.marks[subject.key]) || "-"}/{selectedTest.maxMarks[subject.key]}</span>
+	                </div>
+	              ))}
+	              <div style={{ marginTop: 12, fontSize: 18, fontWeight: 950, color: "#1e40af" }}>
+	                Total: {savioStats.maxAvailable ? `${savioStats.total}/${savioStats.maxAvailable}` : "-"} ({formatNumber(savioStats.percentage)}%)
+	              </div>
+	            </div>
+	          );
+
+	          const aboveSavio = savioRank
+	            ? sortedStudents.filter(student => {
+	                const rank = rankMap[student.id];
+	                return rank && rank.rank < savioRank.rank;
+	              })
+	            : [];
+
+	          return (
+	            <div>
+	              <div style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 8, padding: 10, marginBottom: 12, color: "#1e40af", fontWeight: 900 }}>
+	                {savioRank ? `Savio is rank #${savioRank.rank}, percentile ${formatNumber(savioRank.percentile, 2)}.` : "Savio is incomplete for rank calculation."}
+	              </div>
+	              {aboveSavio.length ? <div>{aboveSavio.map(rowLine)}</div> : <div style={{ color: "#94a3b8", textAlign: "center", padding: "14px 0" }}>No ranked students above Savio.</div>}
+	            </div>
+	          );
+	        })()}
+	      </Modal>
+	    </main>
+	  );
+	}
