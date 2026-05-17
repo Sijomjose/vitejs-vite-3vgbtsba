@@ -6,6 +6,8 @@ import CommonEnglishGrammar, {
   type ChapterData,
   type SubjectDef,
 } from "./CommonEnglishGrammar";
+import { RewardBadge, RewardBreakdown, buildPerformanceRewardSummary } from "./Rewards";
+import { RewardRedeemer, useRewardRedemptions } from "./RewardRedemptions";
 
 const SUPA_URL = "https://mlfgdutctvbvqwebqajp.supabase.co";
 const SUPA_KEY =
@@ -98,6 +100,18 @@ function getGrammarStats(subject: SubjectDef, data: Record<string, ChapterData>)
   };
 }
 
+function getGrammarRewardSummary(subject: SubjectDef, data: Record<string, ChapterData>) {
+  return buildPerformanceRewardSummary(getChapters(subject).flatMap(ch =>
+    (data[ch.id]?.tests || []).map(test => ({
+      id: `${ch.id}-${test.id}`,
+      label: ch.name,
+      subLabel: `${test.type} • ${test.date}`,
+      obtained: test.obtained,
+      max: test.max,
+    }))
+  ));
+}
+
 function cardStyle(active: boolean, color: string): CSSProperties {
   return {
     border: active ? `2px solid ${color}` : "1px solid #e2e8f0",
@@ -136,7 +150,7 @@ export default function CommonPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<Record<StudentKey, boolean>>({ savio: false, letty: false });
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [detailModal, setDetailModal] = useState<{ student: StudentKey; kind: "days" | "done" | "in_progress" | "flagged" | "tests"; title: string } | null>(null);
+  const [detailModal, setDetailModal] = useState<{ student: StudentKey; kind: "days" | "done" | "in_progress" | "flagged" | "tests" | "rewards"; title: string } | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -183,6 +197,13 @@ export default function CommonPage() {
     letty: getGrammarStats(ROWS.letty.subject, lettyData),
   }), [savioData, lettyData]);
 
+  const videoRewards = useMemo(() => ({
+    savio: getGrammarRewardSummary(ROWS.savio.subject, savioData),
+    letty: getGrammarRewardSummary(ROWS.letty.subject, lettyData),
+  }), [savioData, lettyData]);
+  const savioVideoLedger = useRewardRedemptions("savio-video");
+  const lettyVideoLedger = useRewardRedemptions("letty-video");
+
   const tracker = selected === "savio"
     ? {
         id: "savio",
@@ -192,6 +213,7 @@ export default function CommonPage() {
 	        data: savioData,
 	        saving: saving.savio,
 	        days: getDaysSummary("savio"),
+          rewardLedger: savioVideoLedger,
 	        onChange: persistSavio,
 	      }
     : {
@@ -202,13 +224,14 @@ export default function CommonPage() {
 	        data: lettyData,
 	        saving: saving.letty,
 	        days: getDaysSummary("letty"),
+          rewardLedger: lettyVideoLedger,
 	        onChange: persistLetty,
 	      };
 
   const openDetail = (
     event: MouseEvent,
     student: StudentKey,
-    kind: "days" | "done" | "in_progress" | "flagged" | "tests",
+    kind: "days" | "done" | "in_progress" | "flagged" | "tests" | "rewards",
     title: string
   ) => {
     event.stopPropagation();
@@ -223,7 +246,24 @@ export default function CommonPage() {
         *{box-sizing:border-box}
         @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
         @keyframes modalIn{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:none}}
-        @media(max-width:700px){.common-wrap{padding:14px 16px!important}.common-cards{grid-template-columns:1fr!important}.common-top{flex-direction:column!important;align-items:flex-start!important}}
+        @media(max-width:1100px){
+          .common-wrap{padding:18px 32px!important}
+          .common-cards{grid-template-columns:1fr!important}
+          .common-top{align-items:flex-start!important}
+          .common-card-inner{align-items:flex-start!important}
+          .common-card-side{min-width:0!important;justify-items:start!important}
+          .common-card-side button{text-align:left!important}
+          .common-card-reward{display:none!important}
+        }
+        @media(max-width:700px){
+          .common-wrap{padding:14px 16px!important}
+          .common-top{flex-direction:column!important;align-items:flex-start!important}
+          .common-card-inner{flex-direction:column!important;align-items:flex-start!important}
+          .common-card-side{width:100%!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}
+        }
+        @media(max-width:430px){
+          .common-card-side{grid-template-columns:1fr!important}
+        }
       `}</style>
 
       <div style={{ background: "white", borderBottom: "1px solid #e2e8f0", padding: "10px 20px", display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
@@ -250,10 +290,12 @@ export default function CommonPage() {
           {(["savio", "letty"] as StudentKey[]).map(key => {
             const row = ROWS[key];
             const stat = cards[key];
+            const reward = videoRewards[key];
+            const ledger = key === "savio" ? savioVideoLedger : lettyVideoLedger;
             const active = selected === key;
 	            return (
 	              <div key={key} role="button" tabIndex={0} onClick={() => setSelected(key)} onKeyDown={e => { if (e.key === "Enter" || e.key === " ") setSelected(key); }} style={cardStyle(active, row.subject.color)}>
-	                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14 }}>
+	                <div className="common-card-inner" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14 }}>
 	                  <div>
 	                    <div style={{ fontSize: 30 }}>{key === "savio" ? "📚" : "🎀"}</div>
 	                    <div style={{ marginTop: 6, fontWeight: 900, fontSize: 18, color: "#0f172a" }}>{row.label} English Grammar</div>
@@ -277,7 +319,7 @@ export default function CommonPage() {
 	                      )}
 	                    </div>
 	                  </div>
-		                  <div style={{ display: "grid", gap: 10, justifyItems: "end", minWidth: 112 }}>
+		                  <div className="common-card-side" style={{ display: "grid", gap: 10, justifyItems: "end", minWidth: 112 }}>
 		                    <button type="button" onClick={(e) => openDetail(e, key, "done", `${row.label} Completed / Revised`)} style={{ border: "none", background: "transparent", cursor: "pointer", padding: 0, textAlign: "right" }}>
 		                      <div style={{ color: row.subject.color, fontWeight: 950, fontSize: 28, lineHeight: 1 }}>{stat.pct}%</div>
 		                      <div style={{ color: "#64748b", fontWeight: 900, fontSize: 11, marginTop: 3 }}>Complete</div>
@@ -288,6 +330,17 @@ export default function CommonPage() {
 		                      </div>
 		                      <div style={{ color: "#64748b", fontWeight: 900, fontSize: 11, marginTop: 3 }}>Test total</div>
 		                    </button>
+                        <RewardBadge
+                          className="common-card-reward"
+                          tone="video"
+                          icon="📺"
+                          label="Video Learning"
+                          value={reward.total - ledger.spent}
+                          unit="min"
+                          caption="available now"
+                          compact
+                          onClick={() => setDetailModal({ student: key, kind: "rewards", title: `${row.label} Video Learning Minutes` })}
+                        />
 		                  </div>
 		                </div>
 	              </div>
@@ -320,6 +373,24 @@ export default function CommonPage() {
 		                </div>
 		              );
 		            }
+                if (detailModal.kind === "rewards") {
+                  return (
+                    <RewardBreakdown
+                      summary={videoRewards[detailModal.student]}
+                      unit="video minutes"
+                      title={`${row.label} video learning balance`}
+                      emptyText="No grammar test scores yet."
+                      note="Calculated from each English Grammar test score. The score percentage is rounded up before applying the same reward rule used for Savvy and Letty test performance."
+                    >
+                      <RewardRedeemer
+                        ledger={detailModal.student === "savio" ? savioVideoLedger : lettyVideoLedger}
+                        earned={videoRewards[detailModal.student].total}
+                        unit="minutes"
+                        label="video learning"
+                      />
+                    </RewardBreakdown>
+                  );
+                }
 		            if (detailModal.kind === "tests") {
 	              const tests = chapters.flatMap(ch =>
 	                (data[ch.id]?.tests || []).map(t => ({ ...t, chapterName: ch.name }))

@@ -5,6 +5,8 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { ENGLISH_GRAMMAR_ID } from "./CommonEnglishGrammar";
+import { RewardBadge, RewardBreakdown, REMARK_REWARD_OPTIONS, buildPerformanceRewardSummary, buildPointRewardSummary, pointsForRemark } from "./Rewards";
+import { RewardRedeemer, useRewardRedemptions } from "./RewardRedemptions";
 
 /* ───────── Supabase Config ───────── */
 const SUPA_URL = "https://mlfgdutctvbvqwebqajp.supabase.co";
@@ -67,6 +69,7 @@ interface ChapterData {
   status: string;
   revision: boolean;
   tests: TestEntry[];
+  remarks?: RemarkEntry[];
   notes: string;
   papers?: Record<string, string[]> | null;
 }
@@ -78,6 +81,13 @@ interface TestEntry {
   max: string;
   notes: string;
 }
+interface RemarkEntry {
+  id: number;
+  remark: string;
+  points: number;
+  date: string;
+  notes: string;
+}
 interface Chapter { id: string; name: string; section?: string; }
 interface SubjectDef {
   id: string; name: string; icon: string; color: string;
@@ -85,7 +95,7 @@ interface SubjectDef {
   sections?: { name: string; chapters: string[] }[];
 }
 interface SubjectStat extends SubjectDef {
-  total: number; done: number; prog: number; flagged: number; pct: number; scorePct: number | null; testCount: number;
+  total: number; done: number; prog: number; flagged: number; pct: number; scorePct: number | null; testCount: number; remarkCount: number; remarkPoints: number;
 }
 
 /* ───────── Data helpers ───────── */
@@ -684,6 +694,7 @@ export default function App() {
   const [resourcesLoading, setResourcesLoading] = useState(false);
   const [newLinkInputs, setNewLinkInputs] = useState<Record<string, string>>({ qp: "", ma: "", as: "", resources: "" });
   const [testForm, setTestForm] = useState({ type: "Class Test", date: new Date().toISOString().slice(0, 10), obtained: "", max: "", notes: "" });
+  const [remarkForm, setRemarkForm] = useState({ remark: "Good", date: new Date().toISOString().slice(0, 10), notes: "" });
 
   const [countdown, setCountdown] = useState(getCountdown());
   const [hovSlice, setHovSlice] = useState<number | null>(null);
@@ -691,6 +702,8 @@ export default function App() {
   const [statusModal, setStatusModal] = useState<{ filter: string; label: string; color: string; modeKey?: "home" | "school"; subjectId?: string } | null>(null);
   const [testsModal, setTestsModal] = useState<{ title: string; subjectId?: string } | null>(null);
   const [progressModal, setProgressModal] = useState<{ kind: "days" | "home" | "school"; title: string } | null>(null);
+  const [rewardModalOpen, setRewardModalOpen] = useState(false);
+  const [schoolRewardModalOpen, setSchoolRewardModalOpen] = useState(false);
 
   // Common resources
   const [commonResources, setCommonResources] = useState<CommonResource[]>([]);
@@ -770,7 +783,7 @@ export default function App() {
     else setSaveError("Could not delete this common resource from Supabase.");
   };
 
-  const getCh = (id: string): ChapterData => data[id] || { status: "not_started", revision: false, tests: [], notes: "" };
+  const getCh = (id: string): ChapterData => data[id] || { status: "not_started", revision: false, tests: [], remarks: [], notes: "" };
 
   const cycleStatus = (id: string) => {
     const ch = getCh(id);
@@ -792,7 +805,25 @@ export default function App() {
 
   const delTest = (chId: string, testId: number) => {
     const ch = getCh(chId);
-    persist({ ...data, [chId]: { ...ch, tests: ch.tests.filter(t => t.id !== testId) } });
+    persist({ ...data, [chId]: { ...ch, tests: (ch.tests || []).filter(t => t.id !== testId) } });
+  };
+
+  const addRemark = (id: string) => {
+    const ch = getCh(id);
+    const remark = remarkForm.remark;
+    persist({
+      ...data,
+      [id]: {
+        ...ch,
+        remarks: [...(ch.remarks || []), { ...remarkForm, remark, points: pointsForRemark(remark), id: Date.now() }],
+      },
+    });
+    setRemarkForm({ remark: "Good", date: new Date().toISOString().slice(0, 10), notes: "" });
+  };
+
+  const delRemark = (chId: string, remarkId: number) => {
+    const ch = getCh(chId);
+    persist({ ...data, [chId]: { ...ch, remarks: (ch.remarks || []).filter(r => r.id !== remarkId) } });
   };
 
   const saveNote = (id: string, note: string) =>
@@ -865,7 +896,14 @@ export default function App() {
 	        });
 	        return sum;
 	      }, { obtained: 0, max: 0, count: 0 });
-	      return { ...s, total: chs.length, done, prog, flagged, pct: pctCalc(done, chs.length), scorePct: testTotals.max > 0 ? pctCalc(testTotals.obtained, testTotals.max) : null, testCount: testTotals.count };
+	      const remarkTotals = chs.reduce((sum, c) => {
+	        (getCh(c.id).remarks || []).forEach(r => {
+	          sum.points += Number.isFinite(r.points) ? r.points : pointsForRemark(r.remark);
+	          sum.count += 1;
+	        });
+	        return sum;
+	      }, { points: 0, count: 0 });
+	      return { ...s, total: chs.length, done, prog, flagged, pct: pctCalc(done, chs.length), scorePct: testTotals.max > 0 ? pctCalc(testTotals.obtained, testTotals.max) : null, testCount: testTotals.count, remarkCount: remarkTotals.count, remarkPoints: remarkTotals.points };
 	    });
     const tot = ss.reduce((a, b) => a + b.total, 0);
     const don = ss.reduce((a, b) => a + b.done, 0);
@@ -877,6 +915,24 @@ export default function App() {
 	    const out: (TestEntry & { chName: string; sId: string; sName: string; sIcon: string; sColor: string })[] = [];
 	    activeSubjects.forEach(s => getChapters(s).forEach(c => {
 	      (getCh(c.id).tests || []).forEach(t => out.push({ ...t, chName: c.name, sId: s.id, sName: s.name, sIcon: s.icon, sColor: s.color }));
+	    }));
+    out.sort((a, b) => +new Date(b.date) - +new Date(a.date));
+    return out;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, activeSubjects]);
+
+  const allRemarks = useMemo(() => {
+	    const out: (RemarkEntry & { chName: string; sId: string; sName: string; sIcon: string; sColor: string })[] = [];
+	    activeSubjects.forEach(s => getChapters(s).forEach(c => {
+	      (getCh(c.id).remarks || []).forEach(r => out.push({
+	        ...r,
+	        points: Number.isFinite(r.points) ? r.points : pointsForRemark(r.remark),
+	        chName: c.name,
+	        sId: s.id,
+	        sName: s.name,
+	        sIcon: s.icon,
+	        sColor: s.color,
+	      }));
 	    }));
     out.sort((a, b) => +new Date(b.date) - +new Date(a.date));
     return out;
@@ -897,12 +953,37 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, activeSubjects]);
 
+  const entertainmentRewards = useMemo(() => buildPerformanceRewardSummary(
+    allTests.map(t => ({
+      id: `${t.sId}-${t.chName}-${t.id}`,
+      label: t.chName,
+      subLabel: `${t.sName} • ${t.type} • ${t.date}`,
+      obtained: t.obtained,
+      max: t.max,
+    }))
+  ), [allTests]);
+  const entertainmentLedger = useRewardRedemptions("savio-entertainment");
+  const entertainmentBalance = entertainmentRewards.total - entertainmentLedger.spent;
+  const schoolRemarkRewards = useMemo(() => buildPointRewardSummary(
+    allRemarks.map(r => ({
+      id: `${r.sId}-${r.chName}-${r.id}`,
+      label: r.chName,
+      subLabel: `${r.sName} • ${r.remark} • ${r.date}`,
+      points: r.points,
+      scoreText: `${r.remark}: ${r.points > 0 ? "+" : ""}${r.points} points`,
+      rule: "School remark",
+    }))
+  ), [allRemarks]);
+  const schoolRemarkLedger = useRewardRedemptions("savio-school-remarks");
+  const schoolRemarkBalance = schoolRemarkRewards.total - schoolRemarkLedger.spent;
+
   const openStatusDetail = (filter: string, label: string, color: string, subjectId?: string) => {
     setStatusModal({ filter, label, color, modeKey: mode, subjectId });
   };
 
   const openTestsDetail = (subjectId?: string, subjectName?: string) => {
-    setTestsModal({ title: subjectName ? `${subjectName} Tests` : `${isSchool ? "School" : "Savvy's"} Tests`, subjectId });
+    const noun = isSchool ? "Remarks" : "Tests";
+    setTestsModal({ title: subjectName ? `${subjectName} ${noun}` : `${isSchool ? "School" : "Savvy's"} ${noun}`, subjectId });
   };
 
   const totalCountdownDays = Math.ceil((+EXAM_DATE - +START_DATE) / 86400000);
@@ -986,6 +1067,28 @@ export default function App() {
 	                <div style={{ fontSize: 9, opacity: .7, fontWeight: 600 }}>DONE</div>
 	              </div>
 	            </button>
+              {!isSchool && (
+                <RewardBadge
+                  tone="entertainment"
+                  icon="🎮"
+                  label="Entertainment"
+                  value={entertainmentBalance}
+                  unit="min"
+                  caption="available now"
+                  onClick={() => setRewardModalOpen(true)}
+                />
+              )}
+              {isSchool && (
+                <RewardBadge
+                  tone="coins"
+                  icon="⭐"
+                  label="School Remarks"
+                  value={schoolRemarkBalance}
+                  unit="pts"
+                  caption="available now"
+                  onClick={() => setSchoolRewardModalOpen(true)}
+                />
+              )}
           </div>
           {/* Quick stats ribbon */}
           <div style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}>
@@ -993,7 +1096,7 @@ export default function App() {
               { label: "Chapters", val: `${stats.don}/${stats.tot}`, ico: "📑", onClick: () => openStatusDetail("done", "Completed / Revised", "#10b981") },
               { label: "In Progress", val: stats.ss.reduce((a, b) => a + b.prog, 0), ico: "🔄", onClick: () => openStatusDetail("in_progress", "In Progress", "#f59e0b") },
               { label: "Flagged", val: stats.ss.reduce((a, b) => a + b.flagged, 0), ico: "🚩", onClick: () => openStatusDetail("flagged", "Flagged", "#ef4444") },
-              { label: "Tests", val: allTests.length, ico: "📝", onClick: () => openTestsDetail() },
+              { label: isSchool ? "Remarks" : "Tests", val: isSchool ? allRemarks.length : allTests.length, ico: "📝", onClick: () => openTestsDetail() },
             ].map(s => (
               <button type="button" key={s.label} onClick={s.onClick} title={`Open ${s.label}`} style={{ background: "rgba(255,255,255,.18)", backdropFilter: "blur(8px)", borderRadius: 14, padding: "6px 14px", display: "flex", alignItems: "center", gap: 6, border: "1px solid rgba(255,255,255,.25)", boxShadow: "0 2px 8px rgba(0,0,0,.1)", cursor: "pointer", color: "white", fontFamily: "inherit" }}>
                 <span style={{ fontSize: 14 }}>{s.ico}</span>
@@ -1033,9 +1136,9 @@ export default function App() {
                 <div style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0" }}>CBSE Class 10 • Feb 15, 2027</div>
               </div>
             </div>
-            <div style={{ background: `${glow}22`, border: `1px solid ${glow}44`, borderRadius: 20, padding: "4px 14px" }}>
+            <button type="button" onClick={() => { window.location.href = "/t"; }} title="Open Savio's School Tests" style={{ background: `${glow}22`, border: `1px solid ${glow}44`, borderRadius: 20, padding: "4px 14px", cursor: "pointer", fontFamily: "inherit" }}>
               <span style={{ fontSize: 12, fontWeight: 800, color: glow }}>{countdown.days > 60 ? "🟢 ON TRACK" : countdown.days > 30 ? "🟡 HURRY" : "🔴 URGENT"}</span>
-            </div>
+            </button>
           </div>
           <div style={{ display: "flex", justifyContent: "center", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
             {[
@@ -1120,10 +1223,16 @@ export default function App() {
 		                    </button>
                   </div>
                   <button type="button" onClick={(e) => { e.stopPropagation(); openTestsDetail(s.id, s.name); }}
-                    title={s.testCount > 0 ? `Open ${s.name} test scores` : `No ${s.name} test scores yet`}
-                    style={{ width: "100%", marginTop: 12, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, borderRadius: 10, border: `1px solid ${s.scorePct === null ? "#e2e8f0" : `${scoreColor(s.scorePct)}44`}`, background: s.scorePct === null ? "#f8fafc" : `${scoreColor(s.scorePct)}12`, color: s.scorePct === null ? "#64748b" : scoreColor(s.scorePct), cursor: "pointer", padding: "7px 10px", fontFamily: "inherit" }}>
-                    <span style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase" as const, color: "#64748b" }}>Test score</span>
-                    <span style={{ fontSize: 13, fontWeight: 900 }}>{s.scorePct === null ? "No tests" : `${s.scorePct}%`}</span>
+                    title={isSchool ? (s.remarkCount > 0 ? `Open ${s.name} remarks` : `No ${s.name} remarks yet`) : (s.testCount > 0 ? `Open ${s.name} test scores` : `No ${s.name} test scores yet`)}
+                    style={{
+                      width: "100%", marginTop: 12, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, borderRadius: 10,
+                      border: `1px solid ${isSchool ? (s.remarkCount === 0 ? "#e2e8f0" : `${s.remarkPoints >= 0 ? "#10b981" : "#ef4444"}44`) : (s.scorePct === null ? "#e2e8f0" : `${scoreColor(s.scorePct)}44`)}`,
+                      background: isSchool ? (s.remarkCount === 0 ? "#f8fafc" : s.remarkPoints >= 0 ? "#ecfdf5" : "#fef2f2") : (s.scorePct === null ? "#f8fafc" : `${scoreColor(s.scorePct)}12`),
+                      color: isSchool ? (s.remarkCount === 0 ? "#64748b" : s.remarkPoints >= 0 ? "#047857" : "#b91c1c") : (s.scorePct === null ? "#64748b" : scoreColor(s.scorePct)),
+                      cursor: "pointer", padding: "7px 10px", fontFamily: "inherit",
+                    }}>
+                    <span style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase" as const, color: "#64748b" }}>{isSchool ? "Remark points" : "Test score"}</span>
+                    <span style={{ fontSize: 13, fontWeight: 900 }}>{isSchool ? (s.remarkCount === 0 ? "No remarks" : `${s.remarkPoints > 0 ? "+" : ""}${s.remarkPoints} pts`) : (s.scorePct === null ? "No tests" : `${s.scorePct}%`)}</span>
                   </button>
                   <div style={{ display: "flex", gap: 6, marginTop: 8, fontSize: 11, flexWrap: "wrap" }}>
 		                    {s.prog > 0 && <button onClick={(e) => { e.stopPropagation(); openStatusDetail("in_progress", `${s.name} In Progress`, "#f59e0b", s.id); }} style={{ background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 6, padding: "2px 7px", color: "#b45309", fontWeight: 700, cursor: "pointer" }}>🔄 {s.prog}</button>}
@@ -1182,21 +1291,35 @@ export default function App() {
                 </div>
               </Glass>
               <Glass style={{ padding: "18px 20px" }}>
-                <div onClick={() => openTestsDetail()} title="Open all tests" style={{ fontWeight: 700, fontSize: 15, marginBottom: 12, color: "#0f172a", cursor: "pointer" }}>📝 Recent Tests</div>
-                {allTests.length === 0 ? <div style={{ color: "#94a3b8", fontSize: 14, textAlign: "center" as const, padding: 20 }}>No test scores yet!</div> :
-                  allTests.slice(0, 6).map((t, i) => {
-                    const p = pctCalc(+t.obtained, +t.max);
-                    return (
+                <div onClick={() => openTestsDetail()} title={isSchool ? "Open all remarks" : "Open all tests"} style={{ fontWeight: 700, fontSize: 15, marginBottom: 12, color: "#0f172a", cursor: "pointer" }}>📝 Recent {isSchool ? "Remarks" : "Tests"}</div>
+                {isSchool ? (
+                  allRemarks.length === 0 ? <div style={{ color: "#94a3b8", fontSize: 14, textAlign: "center" as const, padding: 20 }}>No remarks yet!</div> :
+                    allRemarks.slice(0, 6).map((r, i) => (
                       <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0", borderBottom: i < 5 ? "1px solid #f1f5f9" : "none" }}>
-                        <span style={{ fontSize: 16 }}>{t.sIcon}</span>
+                        <span style={{ fontSize: 16 }}>{r.sIcon}</span>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 13, fontWeight: 600, color: "#0f172a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>{t.chName}</div>
-                          <div style={{ fontSize: 11, color: "#94a3b8" }}>{t.type} • {t.date}</div>
+                          <div style={{ fontSize: 13, fontWeight: 600, color: "#0f172a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>{r.chName}</div>
+                          <div style={{ fontSize: 11, color: "#94a3b8" }}>{r.remark} • {r.date}</div>
                         </div>
-                        <div style={{ fontWeight: 800, fontSize: 15, color: scoreColor(p) }}>{t.obtained}/{t.max}</div>
+                        <div style={{ fontWeight: 800, fontSize: 15, color: r.points >= 0 ? "#047857" : "#b91c1c" }}>{r.points > 0 ? "+" : ""}{r.points}</div>
                       </div>
-                    );
-                  })}
+                    ))
+                ) : (
+                  allTests.length === 0 ? <div style={{ color: "#94a3b8", fontSize: 14, textAlign: "center" as const, padding: 20 }}>No test scores yet!</div> :
+                    allTests.slice(0, 6).map((t, i) => {
+                      const p = pctCalc(+t.obtained, +t.max);
+                      return (
+                        <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0", borderBottom: i < 5 ? "1px solid #f1f5f9" : "none" }}>
+                          <span style={{ fontSize: 16 }}>{t.sIcon}</span>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: "#0f172a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>{t.chName}</div>
+                            <div style={{ fontSize: 11, color: "#94a3b8" }}>{t.type} • {t.date}</div>
+                          </div>
+                          <div style={{ fontWeight: 800, fontSize: 15, color: scoreColor(p) }}>{t.obtained}/{t.max}</div>
+                        </div>
+                      );
+                    })
+                )}
               </Glass>
             </div>
           </div>
@@ -1386,6 +1509,7 @@ export default function App() {
                     const d = getCh(ch.id);
                     const sm = STATUS_META[d.status];
                     const tests = d.tests || [];
+                    const remarks = d.remarks || [];
                     const avg = tests.length ? Math.round(tests.reduce((a, t) => a + pctCalc(+t.obtained, +t.max), 0) / tests.length) : null;
                     return (
                       <Glass key={ch.id} style={{ padding: "12px 16px", marginBottom: 8, borderLeft: `4px solid ${sm.color}`, background: sm.bg, transition: "box-shadow .2s ease" }}>
@@ -1399,11 +1523,29 @@ export default function App() {
                             <button className="action-btn" onClick={() => toggleFlag(ch.id)} title="Flag for revision" style={{ background: d.revision ? "#fef2f2" : "white", border: `1.5px solid ${d.revision ? "#fca5a5" : "#e5e7eb"}`, borderRadius: 8, padding: "5px 8px", cursor: "pointer", fontSize: 13, transition: "all .15s" }}>{d.revision ? "🚩" : "🏳️"}</button>
                             <button className="action-btn" onClick={() => setNoteModal({ id: ch.id, name: ch.name, note: d.notes || "" })} title="Notes" style={{ background: d.notes ? "#eff6ff" : "white", border: `1.5px solid ${d.notes ? "#93c5fd" : "#e5e7eb"}`, borderRadius: 8, padding: "5px 8px", cursor: "pointer", fontSize: 13, transition: "all .15s" }}>{d.notes ? "📝" : "📄"}</button>
                             <button className="action-btn" onClick={() => setPaperModal({ id: ch.id, name: ch.name, subjectId: sub.id, subjectName: sub.name })} title="Papers & Resources" style={{ background: hasPapers(d.papers) ? "#f0fdf4" : "white", border: `1.5px solid ${hasPapers(d.papers) ? "#86efac" : "#e5e7eb"}`, borderRadius: 8, padding: "5px 8px", cursor: "pointer", fontSize: 13, transition: "all .15s" }}>📎</button>
-                            <button className="action-btn" onClick={() => { setTestModal({ id: ch.id, name: ch.name }); setTestForm({ type: "Class Test", date: new Date().toISOString().slice(0, 10), obtained: "", max: "", notes: "" }); }}
-                              title="Add test score" style={{ background: "white", border: "1.5px solid #e5e7eb", borderRadius: 8, padding: "5px 10px", cursor: "pointer", fontSize: 12, fontWeight: 700, color: "#475569", transition: "all .15s" }}>+ Test</button>
+                            <button className="action-btn" onClick={() => {
+                              setTestModal({ id: ch.id, name: ch.name });
+                              if (isSchool) setRemarkForm({ remark: "Good", date: new Date().toISOString().slice(0, 10), notes: "" });
+                              else setTestForm({ type: "Class Test", date: new Date().toISOString().slice(0, 10), obtained: "", max: "", notes: "" });
+                            }}
+                              title={isSchool ? "Add remarks" : "Add test score"} style={{ background: "white", border: "1.5px solid #e5e7eb", borderRadius: 8, padding: "5px 10px", cursor: "pointer", fontSize: 12, fontWeight: 700, color: "#475569", transition: "all .15s" }}>{isSchool ? "+ Remarks" : "+ Test"}</button>
                           </div>
                         </div>
-                        {tests.length > 0 && (
+                        {isSchool && remarks.length > 0 && (
+                          <div style={{ marginTop: 8, display: "flex", flexWrap: "wrap", gap: 5, alignItems: "center" }}>
+                            {remarks.map(r => {
+                              const points = Number.isFinite(r.points) ? r.points : pointsForRemark(r.remark);
+                              return (
+                                <div key={r.id} style={{ background: "white", borderRadius: 8, padding: "3px 10px", fontSize: 12, border: "1px solid #e5e7eb", display: "flex", gap: 5, alignItems: "center" }}>
+                                  <span style={{ color: "#94a3b8" }}>{r.remark}</span>
+                                  <span style={{ fontWeight: 700, color: points >= 0 ? "#047857" : "#b91c1c" }}>{points > 0 ? "+" : ""}{points} pts</span>
+                                  <button onClick={() => delRemark(ch.id, r.id)} style={{ background: "none", border: "none", cursor: "pointer", color: "#d1d5db", fontSize: 11 }}>✕</button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                        {!isSchool && tests.length > 0 && (
                           <div style={{ marginTop: 8, display: "flex", flexWrap: "wrap", gap: 5, alignItems: "center" }}>
                             {tests.map(t => {
                               const p = pctCalc(+t.obtained, +t.max);
@@ -1428,31 +1570,86 @@ export default function App() {
         })}
 
         {/* ════ TEST MODAL ════ */}
-        <Modal open={!!testModal} onClose={() => setTestModal(null)} title="📝 Add Test Score">
+        <Modal open={rewardModalOpen} onClose={() => setRewardModalOpen(false)} title="🎮 Entertainment Minutes">
+          <RewardBreakdown
+            summary={entertainmentRewards}
+            unit="minutes"
+            title="Savvy's entertainment balance"
+            emptyText="No Home test scores yet."
+            note="Calculated from each Home test score only. The score percentage is rounded up before applying the reward rule. School and Common scores are not included here."
+          >
+            <RewardRedeemer
+              ledger={entertainmentLedger}
+              earned={entertainmentRewards.total}
+              unit="minutes"
+              label="entertainment"
+            />
+          </RewardBreakdown>
+        </Modal>
+
+        <Modal open={schoolRewardModalOpen} onClose={() => setSchoolRewardModalOpen(false)} title="⭐ School Remark Points">
+          <RewardBreakdown
+            summary={schoolRemarkRewards}
+            unit="points"
+            title="Savvy's school remark balance"
+            emptyText="No School remarks yet."
+            note="Calculated from saved School remarks only. Home tests, School test marks, and Common grammar are not included here."
+          >
+            <RewardRedeemer
+              ledger={schoolRemarkLedger}
+              earned={schoolRemarkRewards.total}
+              unit="points"
+              label="school remark points"
+            />
+          </RewardBreakdown>
+        </Modal>
+
+        <Modal open={!!testModal} onClose={() => setTestModal(null)} title={isSchool ? "📝 Add Remarks" : "📝 Add Test Score"}>
           {testModal && <>
             <div style={{ color: "#94a3b8", fontSize: 13, marginBottom: 14, marginTop: -8 }}>{testModal.name}</div>
-            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Test Type</div>
-            <select value={testForm.type} onChange={e => setTestForm({ ...testForm, type: e.target.value })} style={inp({ marginBottom: 10 })}>
-              {TEST_TYPES.map(t => <option key={t}>{t}</option>)}
-            </select>
-            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Date</div>
-            <input type="date" value={testForm.date} onChange={e => setTestForm({ ...testForm, date: e.target.value })} style={inp({ marginBottom: 10 })} />
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
-              <div><div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Obtained</div>
-                <input type="number" min="0" placeholder="18" value={testForm.obtained} onChange={e => setTestForm({ ...testForm, obtained: e.target.value })} style={inp()} /></div>
-              <div><div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Max Marks</div>
-                <input type="number" min="1" placeholder="20" value={testForm.max} onChange={e => setTestForm({ ...testForm, max: e.target.value })} style={inp()} /></div>
-            </div>
-            {testForm.obtained && testForm.max && +testForm.max > 0 && (
-              <div style={{ textAlign: "center" as const, padding: "8px 0", fontSize: 28, fontWeight: 900, color: scoreColor(pctCalc(+testForm.obtained, +testForm.max)) }}>
-                {pctCalc(+testForm.obtained, +testForm.max)}% {pctCalc(+testForm.obtained, +testForm.max) >= 80 ? "🎉" : pctCalc(+testForm.obtained, +testForm.max) >= 60 ? "👍" : "📖"}
-              </div>
+            {isSchool ? (
+              <>
+                <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Remarks</div>
+                <select value={remarkForm.remark} onChange={e => setRemarkForm({ ...remarkForm, remark: e.target.value })} style={inp({ marginBottom: 10 })}>
+                  {REMARK_REWARD_OPTIONS.map(option => <option key={option.label} value={option.label}>{option.label} ({option.points > 0 ? "+" : ""}{option.points} points)</option>)}
+                </select>
+                <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Date</div>
+                <input type="date" value={remarkForm.date} onChange={e => setRemarkForm({ ...remarkForm, date: e.target.value })} style={inp({ marginBottom: 10 })} />
+                <div style={{ textAlign: "center" as const, padding: "8px 0", fontSize: 28, fontWeight: 900, color: pointsForRemark(remarkForm.remark) >= 0 ? "#047857" : "#b91c1c" }}>
+                  {pointsForRemark(remarkForm.remark) > 0 ? "+" : ""}{pointsForRemark(remarkForm.remark)} points
+                </div>
+                <textarea placeholder="Notes (optional)..." value={remarkForm.notes} onChange={e => setRemarkForm({ ...remarkForm, notes: e.target.value })} style={inp({ minHeight: 60, resize: "vertical" as const, marginBottom: 14 })} />
+                <div style={{ display: "flex", gap: 10 }}>
+                  <button onClick={() => setTestModal(null)} style={{ flex: 1, padding: 11, borderRadius: 12, border: "1px solid #e2e8f0", background: "white", cursor: "pointer", fontWeight: 600, fontSize: 14 }}>Cancel</button>
+                  <button onClick={() => { addRemark(testModal.id); setTestModal(null); }} style={{ flex: 1, padding: 11, borderRadius: 12, border: "none", background: accentGrad, color: "white", cursor: "pointer", fontWeight: 700, fontSize: 14 }}>Save Remarks</button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Test Type</div>
+                <select value={testForm.type} onChange={e => setTestForm({ ...testForm, type: e.target.value })} style={inp({ marginBottom: 10 })}>
+                  {TEST_TYPES.map(t => <option key={t}>{t}</option>)}
+                </select>
+                <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Date</div>
+                <input type="date" value={testForm.date} onChange={e => setTestForm({ ...testForm, date: e.target.value })} style={inp({ marginBottom: 10 })} />
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
+                  <div><div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Obtained</div>
+                    <input type="number" min="0" placeholder="18" value={testForm.obtained} onChange={e => setTestForm({ ...testForm, obtained: e.target.value })} style={inp()} /></div>
+                  <div><div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Max Marks</div>
+                    <input type="number" min="1" placeholder="20" value={testForm.max} onChange={e => setTestForm({ ...testForm, max: e.target.value })} style={inp()} /></div>
+                </div>
+                {testForm.obtained && testForm.max && +testForm.max > 0 && (
+                  <div style={{ textAlign: "center" as const, padding: "8px 0", fontSize: 28, fontWeight: 900, color: scoreColor(pctCalc(+testForm.obtained, +testForm.max)) }}>
+                    {pctCalc(+testForm.obtained, +testForm.max)}% {pctCalc(+testForm.obtained, +testForm.max) >= 80 ? "🎉" : pctCalc(+testForm.obtained, +testForm.max) >= 60 ? "👍" : "📖"}
+                  </div>
+                )}
+                <textarea placeholder="Notes (optional)..." value={testForm.notes} onChange={e => setTestForm({ ...testForm, notes: e.target.value })} style={inp({ minHeight: 60, resize: "vertical" as const, marginBottom: 14 })} />
+                <div style={{ display: "flex", gap: 10 }}>
+                  <button onClick={() => setTestModal(null)} style={{ flex: 1, padding: 11, borderRadius: 12, border: "1px solid #e2e8f0", background: "white", cursor: "pointer", fontWeight: 600, fontSize: 14 }}>Cancel</button>
+                  <button onClick={() => { addTest(testModal.id); setTestModal(null); }} style={{ flex: 1, padding: 11, borderRadius: 12, border: "none", background: accentGrad, color: "white", cursor: "pointer", fontWeight: 700, fontSize: 14 }}>Save Score</button>
+                </div>
+              </>
             )}
-            <textarea placeholder="Notes (optional)…" value={testForm.notes} onChange={e => setTestForm({ ...testForm, notes: e.target.value })} style={inp({ minHeight: 60, resize: "vertical" as const, marginBottom: 14 })} />
-            <div style={{ display: "flex", gap: 10 }}>
-              <button onClick={() => setTestModal(null)} style={{ flex: 1, padding: 11, borderRadius: 12, border: "1px solid #e2e8f0", background: "white", cursor: "pointer", fontWeight: 600, fontSize: 14 }}>Cancel</button>
-              <button onClick={() => { addTest(testModal.id); setTestModal(null); }} style={{ flex: 1, padding: 11, borderRadius: 12, border: "none", background: accentGrad, color: "white", cursor: "pointer", fontWeight: 700, fontSize: 14 }}>Save Score</button>
-            </div>
           </>}
         </Modal>
 
@@ -1548,6 +1745,27 @@ export default function App() {
 	        {/* ════ TESTS LIST MODAL ════ */}
 		        <Modal open={!!testsModal} onClose={() => setTestsModal(null)} title={testsModal?.title || "Tests"}>
 		          {testsModal && (() => {
+		            if (isSchool) {
+		              const visibleRemarks = testsModal.subjectId ? allRemarks.filter(r => r.sId === testsModal.subjectId) : allRemarks;
+		              return visibleRemarks.length === 0 ? (
+		                <div style={{ color: "#94a3b8", textAlign: "center" as const, padding: "20px 0", fontSize: 14 }}>
+		                  No remarks yet.
+		                </div>
+		              ) : (
+		                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+		                  {visibleRemarks.map((r, i) => (
+		                    <div key={`${r.id}-${i}`} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 0", borderBottom: i < visibleRemarks.length - 1 ? "1px solid #f1f5f9" : "none" }}>
+		                      <span style={{ fontSize: 18 }}>{r.sIcon}</span>
+		                      <div style={{ flex: 1, minWidth: 0 }}>
+		                        <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a" }}>{r.chName}</div>
+		                        <div style={{ fontSize: 11, color: "#94a3b8" }}>{r.remark} • {r.date}</div>
+		                      </div>
+		                      <div style={{ fontWeight: 900, fontSize: 14, color: r.points >= 0 ? "#047857" : "#b91c1c" }}>{r.points > 0 ? "+" : ""}{r.points} pts</div>
+		                    </div>
+		                  ))}
+		                </div>
+		              );
+		            }
 		            const visibleTests = testsModal.subjectId ? allTests.filter(t => t.sId === testsModal.subjectId) : allTests;
 		            return visibleTests.length === 0 ? (
 		              <div style={{ color: "#94a3b8", textAlign: "center" as const, padding: "20px 0", fontSize: 14 }}>
@@ -1690,9 +1908,9 @@ export default function App() {
 	                  <div style={{ background: s.color, borderRadius: 10, height: 4, width: `${s.pct}%`, transition: "width .8s", boxShadow: `0 0 6px ${s.color}88` }} />
 	                </div>
 	                <button type="button" onClick={(e) => { e.stopPropagation(); openTestsDetail(s.id, s.name); }}
-	                  title={s.testCount > 0 ? `Open ${s.name} test scores` : `No ${s.name} test scores yet`}
-	                  style={{ marginTop: 6, background: "transparent", border: "none", padding: 0, color: s.scorePct === null ? "rgba(255,255,255,.35)" : scoreColor(s.scorePct), cursor: "pointer", fontSize: 10, fontWeight: 800, fontFamily: "inherit" }}>
-		                  Score {s.scorePct === null ? "No tests" : `${s.scorePct}%`}
+	                  title={isSchool ? (s.remarkCount > 0 ? `Open ${s.name} remarks` : `No ${s.name} remarks yet`) : (s.testCount > 0 ? `Open ${s.name} test scores` : `No ${s.name} test scores yet`)}
+	                  style={{ marginTop: 6, background: "transparent", border: "none", padding: 0, color: isSchool ? (s.remarkCount === 0 ? "rgba(255,255,255,.35)" : s.remarkPoints >= 0 ? "#86efac" : "#fca5a5") : (s.scorePct === null ? "rgba(255,255,255,.35)" : scoreColor(s.scorePct)), cursor: "pointer", fontSize: 10, fontWeight: 800, fontFamily: "inherit" }}>
+		                  {isSchool ? `Points ${s.remarkCount === 0 ? "No remarks" : `${s.remarkPoints > 0 ? "+" : ""}${s.remarkPoints}`}` : `Score ${s.scorePct === null ? "No tests" : `${s.scorePct}%`}`}
 	                </button>
 	              </div>
             ))}

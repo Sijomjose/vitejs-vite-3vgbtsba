@@ -1,12 +1,13 @@
+/* eslint-disable react-refresh/only-export-components */
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { RewardBadge, RewardBreakdown, buildMonthlyRewardSummary } from "./Rewards";
+import { RewardRedeemer, useRewardRedemptions, type RewardWalletId } from "./RewardRedemptions";
 
 const SUPA_URL = "https://mlfgdutctvbvqwebqajp.supabase.co";
 const SUPA_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1sZmdkdXRjdHZidnF3ZWJxYWpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMzQ2MDIsImV4cCI6MjA4OTgxMDYwMn0.TPBeT6y-fFGAgcME_mmKqBUYHFUMVB1FO3wrAhneKW4";
 
 const PIN = "4563";
-const LS_KEY = "savio_monthly_tests_v1";
-const ROW_ID = "savio_monthly_tests_v1";
 
 const SUBJECTS = [
   { key: "english", label: "English" },
@@ -69,6 +70,18 @@ interface CumulativeRow {
 
 type SaveState = "idle" | "saving" | "saved" | "error";
 
+export interface MonthlyTestsConfig {
+  title: string;
+  directUrl: string;
+  rowId: string;
+  localKey: string;
+  targetDisplayName: string;
+  targetMatchers: string[];
+  rewardWalletId: RewardWalletId;
+  defaultData: MonthlyTestsData;
+  seedTargetStudentName?: string;
+}
+
 const defaultMaxMarks = (): Record<SubjectKey, number> => ({
   english: 40,
   hindi: 40,
@@ -77,7 +90,7 @@ const defaultMaxMarks = (): Record<SubjectKey, number> => ({
   socialScience: 40,
 });
 
-const DEFAULT_DATA: MonthlyTestsData = {
+const SAVIO_DEFAULT_DATA: MonthlyTestsData = {
   version: 1,
   updatedAt: "2026-05-16T00:00:00.000Z",
   tests: [
@@ -123,10 +136,51 @@ const DEFAULT_DATA: MonthlyTestsData = {
   ],
 };
 
-async function fetchMonthlyData(): Promise<MonthlyTestsData | null> {
+function blankDefaultData(studentName: string): MonthlyTestsData {
+  return {
+    version: 1,
+    updatedAt: new Date().toISOString(),
+    tests: [
+      {
+        id: "monthly-test-1",
+        name: "Monthly Test 1",
+        date: new Date().toISOString().slice(0, 10),
+        maxMarks: defaultMaxMarks(),
+        students: [
+          { id: "target-student", rollNo: "", name: studentName, marks: {} },
+        ],
+      },
+    ],
+  };
+}
+
+const SAVIO_SCHOOL_TESTS_CONFIG: MonthlyTestsConfig = {
+  title: "Savio's School Tests",
+  directUrl: "/t",
+  rowId: "savio_monthly_tests_v1",
+  localKey: "savio_monthly_tests_v1",
+  targetDisplayName: "Savio",
+  targetMatchers: ["SAVIO SIJO"],
+  rewardWalletId: "savio-school-tests",
+  defaultData: SAVIO_DEFAULT_DATA,
+};
+
+export const LETICIA_SCHOOL_TESTS_CONFIG: MonthlyTestsConfig = {
+  title: "Leticia's School Tests",
+  directUrl: "/lt",
+  rowId: "leticia_school_tests_v1",
+  localKey: "leticia_school_tests_v1",
+  targetDisplayName: "Leticia",
+  targetMatchers: ["LETICIA", "LETTY"],
+  rewardWalletId: "leticia-school-tests",
+  defaultData: blankDefaultData("LETICIA"),
+  seedTargetStudentName: "LETICIA",
+};
+
+async function fetchMonthlyData(rowId: string): Promise<MonthlyTestsData | null> {
   try {
     const res = await fetch(
-      `${SUPA_URL}/rest/v1/tracker_data?id=eq.${ROW_ID}&select=data`,
+      `${SUPA_URL}/rest/v1/tracker_data?id=eq.${rowId}&select=data`,
       { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
     );
     if (!res.ok) return null;
@@ -137,7 +191,7 @@ async function fetchMonthlyData(): Promise<MonthlyTestsData | null> {
   }
 }
 
-async function saveMonthlyData(data: MonthlyTestsData): Promise<boolean> {
+async function saveMonthlyData(rowId: string, data: MonthlyTestsData): Promise<boolean> {
   try {
     const res = await fetch(`${SUPA_URL}/rest/v1/tracker_data`, {
       method: "POST",
@@ -147,7 +201,7 @@ async function saveMonthlyData(data: MonthlyTestsData): Promise<boolean> {
         "Content-Type": "application/json",
         Prefer: "resolution=merge-duplicates",
       },
-      body: JSON.stringify({ id: ROW_ID, data }),
+      body: JSON.stringify({ id: rowId, data }),
     });
     return res.ok;
   } catch {
@@ -164,13 +218,13 @@ function isMonthlyData(value: unknown): value is MonthlyTestsData {
   );
 }
 
-function cloneDefaultData(): MonthlyTestsData {
-  return JSON.parse(JSON.stringify(DEFAULT_DATA));
+function cloneDefaultData(defaultData: MonthlyTestsData): MonthlyTestsData {
+  return JSON.parse(JSON.stringify(defaultData));
 }
 
-function fromLocalStorage(): MonthlyTestsData | null {
+function fromLocalStorage(localKey: string): MonthlyTestsData | null {
   try {
-    const raw = localStorage.getItem(LS_KEY);
+    const raw = localStorage.getItem(localKey);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     return isMonthlyData(parsed) ? parsed : null;
@@ -179,9 +233,9 @@ function fromLocalStorage(): MonthlyTestsData | null {
   }
 }
 
-function toLocalStorage(data: MonthlyTestsData) {
+function toLocalStorage(localKey: string, data: MonthlyTestsData) {
   try {
-    localStorage.setItem(LS_KEY, JSON.stringify(data));
+    localStorage.setItem(localKey, JSON.stringify(data));
   } catch {
     /* local backup is best-effort */
   }
@@ -198,6 +252,22 @@ function normalizeData(data: MonthlyTestsData): MonthlyTestsData {
         marks: { ...student.marks },
       })),
     })),
+  };
+}
+
+function ensureSeedTargetStudent(data: MonthlyTestsData, config: MonthlyTestsConfig): MonthlyTestsData {
+  if (!config.seedTargetStudentName) return data;
+  return {
+    ...data,
+    tests: data.tests.map(test => {
+      if (test.students.length > 0) return test;
+      return {
+        ...test,
+        students: [
+          { id: `target-student-${test.id}`, rollNo: "", name: config.seedTargetStudentName!, marks: {} },
+        ],
+      };
+    }),
   };
 }
 
@@ -431,7 +501,7 @@ function Modal({ open, onClose, title, children }: {
   );
 }
 
-export default function MonthlyTests() {
+export default function MonthlyTests({ config = SAVIO_SCHOOL_TESTS_CONFIG }: { config?: MonthlyTestsConfig }) {
   const [unlocked, setUnlocked] = useState(false);
   const [pinInput, setPinInput] = useState("");
   const [pinError, setPinError] = useState("");
@@ -439,24 +509,28 @@ export default function MonthlyTests() {
   const [selectedTestId, setSelectedTestId] = useState("");
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [draftMarks, setDraftMarks] = useState<Record<string, string>>({});
-  const [detailModal, setDetailModal] = useState<{ kind: "students" | "comparable" | "savio" | "rank"; title: string } | null>(null);
+  const [detailModal, setDetailModal] = useState<{ kind: "students" | "comparable" | "target" | "rank"; title: string } | null>(null);
+  const [rewardModalOpen, setRewardModalOpen] = useState(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!unlocked) return;
     let active = true;
     (async () => {
-      const remote = await fetchMonthlyData();
-      const next = normalizeData(remote || fromLocalStorage() || cloneDefaultData());
+      const remote = await fetchMonthlyData(config.rowId);
+      const next = ensureSeedTargetStudent(
+        normalizeData(remote || fromLocalStorage(config.localKey) || cloneDefaultData(config.defaultData)),
+        config
+      );
       if (!active) return;
       setData(next);
       setSelectedTestId(next.tests[0]?.id || "");
-      toLocalStorage(next);
+      toLocalStorage(config.localKey, next);
     })();
     return () => {
       active = false;
     };
-  }, [unlocked]);
+  }, [config, unlocked]);
 
   useEffect(() => {
     return () => {
@@ -465,14 +539,14 @@ export default function MonthlyTests() {
   }, []);
 
   const queueSave = useCallback((next: MonthlyTestsData) => {
-    toLocalStorage(next);
+    toLocalStorage(config.localKey, next);
     setSaveState("saving");
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(async () => {
-      const ok = await saveMonthlyData(next);
+      const ok = await saveMonthlyData(config.rowId, next);
       setSaveState(ok ? "saved" : "error");
     }, 700);
-  }, []);
+  }, [config.localKey, config.rowId]);
 
   const updateData = useCallback((updater: (current: MonthlyTestsData) => MonthlyTestsData) => {
     setData(current => {
@@ -487,13 +561,44 @@ export default function MonthlyTests() {
   const rankMap = useMemo(() => selectedTest ? buildRankMap(selectedTest) : {}, [selectedTest]);
   const sortedStudents = useMemo(() => selectedTest ? sortStudentsByRank(selectedTest, rankMap) : [], [selectedTest, rankMap]);
   const cumulativeRows = useMemo(() => data ? buildCumulativeRows(data) : [], [data]);
-  const savioSummary = useMemo(() => {
+  const isTargetStudent = useCallback((name: string) => {
+    const upperName = name.toUpperCase();
+    return config.targetMatchers.some(matcher => upperName.includes(matcher));
+  }, [config.targetMatchers]);
+  const targetSummary = useMemo(() => {
     if (!selectedTest) return null;
-    const student = selectedTest.students.find(row => row.name.toUpperCase().includes("SAVIO SIJO"));
+    const student = selectedTest.students.find(row => isTargetStudent(row.name));
     if (!student) return null;
     return { stats: rowStats(selectedTest, student), rank: rankMap[student.id] };
-  }, [selectedTest, rankMap]);
+  }, [isTargetStudent, selectedTest, rankMap]);
   const completeCount = useMemo(() => selectedTest ? selectedTest.students.filter(student => rowStats(selectedTest, student).complete).length : 0, [selectedTest]);
+  const monthlyRewards = useMemo(() => {
+    if (!data) return buildMonthlyRewardSummary([]);
+    return buildMonthlyRewardSummary(data.tests.map(test => {
+      const target = test.students.find(row => isTargetStudent(row.name));
+      if (!target) {
+        return {
+          id: test.id,
+          label: test.name,
+          subLabel: test.date,
+          percentage: null,
+          scoreText: `${config.targetDisplayName} not found`,
+          complete: false,
+        };
+      }
+      const stats = rowStats(test, target);
+      return {
+        id: test.id,
+        label: test.name,
+        subLabel: test.date,
+        percentage: stats.complete ? stats.percentage : null,
+        scoreText: stats.maxAvailable ? `${stats.total}/${stats.maxAvailable}` : "Incomplete",
+        complete: stats.complete,
+      };
+    }));
+  }, [config.targetDisplayName, data, isTargetStudent]);
+  const schoolTestsLedger = useRewardRedemptions(config.rewardWalletId);
+  const monthlyRewardBalance = monthlyRewards.total - schoolTestsLedger.spent;
 
   const unlock = (value = pinInput) => {
     if (value.trim() !== PIN) {
@@ -610,8 +715,8 @@ export default function MonthlyTests() {
     if (!data) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
     setSaveState("saving");
-    const ok = await saveMonthlyData(data);
-    toLocalStorage(data);
+    const ok = await saveMonthlyData(config.rowId, data);
+    toLocalStorage(config.localKey, data);
     setSaveState(ok ? "saved" : "error");
   };
 
@@ -631,10 +736,10 @@ export default function MonthlyTests() {
             Locked marks page
           </div>
           <h1 style={{ margin: "0 0 8px", fontSize: 30, letterSpacing: 0, color: "#0f172a", fontWeight: 900 }}>
-            Monthly Tests
+            {config.title}
           </h1>
           <p style={{ margin: "0 0 20px", color: "#64748b", fontSize: 14 }}>
-            Enter the PIN to view and edit monthly test marks.
+            Enter the PIN to view and edit school test marks.
           </p>
           <input
             aria-label="PIN"
@@ -658,7 +763,7 @@ export default function MonthlyTests() {
   if (!data || !selectedTest) {
     return (
       <main style={{ minHeight: "100vh", display: "grid", placeItems: "center", fontFamily: "system-ui", color: "#64748b" }}>
-        Loading monthly tests...
+        Loading {config.title}...
       </main>
     );
   }
@@ -681,8 +786,8 @@ export default function MonthlyTests() {
         .monthly-table th { position: sticky; top: 0; z-index: 1; background: #f8fafc; color: #475569; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; text-align: left; padding: 10px; border-bottom: 1px solid #e2e8f0; }
         .monthly-table td { padding: 8px 10px; border-bottom: 1px solid #edf2f7; vertical-align: middle; }
         .monthly-table tr:hover td { background: #f8fafc; }
-        .student-row-savio td { background: #eff6ff; }
-        .student-row-savio:hover td { background: #dbeafe; }
+        .student-row-target td { background: #eff6ff; }
+        .student-row-target:hover td { background: #dbeafe; }
         .monthly-small-input { width: 74px; border: 1px solid #dbe3ef; border-radius: 6px; padding: 7px 8px; box-sizing: border-box; font: inherit; color: #0f172a; background: #fff; }
         .monthly-name-input { min-width: 210px; }
         .monthly-subject-max { display: grid; grid-template-columns: repeat(5, minmax(120px, 1fr)); gap: 10px; }
@@ -701,11 +806,21 @@ export default function MonthlyTests() {
           <div>
             <div style={{ fontSize: 12, letterSpacing: 2.4, textTransform: "uppercase", opacity: .78, fontWeight: 900 }}>Private marks page</div>
             <h1 style={{ margin: "5px 0 4px", fontSize: "clamp(26px, 4vw, 38px)", color: "#fff", fontWeight: 950, letterSpacing: 0 }}>
-              Monthly Tests
+              {config.title}
             </h1>
-            <div style={{ opacity: .82, fontSize: 14 }}>Direct URL only: /t. Same PIN unlocks view and edit.</div>
+            <div style={{ opacity: .82, fontSize: 14 }}>Direct URL only: {config.directUrl}. Same PIN unlocks view and edit.</div>
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+            <RewardBadge
+              tone="coins"
+              icon="🪙"
+              label="Coins Collected"
+              value={monthlyRewardBalance}
+              unit="coins"
+              caption="available now"
+              compact
+              onClick={() => setRewardModalOpen(true)}
+            />
             <button onClick={saveNow} style={buttonStyle({ background: "rgba(255,255,255,.18)", borderColor: "rgba(255,255,255,.35)", color: "#fff" })}>Save now</button>
             <button
               onClick={() => { setUnlocked(false); setPinInput(""); }}
@@ -717,6 +832,23 @@ export default function MonthlyTests() {
         </div>
       </section>
 
+      <Modal open={rewardModalOpen} onClose={() => setRewardModalOpen(false)} title="🪙 Monthly Test Coins">
+        <RewardBreakdown
+          summary={monthlyRewards}
+          unit="coins"
+          title="Real money coin balance"
+          emptyText={`No complete ${config.targetDisplayName} school test totals yet.`}
+          note={`Calculated from ${config.targetDisplayName}'s aggregate percentage for each school test. Incomplete tests do not earn coins. There are no negative points in school tests.`}
+        >
+          <RewardRedeemer
+            ledger={schoolTestsLedger}
+            earned={monthlyRewards.total}
+            unit="coins"
+            label={`${config.targetDisplayName} school test coins`}
+          />
+        </RewardBreakdown>
+      </Modal>
+
 	      <section className="monthly-grid" style={{ marginBottom: 14 }}>
 	        <button type="button" onClick={() => setDetailModal({ kind: "students", title: "All Students" })} style={cardStyle({ padding: 14, textAlign: "left", cursor: "pointer", font: "inherit", color: "inherit" })}>
 	          <div style={{ color: "#64748b", fontSize: 12, fontWeight: 900 }}>Students</div>
@@ -726,16 +858,16 @@ export default function MonthlyTests() {
 	          <div style={{ color: "#64748b", fontSize: 12, fontWeight: 900 }}>Comparable rows</div>
 	          <div style={{ fontSize: 26, fontWeight: 950 }}>{completeCount}</div>
 	        </button>
-	        <button type="button" onClick={() => setDetailModal({ kind: "savio", title: "Savio Total" })} style={cardStyle({ padding: 14, textAlign: "left", cursor: "pointer", font: "inherit", color: "inherit" })}>
-	          <div style={{ color: "#64748b", fontSize: 12, fontWeight: 900 }}>Savio total</div>
+	        <button type="button" onClick={() => setDetailModal({ kind: "target", title: `${config.targetDisplayName} Total` })} style={cardStyle({ padding: 14, textAlign: "left", cursor: "pointer", font: "inherit", color: "inherit" })}>
+	          <div style={{ color: "#64748b", fontSize: 12, fontWeight: 900 }}>{config.targetDisplayName} total</div>
 	          <div style={{ fontSize: 26, fontWeight: 950 }}>
-	            {savioSummary ? `${savioSummary.stats.total}/${savioSummary.stats.maxAvailable}` : "-"}
+	            {targetSummary ? `${targetSummary.stats.total}/${targetSummary.stats.maxAvailable}` : "-"}
 	          </div>
 	        </button>
-	        <button type="button" onClick={() => setDetailModal({ kind: "rank", title: "Savio Rank / Percentile" })} style={cardStyle({ padding: 14, textAlign: "left", cursor: "pointer", font: "inherit", color: "inherit" })}>
-	          <div style={{ color: "#64748b", fontSize: 12, fontWeight: 900 }}>Savio rank / percentile</div>
+	        <button type="button" onClick={() => setDetailModal({ kind: "rank", title: `${config.targetDisplayName} Rank / Percentile` })} style={cardStyle({ padding: 14, textAlign: "left", cursor: "pointer", font: "inherit", color: "inherit" })}>
+	          <div style={{ color: "#64748b", fontSize: 12, fontWeight: 900 }}>{config.targetDisplayName} rank / percentile</div>
 	          <div style={{ fontSize: 26, fontWeight: 950 }}>
-	            {savioSummary?.rank ? `#${savioSummary.rank.rank} / ${formatNumber(savioSummary.rank.percentile, 2)}` : "Incomplete"}
+	            {targetSummary?.rank ? `#${targetSummary.rank.rank} / ${formatNumber(targetSummary.rank.percentile, 2)}` : "Incomplete"}
 	          </div>
 	        </button>
 	      </section>
@@ -831,9 +963,9 @@ export default function MonthlyTests() {
               {sortedStudents.map(student => {
                 const stats = rowStats(selectedTest, student);
                 const rank = rankMap[student.id];
-                const isSavio = student.name.toUpperCase().includes("SAVIO SIJO");
+                const isTarget = isTargetStudent(student.name);
                 return (
-                  <tr key={student.id} className={isSavio ? "student-row-savio" : undefined}>
+                  <tr key={student.id} className={isTarget ? "student-row-target" : undefined}>
                     <td>
                       <input
                         value={student.rollNo}
@@ -929,9 +1061,9 @@ export default function MonthlyTests() {
             </thead>
             <tbody>
               {cumulativeRows.map(row => (
-                <tr key={row.key} className={row.name.toUpperCase().includes("SAVIO SIJO") ? "student-row-savio" : undefined}>
+                <tr key={row.key} className={isTargetStudent(row.name) ? "student-row-target" : undefined}>
                   <td>{row.rollNo || "-"}</td>
-                  <td style={{ fontWeight: row.name.toUpperCase().includes("SAVIO SIJO") ? 950 : 700 }}>{row.name}</td>
+                  <td style={{ fontWeight: isTargetStudent(row.name) ? 950 : 700 }}>{row.name}</td>
                   <td>{row.completeTests}</td>
                   <td style={{ fontWeight: 900 }}>{row.max ? `${row.total}/${row.max}` : "-"}</td>
                   <td>{formatNumber(row.percentage)}</td>
@@ -953,7 +1085,7 @@ export default function MonthlyTests() {
 	              <div key={student.id} style={{ display: "grid", gridTemplateColumns: "36px minmax(0, 1fr) auto", gap: 10, alignItems: "center", padding: "8px 0", borderBottom: "1px solid #edf2f7" }}>
 	                <div style={{ color: "#64748b", fontWeight: 900, fontSize: 12 }}>{index + 1}</div>
 	                <div style={{ minWidth: 0 }}>
-	                  <div style={{ fontWeight: student.name.toUpperCase().includes("SAVIO SIJO") ? 950 : 800, color: "#0f172a", fontSize: 13 }}>{student.name}</div>
+	                  <div style={{ fontWeight: isTargetStudent(student.name) ? 950 : 800, color: "#0f172a", fontSize: 13 }}>{student.name}</div>
 	                  <div style={{ color: "#94a3b8", fontSize: 11 }}>Roll {student.rollNo || "-"}</div>
 	                </div>
 	                <div style={{ textAlign: "right", fontSize: 12, color: "#475569", fontWeight: 800 }}>
@@ -972,38 +1104,38 @@ export default function MonthlyTests() {
 	            return comparable.length ? <div>{comparable.map(rowLine)}</div> : <div style={{ color: "#94a3b8", textAlign: "center", padding: "20px 0" }}>No comparable rows.</div>;
 	          }
 
-	          const savio = selectedTest.students.find(student => student.name.toUpperCase().includes("SAVIO SIJO"));
-	          if (!savio) return <div style={{ color: "#94a3b8", textAlign: "center", padding: "20px 0" }}>Savio Sijo is not in this test.</div>;
-	          const savioStats = rowStats(selectedTest, savio);
-	          const savioRank = rankMap[savio.id];
+	          const target = selectedTest.students.find(student => isTargetStudent(student.name));
+	          if (!target) return <div style={{ color: "#94a3b8", textAlign: "center", padding: "20px 0" }}>{config.targetDisplayName} is not in this test.</div>;
+	          const targetStats = rowStats(selectedTest, target);
+	          const targetRank = rankMap[target.id];
 
-	          if (detailModal.kind === "savio") return (
+	          if (detailModal.kind === "target") return (
 	            <div>
 	              {SUBJECTS.map(subject => (
 	                <div key={subject.key} style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: "8px 0", borderBottom: "1px solid #edf2f7", fontSize: 13 }}>
 	                  <span style={{ color: "#475569", fontWeight: 800 }}>{subject.label}</span>
-	                  <span style={{ color: "#0f172a", fontWeight: 950 }}>{markToInput(savio.marks[subject.key]) || "-"}/{selectedTest.maxMarks[subject.key]}</span>
+	                  <span style={{ color: "#0f172a", fontWeight: 950 }}>{markToInput(target.marks[subject.key]) || "-"}/{selectedTest.maxMarks[subject.key]}</span>
 	                </div>
 	              ))}
 	              <div style={{ marginTop: 12, fontSize: 18, fontWeight: 950, color: "#1e40af" }}>
-	                Total: {savioStats.maxAvailable ? `${savioStats.total}/${savioStats.maxAvailable}` : "-"} ({formatNumber(savioStats.percentage)}%)
+	                Total: {targetStats.maxAvailable ? `${targetStats.total}/${targetStats.maxAvailable}` : "-"} ({formatNumber(targetStats.percentage)}%)
 	              </div>
 	            </div>
 	          );
 
-	          const aboveSavio = savioRank
+	          const aboveTarget = targetRank
 	            ? sortedStudents.filter(student => {
 	                const rank = rankMap[student.id];
-	                return rank && rank.rank < savioRank.rank;
+	                return rank && rank.rank < targetRank.rank;
 	              })
 	            : [];
 
 	          return (
 	            <div>
 	              <div style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 8, padding: 10, marginBottom: 12, color: "#1e40af", fontWeight: 900 }}>
-	                {savioRank ? `Savio is rank #${savioRank.rank}, percentile ${formatNumber(savioRank.percentile, 2)}.` : "Savio is incomplete for rank calculation."}
+	                {targetRank ? `${config.targetDisplayName} is rank #${targetRank.rank}, percentile ${formatNumber(targetRank.percentile, 2)}.` : `${config.targetDisplayName} is incomplete for rank calculation.`}
 	              </div>
-	              {aboveSavio.length ? <div>{aboveSavio.map(rowLine)}</div> : <div style={{ color: "#94a3b8", textAlign: "center", padding: "14px 0" }}>No ranked students above Savio.</div>}
+	              {aboveTarget.length ? <div>{aboveTarget.map(rowLine)}</div> : <div style={{ color: "#94a3b8", textAlign: "center", padding: "14px 0" }}>No ranked students above {config.targetDisplayName}.</div>}
 	            </div>
 	          );
 	        })()}

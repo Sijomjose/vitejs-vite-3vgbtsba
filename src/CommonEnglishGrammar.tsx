@@ -1,5 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { useEffect, useState, type CSSProperties } from "react";
+import { RewardBadge, RewardBreakdown, buildPerformanceRewardSummary } from "./Rewards";
+import { RewardRedeemer, type RewardLedgerControls } from "./RewardRedemptions";
 
 const SUPA_URL = "https://mlfgdutctvbvqwebqajp.supabase.co";
 const SUPA_KEY =
@@ -423,6 +425,7 @@ export interface GrammarTracker {
   data: Record<string, ChapterData>;
   days?: { daysLeft: number; totalDays: number; pct: number; examLabel: string };
   saving?: boolean;
+  rewardLedger?: RewardLedgerControls;
   onChange: (next: Record<string, ChapterData>) => void | Promise<void>;
 }
 
@@ -562,7 +565,7 @@ export default function CommonEnglishGrammar({ trackers, loading = false }: {
   const [testModal, setTestModal] = useState<{ trackerId: string; chapterId: string; name: string } | null>(null);
   const [noteModal, setNoteModal] = useState<{ trackerId: string; chapterId: string; name: string; note: string } | null>(null);
   const [paperModal, setPaperModal] = useState<{ trackerId: string; rowId: string; chapterId: string; chapterName: string; subjectId: string } | null>(null);
-  const [detailModal, setDetailModal] = useState<{ trackerId: string; kind: "days" | "done" | "in_progress" | "flagged" | "tests"; title: string } | null>(null);
+  const [detailModal, setDetailModal] = useState<{ trackerId: string; kind: "days" | "done" | "in_progress" | "flagged" | "tests" | "rewards"; title: string } | null>(null);
   const [chapterResources, setChapterResources] = useState<ChapterResource[]>([]);
   const [resourcesLoading, setResourcesLoading] = useState(false);
   const [resourceError, setResourceError] = useState<string | null>(null);
@@ -666,12 +669,29 @@ export default function CommonEnglishGrammar({ trackers, loading = false }: {
     else setResourceError("Could not delete this grammar resource from Supabase.");
   };
 
-  const openDetail = (tracker: GrammarTracker, kind: "days" | "done" | "in_progress" | "flagged" | "tests", title: string) => {
+  const openDetail = (tracker: GrammarTracker, kind: "days" | "done" | "in_progress" | "flagged" | "tests" | "rewards", title: string) => {
     setDetailModal({ trackerId: tracker.id, kind, title });
   };
 
   return (
     <div style={{ marginBottom: 18 }}>
+      <style>{`
+        @media(max-width:900px){
+          .grammar-tracker-head{align-items:flex-start!important}
+          .grammar-tracker-main{min-width:0!important}
+        }
+        @media(max-width:820px){
+          .grammar-search{max-width:none!important;width:100%!important}
+          .grammar-tracker-head{flex-direction:column!important;align-items:flex-start!important}
+          .grammar-tracker-icon{font-size:34px!important}
+          .grammar-tracker-main{width:100%!important}
+          .grammar-reward-badge{width:100%!important;min-width:0!important;flex-basis:auto!important}
+          .grammar-progress-ring{align-self:flex-start!important;margin-top:0!important}
+        }
+        @media(max-width:520px){
+          .grammar-chapter-actions{width:100%!important;justify-content:flex-start!important;flex-wrap:wrap!important}
+        }
+      `}</style>
       <Glass style={{ padding: "18px 20px", marginBottom: 14, border: "1px solid #dbeafe" }}>
         <div style={{ display: "flex", gap: 12, alignItems: "center", justifyContent: "space-between", flexWrap: "wrap" }}>
           <div>
@@ -679,6 +699,7 @@ export default function CommonEnglishGrammar({ trackers, loading = false }: {
             <div style={{ fontSize: 13, color: "#64748b", marginTop: 2 }}>Savio and Letty grammar are shown here from their existing saved records.</div>
           </div>
           <input
+            className="grammar-search"
             placeholder="🔍 Search grammar chapters..."
             value={search}
             onChange={e => setSearch(e.target.value)}
@@ -696,6 +717,15 @@ export default function CommonEnglishGrammar({ trackers, loading = false }: {
 	          const prog = chapters.filter(c => getCh(tracker, c.id).status === "in_progress").length;
 	          const flagged = chapters.filter(c => getCh(tracker, c.id).revision).length;
 	          const testsCount = chapters.reduce((total, c) => total + (getCh(tracker, c.id).tests || []).length, 0);
+            const videoRewards = buildPerformanceRewardSummary(chapters.flatMap(ch =>
+              (getCh(tracker, ch.id).tests || []).map(test => ({
+                id: `${ch.id}-${test.id}`,
+                label: ch.name,
+                subLabel: `${test.type} • ${test.date}`,
+                obtained: test.obtained,
+                max: test.max,
+              }))
+            ));
           const sections = tracker.subject.chapters
             ? [{ name: null as string | null, chs: search ? chapters.filter(c => c.name.toLowerCase().includes(search.toLowerCase())) : chapters }]
             : (() => {
@@ -709,9 +739,9 @@ export default function CommonEnglishGrammar({ trackers, loading = false }: {
 
           return (
             <div key={tracker.id}>
-              <div style={{ background: `linear-gradient(135deg,${tracker.subject.color},${tracker.subject.color}cc)`, borderRadius: 18, padding: "18px 22px", marginBottom: 12, color: "white", display: "flex", alignItems: "center", gap: 16, boxShadow: `0 6px 24px ${tracker.subject.color}33` }}>
-                <span style={{ fontSize: 38 }}>{tracker.subject.icon}</span>
-	                <div style={{ flex: 1 }}>
+              <div className="grammar-tracker-head" style={{ background: `linear-gradient(135deg,${tracker.subject.color},${tracker.subject.color}cc)`, borderRadius: 18, padding: "18px 22px", marginBottom: 12, color: "white", display: "flex", alignItems: "center", gap: 16, boxShadow: `0 6px 24px ${tracker.subject.color}33` }}>
+                <span className="grammar-tracker-icon" style={{ fontSize: 38 }}>{tracker.subject.icon}</span>
+	                <div className="grammar-tracker-main" style={{ flex: 1 }}>
 	                  <div style={{ fontWeight: 900, fontSize: 21 }}>{tracker.label} - English Grammar</div>
 	                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8 }}>
 	                    {tracker.days && <button onClick={() => openDetail(tracker, "days", `${tracker.label} Days`)} style={{ border: "1px solid rgba(255,255,255,.2)", background: "rgba(255,255,255,.12)", color: "white", borderRadius: 999, padding: "4px 9px", fontSize: 12, fontWeight: 800, cursor: "pointer" }}>{tracker.days.daysLeft}/{tracker.days.totalDays} days</button>}
@@ -722,7 +752,19 @@ export default function CommonEnglishGrammar({ trackers, loading = false }: {
 	                  </div>
 	                  {tracker.saving && <div style={{ fontSize: 12, opacity: .72, marginTop: 5 }}>Saving...</div>}
 	                </div>
+                  <RewardBadge
+                    className="grammar-reward-badge"
+                    tone="video"
+                    icon="📺"
+                    label="Video Learning"
+                    value={videoRewards.total - (tracker.rewardLedger?.spent || 0)}
+                    unit="min"
+                    caption="available now"
+                    compact
+                    onClick={() => openDetail(tracker, "rewards", `${tracker.label} Video Learning Minutes`)}
+                  />
 	                <button type="button" onClick={() => openDetail(tracker, "done", `${tracker.label} Completed / Revised`)}
+                    className="grammar-progress-ring"
 	                  title={`Open completed ${tracker.label} grammar chapters`}
 	                  style={{ position: "relative", cursor: "pointer", background: "transparent", border: "none", padding: 0, color: "white" }}>
 	                  <CircleProgress value={pctCalc(done, chapters.length)} size={78} stroke={8} color="white" bg="rgba(255,255,255,.2)" />
@@ -756,7 +798,7 @@ export default function CommonEnglishGrammar({ trackers, loading = false }: {
                             {sm.icon} {sm.label}
                           </button>
                           <div style={{ flex: 1, fontWeight: 600, fontSize: 14, color: "#1e293b", minWidth: 80 }}>{chIdx + 1}. {ch.name}</div>
-                          <div style={{ display: "flex", gap: 4 }}>
+                          <div className="grammar-chapter-actions" style={{ display: "flex", gap: 4 }}>
                             <button className="action-btn" onClick={() => toggleFlag(tracker, ch.id)} title="Flag for revision" style={{ background: d.revision ? "#fef2f2" : "white", border: `1.5px solid ${d.revision ? "#fca5a5" : "#e5e7eb"}`, borderRadius: 8, padding: "5px 8px", cursor: "pointer", fontSize: 13, transition: "all .15s" }}>{d.revision ? "🚩" : "🏳️"}</button>
                             <button className="action-btn" onClick={() => setNoteModal({ trackerId: tracker.id, chapterId: ch.id, name: ch.name, note: d.notes || "" })} title="Notes" style={{ background: d.notes ? "#eff6ff" : "white", border: `1.5px solid ${d.notes ? "#93c5fd" : "#e5e7eb"}`, borderRadius: 8, padding: "5px 8px", cursor: "pointer", fontSize: 13, transition: "all .15s" }}>{d.notes ? "📝" : "📄"}</button>
                             <button className="action-btn" onClick={() => setPaperModal({ trackerId: tracker.id, rowId: tracker.rowId, chapterId: ch.id, chapterName: ch.name, subjectId: tracker.subject.id })} title="Papers & Resources" style={{ background: hasPapers(d.papers) ? "#f0fdf4" : "white", border: `1.5px solid ${hasPapers(d.papers) ? "#86efac" : "#e5e7eb"}`, borderRadius: 8, padding: "5px 8px", cursor: "pointer", fontSize: 13, transition: "all .15s" }}>📎</button>
@@ -832,6 +874,35 @@ export default function CommonEnglishGrammar({ trackers, loading = false }: {
 	              </div>
 	            );
 	          }
+            if (detailModal.kind === "rewards") {
+              const videoRewards = buildPerformanceRewardSummary(chapters.flatMap(ch =>
+                (getCh(tracker, ch.id).tests || []).map(test => ({
+                  id: `${ch.id}-${test.id}`,
+                  label: ch.name,
+                  subLabel: `${test.type} • ${test.date}`,
+                  obtained: test.obtained,
+                  max: test.max,
+                }))
+              ));
+              return (
+                <RewardBreakdown
+                  summary={videoRewards}
+                  unit="video minutes"
+                  title={`${tracker.label} video learning balance`}
+                  emptyText="No grammar test scores yet."
+                  note="Calculated from each English Grammar test score. The score percentage is rounded up before applying the reward rule."
+                >
+                  {tracker.rewardLedger && (
+                    <RewardRedeemer
+                      ledger={tracker.rewardLedger}
+                      earned={videoRewards.total}
+                      unit="minutes"
+                      label="video learning"
+                    />
+                  )}
+                </RewardBreakdown>
+              );
+            }
 	          const matched = chapters.filter(ch => {
 	            const d = getCh(tracker, ch.id);
 	            if (detailModal.kind === "done") return ["completed", "revised"].includes(d.status);
