@@ -817,7 +817,7 @@ export default function MonthlyTests({ config = SAVIO_SCHOOL_TESTS_CONFIG }: { c
               label="Coins Collected"
               value={monthlyRewardBalance}
               unit="coins"
-              caption="available now"
+              caption="real money reward"
               compact
               onClick={() => setRewardModalOpen(true)}
             />
@@ -838,7 +838,7 @@ export default function MonthlyTests({ config = SAVIO_SCHOOL_TESTS_CONFIG }: { c
           unit="coins"
           title="Real money coin balance"
           emptyText={`No complete ${config.targetDisplayName} school test totals yet.`}
-          note={`Calculated from ${config.targetDisplayName}'s aggregate percentage for each school test. Incomplete tests do not earn coins. There are no negative points in school tests.`}
+          note={`Calculated from ${config.targetDisplayName}'s aggregate percentage for each school test. School test coins are real money rewards and can be used for anything. Incomplete tests do not earn coins.`}
         >
           <RewardRedeemer
             ledger={schoolTestsLedger}

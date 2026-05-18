@@ -6,7 +6,7 @@ import {
 } from "recharts";
 import { ENGLISH_GRAMMAR_ID } from "./CommonEnglishGrammar";
 import { RewardBadge, RewardBreakdown, REMARK_REWARD_OPTIONS, buildPerformanceRewardSummary, buildPointRewardSummary, pointsForRemark } from "./Rewards";
-import { RewardRedeemer, useRewardRedemptions } from "./RewardRedemptions";
+import { RewardRedeemer, useFamilyPrivilegeCards, useRewardRedemptions } from "./RewardRedemptions";
 
 /* ───────── Supabase Config ───────── */
 const SUPA_URL = "https://mlfgdutctvbvqwebqajp.supabase.co";
@@ -976,6 +976,7 @@ export default function App() {
   ), [allRemarks]);
   const schoolRemarkLedger = useRewardRedemptions("savio-school-remarks");
   const schoolRemarkBalance = schoolRemarkRewards.total - schoolRemarkLedger.spent;
+  const familyPrivilegeCards = useFamilyPrivilegeCards();
 
   const openStatusDetail = (filter: string, label: string, color: string, subjectId?: string) => {
     setStatusModal({ filter, label, color, modeKey: mode, subjectId });
@@ -1074,7 +1075,7 @@ export default function App() {
                   label="Entertainment"
                   value={entertainmentBalance}
                   unit="min"
-                  caption="available now"
+                  caption="home points for entertainment"
                   onClick={() => setRewardModalOpen(true)}
                 />
               )}
@@ -1085,7 +1086,7 @@ export default function App() {
                   label="School Remarks"
                   value={schoolRemarkBalance}
                   unit="pts"
-                  caption="available now"
+                  caption="Family Privilege Cards"
                   onClick={() => setSchoolRewardModalOpen(true)}
                 />
               )}
@@ -1576,7 +1577,7 @@ export default function App() {
             unit="minutes"
             title="Savvy's entertainment balance"
             emptyText="No Home test scores yet."
-            note="Calculated from each Home test score only. The score percentage is rounded up before applying the reward rule. School and Common scores are not included here."
+            note="Calculated from each Home test score only. Home points are for entertainment rewards. School and Common scores are not included here."
           >
             <RewardRedeemer
               ledger={entertainmentLedger}
@@ -1593,13 +1594,18 @@ export default function App() {
             unit="points"
             title="Savvy's school remark balance"
             emptyText="No School remarks yet."
-            note="Calculated from saved School remarks only. Home tests, School test marks, and Common grammar are not included here."
+            note="Calculated from saved School remarks only. These points redeem Family Privilege Cards where the complete family gets the benefit. Examples: Movie 100, Dinner 100, one-night outing 500."
           >
             <RewardRedeemer
               ledger={schoolRemarkLedger}
               earned={schoolRemarkRewards.total}
               unit="points"
-              label="school remark points"
+              label="Family Privilege Cards"
+              presetOptions={familyPrivilegeCards.cards}
+              onAddPresetOption={familyPrivilegeCards.addCard}
+              onUpdatePresetOption={familyPrivilegeCards.updateCard}
+              onDeletePresetOption={familyPrivilegeCards.deleteCard}
+              presetLabel="Family Privilege Card"
             />
           </RewardBreakdown>
         </Modal>

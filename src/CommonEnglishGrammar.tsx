@@ -426,6 +426,8 @@ export interface GrammarTracker {
   days?: { daysLeft: number; totalDays: number; pct: number; examLabel: string };
   saving?: boolean;
   rewardLedger?: RewardLedgerControls;
+  entertainmentLedger?: RewardLedgerControls;
+  rewardMode?: "video" | "split";
   onChange: (next: Record<string, ChapterData>) => void | Promise<void>;
 }
 
@@ -440,6 +442,9 @@ export function getChapters(sub: SubjectDef): Chapter[] {
 
 function pctCalc(a: number, b: number) { return b > 0 ? Math.round((a / b) * 100) : 0; }
 function scoreColor(p: number) { return p >= 80 ? "#10b981" : p >= 60 ? "#f59e0b" : "#ef4444"; }
+function formatRewardAmount(value: number) {
+  return Number.isInteger(value) ? String(value) : value.toFixed(1).replace(/\.0$/, "");
+}
 function ensureArr(v: unknown): string[] {
   if (!v) return [""];
   if (Array.isArray(v)) return v.length ? v : [""];
@@ -726,6 +731,11 @@ export default function CommonEnglishGrammar({ trackers, loading = false }: {
                 max: test.max,
               }))
             ));
+            const isSplitReward = tracker.rewardMode === "split";
+            const splitEarned = videoRewards.total / 2;
+            const videoBalance = isSplitReward ? splitEarned - (tracker.rewardLedger?.spent || 0) : videoRewards.total - (tracker.rewardLedger?.spent || 0);
+            const entertainmentBalance = splitEarned - (tracker.entertainmentLedger?.spent || 0);
+            const rewardBalance = isSplitReward ? videoBalance + entertainmentBalance : videoBalance;
           const sections = tracker.subject.chapters
             ? [{ name: null as string | null, chs: search ? chapters.filter(c => c.name.toLowerCase().includes(search.toLowerCase())) : chapters }]
             : (() => {
@@ -756,13 +766,24 @@ export default function CommonEnglishGrammar({ trackers, loading = false }: {
                     className="grammar-reward-badge"
                     tone="video"
                     icon="📺"
-                    label="Video Learning"
-                    value={videoRewards.total - (tracker.rewardLedger?.spent || 0)}
+                    label={isSplitReward ? "Grammar Reward" : "Learning Videos"}
+                    value={rewardBalance}
                     unit="min"
-                    caption="available now"
+                    caption={isSplitReward ? "50% video • 50% entertainment" : "learning videos only"}
                     compact
-                    onClick={() => openDetail(tracker, "rewards", `${tracker.label} Video Learning Minutes`)}
+                    onClick={() => openDetail(tracker, "rewards", isSplitReward ? `${tracker.label} Grammar Reward Split` : `${tracker.label} Learning Video Minutes`)}
                   />
+                  {isSplitReward && (
+                    <button
+                      type="button"
+                      className="grammar-reward-badge"
+                      onClick={() => openDetail(tracker, "rewards", `${tracker.label} Grammar Reward Split`)}
+                      style={{ border: "1px solid rgba(255,255,255,.28)", background: "rgba(255,255,255,.14)", color: "white", borderRadius: 12, padding: "8px 10px", cursor: "pointer", textAlign: "left", minWidth: 170, fontSize: 11, fontWeight: 850, lineHeight: 1.35 }}
+                    >
+                      <span style={{ display: "block" }}>Videos: {formatRewardAmount(videoBalance)} min</span>
+                      <span style={{ display: "block" }}>Entertainment: {formatRewardAmount(entertainmentBalance)} min</span>
+                    </button>
+                  )}
 	                <button type="button" onClick={() => openDetail(tracker, "done", `${tracker.label} Completed / Revised`)}
                     className="grammar-progress-ring"
 	                  title={`Open completed ${tracker.label} grammar chapters`}
@@ -884,20 +905,43 @@ export default function CommonEnglishGrammar({ trackers, loading = false }: {
                   max: test.max,
                 }))
               ));
+              const isSplitReward = tracker.rewardMode === "split";
+              const splitEarned = videoRewards.total / 2;
               return (
                 <RewardBreakdown
                   summary={videoRewards}
-                  unit="video minutes"
-                  title={`${tracker.label} video learning balance`}
+                  unit="minutes"
+                  title={isSplitReward ? `${tracker.label} grammar reward split` : `${tracker.label} learning video balance`}
                   emptyText="No grammar test scores yet."
-                  note="Calculated from each English Grammar test score. The score percentage is rounded up before applying the reward rule."
+                  note={isSplitReward
+                    ? "Calculated from English Grammar test scores. Exactly 50% is available for learning videos and 50% for entertainment; each balance is deducted separately and can go negative."
+                    : "Calculated from English Grammar test scores. This reward is for learning videos only, such as PW, Vedantu, Next Topper, or similar."}
                 >
-                  {tracker.rewardLedger && (
+                  {isSplitReward ? (
+                    <>
+                      {tracker.rewardLedger && (
+                        <RewardRedeemer
+                          ledger={tracker.rewardLedger}
+                          earned={splitEarned}
+                          unit="minutes"
+                          label="learning videos"
+                        />
+                      )}
+                      {tracker.entertainmentLedger && (
+                        <RewardRedeemer
+                          ledger={tracker.entertainmentLedger}
+                          earned={splitEarned}
+                          unit="minutes"
+                          label="entertainment"
+                        />
+                      )}
+                    </>
+                  ) : tracker.rewardLedger && (
                     <RewardRedeemer
                       ledger={tracker.rewardLedger}
                       earned={videoRewards.total}
                       unit="minutes"
-                      label="video learning"
+                      label="learning videos"
                     />
                   )}
                 </RewardBreakdown>

@@ -125,6 +125,10 @@ function cardStyle(active: boolean, color: string): CSSProperties {
   };
 }
 
+function formatRewardAmount(value: number) {
+  return Number.isInteger(value) ? String(value) : value.toFixed(1).replace(/\.0$/, "");
+}
+
 function Modal({ open, onClose, title, children }: {
   open: boolean; onClose: () => void; title: string; children: ReactNode;
 }) {
@@ -203,6 +207,7 @@ export default function CommonPage() {
   }), [savioData, lettyData]);
   const savioVideoLedger = useRewardRedemptions("savio-video");
   const lettyVideoLedger = useRewardRedemptions("letty-video");
+  const lettyEntertainmentLedger = useRewardRedemptions("letty-entertainment");
 
   const tracker = selected === "savio"
     ? {
@@ -225,6 +230,8 @@ export default function CommonPage() {
 	        saving: saving.letty,
 	        days: getDaysSummary("letty"),
           rewardLedger: lettyVideoLedger,
+          entertainmentLedger: lettyEntertainmentLedger,
+          rewardMode: "split" as const,
 	        onChange: persistLetty,
 	      };
 
@@ -291,7 +298,11 @@ export default function CommonPage() {
             const row = ROWS[key];
             const stat = cards[key];
             const reward = videoRewards[key];
+            const lettySplitEarned = reward.total / 2;
+            const lettyVideoBalance = lettySplitEarned - lettyVideoLedger.spent;
+            const lettyEntertainmentBalance = lettySplitEarned - lettyEntertainmentLedger.spent;
             const ledger = key === "savio" ? savioVideoLedger : lettyVideoLedger;
+            const rewardBalance = key === "savio" ? reward.total - ledger.spent : lettyVideoBalance + lettyEntertainmentBalance;
             const active = selected === key;
 	            return (
 	              <div key={key} role="button" tabIndex={0} onClick={() => setSelected(key)} onKeyDown={e => { if (e.key === "Enter" || e.key === " ") setSelected(key); }} style={cardStyle(active, row.subject.color)}>
@@ -334,13 +345,24 @@ export default function CommonPage() {
                           className="common-card-reward"
                           tone="video"
                           icon="📺"
-                          label="Video Learning"
-                          value={reward.total - ledger.spent}
+                          label={key === "savio" ? "Learning Videos" : "Grammar Reward"}
+                          value={rewardBalance}
                           unit="min"
-                          caption="available now"
+                          caption={key === "savio" ? "learning videos only" : "50% video • 50% entertainment"}
                           compact
-                          onClick={() => setDetailModal({ student: key, kind: "rewards", title: `${row.label} Video Learning Minutes` })}
+                          onClick={() => setDetailModal({ student: key, kind: "rewards", title: key === "savio" ? `${row.label} Learning Video Minutes` : `${row.label} Grammar Reward Split` })}
                         />
+                        {key === "letty" && (
+                          <button
+                            type="button"
+                            className="common-card-reward"
+                            onClick={(e) => openDetail(e, key, "rewards", `${row.label} Grammar Reward Split`)}
+                            style={{ border: "1px solid #ddd6fe", background: "#f5f3ff", color: "#4c1d95", borderRadius: 12, padding: "7px 9px", cursor: "pointer", textAlign: "left", width: "100%", fontSize: 11, fontWeight: 850, lineHeight: 1.35 }}
+                          >
+                            <span style={{ display: "block" }}>Videos: {formatRewardAmount(lettyVideoBalance)} min</span>
+                            <span style={{ display: "block" }}>Entertainment: {formatRewardAmount(lettyEntertainmentBalance)} min</span>
+                          </button>
+                        )}
 		                  </div>
 		                </div>
 	              </div>
@@ -372,22 +394,43 @@ export default function CommonPage() {
 		                  </div>
 		                </div>
 		              );
-		            }
+                }
                 if (detailModal.kind === "rewards") {
+                  const isLetty = detailModal.student === "letty";
+                  const lettySplitEarned = videoRewards.letty.total / 2;
                   return (
                     <RewardBreakdown
                       summary={videoRewards[detailModal.student]}
-                      unit="video minutes"
-                      title={`${row.label} video learning balance`}
+                      unit="minutes"
+                      title={isLetty ? `${row.label} grammar reward split` : `${row.label} learning video balance`}
                       emptyText="No grammar test scores yet."
-                      note="Calculated from each English Grammar test score. The score percentage is rounded up before applying the same reward rule used for Savvy and Letty test performance."
+                      note={isLetty
+                        ? "Calculated from Letty's English Grammar test scores. Exactly 50% is available for learning videos and 50% for entertainment; each balance is deducted separately and can go negative."
+                        : "Calculated from Savvy's English Grammar test scores. This reward is for learning videos only, such as PW, Vedantu, Next Topper, or similar."}
                     >
-                      <RewardRedeemer
-                        ledger={detailModal.student === "savio" ? savioVideoLedger : lettyVideoLedger}
-                        earned={videoRewards[detailModal.student].total}
-                        unit="minutes"
-                        label="video learning"
-                      />
+                      {isLetty ? (
+                        <>
+                          <RewardRedeemer
+                            ledger={lettyVideoLedger}
+                            earned={lettySplitEarned}
+                            unit="minutes"
+                            label="learning videos"
+                          />
+                          <RewardRedeemer
+                            ledger={lettyEntertainmentLedger}
+                            earned={lettySplitEarned}
+                            unit="minutes"
+                            label="entertainment"
+                          />
+                        </>
+                      ) : (
+                        <RewardRedeemer
+                          ledger={savioVideoLedger}
+                          earned={videoRewards.savio.total}
+                          unit="minutes"
+                          label="learning videos"
+                        />
+                      )}
                     </RewardBreakdown>
                   );
                 }

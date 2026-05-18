@@ -6,7 +6,7 @@ import {
 } from "recharts";
 import { ENGLISH_GRAMMAR_ID } from "./CommonEnglishGrammar";
 import { RewardBadge, RewardBreakdown, REMARK_REWARD_OPTIONS, buildPointRewardSummary, pointsForRemark } from "./Rewards";
-import { RewardRedeemer, useRewardRedemptions } from "./RewardRedemptions";
+import { RewardRedeemer, useFamilyPrivilegeCards, useRewardRedemptions } from "./RewardRedemptions";
 
 /* ───────── Supabase Config ───────── */
 const SUPA_URL = "https://mlfgdutctvbvqwebqajp.supabase.co";
@@ -834,6 +834,7 @@ export default function Letty() {
   ), [allRemarks]);
   const schoolRemarkLedger = useRewardRedemptions("leticia-school-remarks");
   const schoolRemarkBalance = schoolRemarkRewards.total - schoolRemarkLedger.spent;
+  const familyPrivilegeCards = useFamilyPrivilegeCards();
 
   const openStatusDetail = (filter: string, label: string, color: string, subjectId?: string) => {
     setStatusModal({ filter, label, color, subjectId });
@@ -933,7 +934,7 @@ export default function Letty() {
                 label="School Remarks"
                 value={schoolRemarkBalance}
                 unit="pts"
-                caption="available now"
+                caption="Family Privilege Cards"
                 onClick={() => setRewardModalOpen(true)}
               />
           </div>
@@ -1370,13 +1371,18 @@ export default function Letty() {
             unit="points"
             title="Letty's school remark balance"
             emptyText="No Letty remarks yet."
-            note="Calculated from saved Letty school remarks only. Letty school test marks and Common grammar are not included here."
+            note="Calculated from saved Letty school remarks only. These points redeem Family Privilege Cards where the complete family gets the benefit. Examples: Movie 100, Dinner 100, one-night outing 500."
           >
             <RewardRedeemer
               ledger={schoolRemarkLedger}
               earned={schoolRemarkRewards.total}
               unit="points"
-              label="school remark points"
+              label="Family Privilege Cards"
+              presetOptions={familyPrivilegeCards.cards}
+              onAddPresetOption={familyPrivilegeCards.addCard}
+              onUpdatePresetOption={familyPrivilegeCards.updateCard}
+              onDeletePresetOption={familyPrivilegeCards.deleteCard}
+              presetLabel="Family Privilege Card"
             />
           </RewardBreakdown>
         </Modal>
