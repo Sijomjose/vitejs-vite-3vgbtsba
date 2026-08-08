@@ -7,6 +7,7 @@ import {
 import { ENGLISH_GRAMMAR_ID } from "./CommonEnglishGrammar";
 import { RewardBadge, RewardBreakdown, REMARK_REWARD_OPTIONS, buildPerformanceRewardSummary, buildPointRewardSummary, pointsForRemark } from "./Rewards";
 import { RewardRedeemer, useFamilyPrivilegeCards, useRewardRedemptions } from "./RewardRedemptions";
+import MonthlyTests from "./MonthlyTests";
 
 /* ───────── Supabase Config ───────── */
 const SUPA_URL = "https://mlfgdutctvbvqwebqajp.supabase.co";
@@ -1177,10 +1178,10 @@ export default function App() {
 
         {/* ════ TABS + SEARCH ════ */}
         <div className="tab-bar" style={{ display: "flex", gap: 6, marginBottom: 14, alignItems: "center", overflowX: "auto", padding: "3px 3px 8px" }}>
-          {["dashboard", ...activeSubjects.map(s => s.id), "analytics", "common"].map(t => {
+          {["dashboard", ...activeSubjects.map(s => s.id), "analytics", "common", "schooltests"].map(t => {
             const sub = activeSubjects.find(s => s.id === t);
             const active = tab === t;
-            const tabColor = sub ? sub.color : t === "analytics" ? "#0f172a" : t === "common" ? "#7c3aed" : (isSchool ? "#92400e" : "#1e40af");
+            const tabColor = sub ? sub.color : t === "analytics" ? "#0f172a" : t === "common" ? "#7c3aed" : t === "schooltests" ? "#059669" : (isSchool ? "#92400e" : "#1e40af");
             return (
               <button key={t} onClick={() => { setTab(t); setSearch(""); }}
                 style={{
@@ -1193,7 +1194,7 @@ export default function App() {
                   transform: active ? "translateY(-2px)" : "none",
                   transition: "all .22s cubic-bezier(.4,0,.2,1)",
                 }}>
-                {t === "dashboard" ? "🏠 Dashboard" : t === "analytics" ? "📊 Analytics" : t === "common" ? "🗂️ Common" : `${sub!.icon} ${sub!.name}`}
+                {t === "dashboard" ? "🏠 Dashboard" : t === "analytics" ? "📊 Analytics" : t === "common" ? "🗂️ Common" : t === "schooltests" ? "📝 School Tests" : `${sub!.icon} ${sub!.name}`}
               </button>
             );
           })}
@@ -1360,6 +1361,10 @@ export default function App() {
         )}
 
         {/* ════ COMMON TAB ════ */}
+        {tab === "schooltests" && (
+          <MonthlyTests />
+        )}
+
         {tab === "common" && (
           <div style={{ animation: "fadeUp .3s ease" }}>
             {/* Header */}
