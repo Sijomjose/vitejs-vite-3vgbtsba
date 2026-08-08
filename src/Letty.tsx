@@ -7,6 +7,7 @@ import {
 import { ENGLISH_GRAMMAR_ID } from "./CommonEnglishGrammar";
 import { RewardBadge, RewardBreakdown, REMARK_REWARD_OPTIONS, buildPointRewardSummary, pointsForRemark } from "./Rewards";
 import { RewardRedeemer, useFamilyPrivilegeCards, useRewardRedemptions } from "./RewardRedemptions";
+import MonthlyTests, { LETICIA_SCHOOL_TESTS_CONFIG } from "./MonthlyTests";
 
 /* ───────── Supabase Config ───────── */
 const SUPA_URL = "https://mlfgdutctvbvqwebqajp.supabase.co";
@@ -1009,10 +1010,10 @@ export default function Letty() {
 
         {/* ════ TABS + SEARCH ════ */}
         <div className="tab-bar-l" style={{ display: "flex", gap: 6, marginBottom: 14, alignItems: "center", overflowX: "auto", padding: "3px 3px 8px" }}>
-          {["dashboard", ...LETTY_TRACKER_SUBJECTS.map(s => s.id), "analytics", "common"].map(t => {
+          {["dashboard", ...LETTY_TRACKER_SUBJECTS.map(s => s.id), "analytics", "common", "schooltests"].map(t => {
             const sub = LETTY_TRACKER_SUBJECTS.find(s => s.id === t);
             const active = tab === t;
-            const tabColor = sub ? sub.color : t === "analytics" ? "#0f172a" : t === "common" ? "#7c3aed" : "#065f46";
+            const tabColor = sub ? sub.color : t === "analytics" ? "#0f172a" : t === "common" ? "#7c3aed" : t === "schooltests" ? "#059669" : "#065f46";
             return (
               <button key={t} onClick={() => { setTab(t); setSearch(""); }}
                 style={{
@@ -1025,7 +1026,7 @@ export default function Letty() {
                   transform: active ? "translateY(-2px)" : "none",
                   transition: "all .22s cubic-bezier(.4,0,.2,1)",
                 }}>
-                {t === "dashboard" ? "🏠 Dashboard" : t === "analytics" ? "📊 Analytics" : t === "common" ? "🗂️ Common" : `${sub!.icon} ${sub!.name}`}
+                {t === "dashboard" ? "🏠 Dashboard" : t === "analytics" ? "📊 Analytics" : t === "common" ? "🗂️ Common" : t === "schooltests" ? "📝 School Tests" : `${sub!.icon} ${sub!.name}`}
               </button>
             );
           })}
@@ -1175,6 +1176,10 @@ export default function Letty() {
         )}
 
         {/* ════ COMMON TAB ════ */}
+        {tab === "schooltests" && (
+          <MonthlyTests config={LETICIA_SCHOOL_TESTS_CONFIG} />
+        )}
+
         {tab === "common" && (
           <div style={{ animation: "fadeUp .3s ease" }}>
             {/* Header */}
