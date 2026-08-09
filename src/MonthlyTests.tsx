@@ -15,9 +15,24 @@ const SUBJECTS = [
   { key: "maths", label: "Maths" },
   { key: "science", label: "Science" },
   { key: "socialScience", label: "Social Science" },
+  { key: "ai", label: "AI" },
+  { key: "pe", label: "PE" },
+  { key: "sanskrit", label: "Sanskrit" },
+  { key: "art", label: "Art" },
+  { key: "ve", label: "VE" },
 ] as const;
 
 type SubjectKey = (typeof SUBJECTS)[number]["key"];
+type SubjectDef = (typeof SUBJECTS)[number];
+
+/* Subjects vary per test (Savio's PT-1 had 5, PT-2 added AI, Letty's class has more),
+   so every total / rank / column list is driven by the test's own subject set. */
+const DEFAULT_SUBJECT_KEYS: SubjectKey[] = ["english", "hindi", "maths", "science", "socialScience"];
+
+function testSubjects(test: MonthlyTest): readonly SubjectDef[] {
+  const keys = test.subjects?.length ? test.subjects : DEFAULT_SUBJECT_KEYS;
+  return keys.map(key => SUBJECTS.find(subject => subject.key === key)).filter(Boolean) as SubjectDef[];
+}
 type MarkValue = number | "AB" | null;
 type Marks = Partial<Record<SubjectKey, MarkValue>>;
 
@@ -32,6 +47,8 @@ interface MonthlyTest {
   id: string;
   name: string;
   date: string;
+  /** Omitted means the original five-subject set. */
+  subjects?: SubjectKey[];
   maxMarks: Record<SubjectKey, number>;
   students: MonthlyStudent[];
 }
@@ -88,6 +105,11 @@ const defaultMaxMarks = (): Record<SubjectKey, number> => ({
   maths: 40,
   science: 40,
   socialScience: 40,
+  ai: 40,
+  pe: 40,
+  sanskrit: 40,
+  art: 40,
+  ve: 40,
 });
 
 const SAVIO_DEFAULT_DATA: MonthlyTestsData = {
@@ -133,26 +155,49 @@ const SAVIO_DEFAULT_DATA: MonthlyTestsData = {
         { id: "10131", rollNo: "10131", name: "VARSHA S G", marks: { english: 35, hindi: 37, maths: 20, science: 31, socialScience: 38 } },
       ],
     },
+    {
+      id: "monthly-test-2",
+      name: "Monthly Test 2",
+      date: "2026-07-01",
+      subjects: ["english", "hindi", "maths", "science", "socialScience", "ai"],
+      maxMarks: defaultMaxMarks(),
+      students: [
+        { id: "t2-10101", rollNo: "10101", name: "AARUSHI YADAV", marks: { english: 33, hindi: 36, maths: 21, science: 31, socialScience: 30, ai: 31 } },
+        { id: "t2-10102", rollNo: "10102", name: "AARUSHKUMAR VERMA", marks: { english: 33, hindi: 34, maths: 31, science: 38, socialScience: 39, ai: 37 } },
+        { id: "t2-10103", rollNo: "10103", name: "AKASH ABHAY YADAV", marks: { english: 27, hindi: 35, maths: 9, science: 21, socialScience: 36, ai: 31 } },
+        { id: "t2-10104", rollNo: "10104", name: "AKASH KUMAR YADAV", marks: { english: 25, hindi: 31, maths: 13, science: 17, socialScience: 33, ai: 27 } },
+        { id: "t2-10105", rollNo: "10105", name: "ANJUSHA BIJU PANDARAN", marks: { english: 31, hindi: 31, maths: 17, science: 30, socialScience: 36, ai: 31 } },
+        { id: "t2-10106", rollNo: "10106", name: "ANUJ YADAV", marks: { english: 11, hindi: 15, maths: 11, science: 13, socialScience: 14, ai: 19 } },
+        { id: "t2-10107", rollNo: "10107", name: "ARNAV VERMA", marks: { english: 33, hindi: 36, maths: 38, science: 36, socialScience: 37, ai: 24 } },
+        { id: "t2-10108", rollNo: "10108", name: "BISWORANJAN BEHERA", marks: { english: 29, hindi: 39, maths: 21, science: 27, socialScience: 40, ai: 30 } },
+        { id: "t2-10109", rollNo: "10109", name: "DIVYA KUMARI", marks: { english: 21, hindi: 16, maths: 9, science: 21, socialScience: "AB", ai: 19 } },
+        { id: "t2-10110", rollNo: "10110", name: "Divyanshu Kumar", marks: { english: 34, hindi: 39, maths: 36, science: 39, socialScience: 39, ai: 25 } },
+        { id: "t2-10111", rollNo: "10111", name: "DRUSHTI RAHUL KHANVILKAR", marks: { english: 22, hindi: 34, maths: 15, science: 14, socialScience: 27, ai: 23 } },
+        { id: "t2-10112", rollNo: "10112", name: "EKTA", marks: { english: 36, hindi: null, maths: 29, science: 37, socialScience: "AB", ai: null } },
+        { id: "t2-10113", rollNo: "10113", name: "FAUSTINA JOSEPH ATTUKADAVIL", marks: { english: 34, hindi: 33, maths: 15, science: 19, socialScience: 38, ai: 31 } },
+        { id: "t2-10114", rollNo: "10114", name: "GAURI GUPTA", marks: { english: 31, hindi: 38, maths: 13, science: 21, socialScience: 36, ai: 28 } },
+        { id: "t2-10115", rollNo: "10115", name: "HIMANSHU JAYVEER VALMIKI", marks: { english: 14, hindi: 21, maths: 8, science: 14, socialScience: 19, ai: 16 } },
+        { id: "t2-10116", rollNo: "10116", name: "ISHAAN PRASHANT KALUSHTE", marks: { english: 24, hindi: 33, maths: 17, science: 24, socialScience: 26, ai: 22 } },
+        { id: "t2-10117", rollNo: "10117", name: "KEYUR GANESH KOLHE", marks: { english: 38, hindi: 31, maths: 40, science: 38, socialScience: 40, ai: 34 } },
+        { id: "t2-10118", rollNo: "10118", name: "R PRANITHA", marks: { english: 28, hindi: 36, maths: 14, science: 26, socialScience: 38, ai: 32 } },
+        { id: "t2-10119", rollNo: "10119", name: "RITESH KUMAR", marks: { english: 17, hindi: 20, maths: 9, science: 15, socialScience: 15, ai: 15 } },
+        { id: "t2-10120", rollNo: "10120", name: "SADIKA THAMPI", marks: { english: 37, hindi: 34, maths: 23, science: 39, socialScience: 40, ai: 25 } },
+        { id: "t2-10121", rollNo: "10121", name: "SAPNA RAKESH RAUT", marks: { english: 30, hindi: 34, maths: 5, science: 12, socialScience: 24, ai: 19 } },
+        { id: "t2-10122", rollNo: "10122", name: "SAVIO SIJO", marks: { english: 33, hindi: 36, maths: 30, science: 40, socialScience: 39, ai: 27 } },
+        { id: "t2-10123", rollNo: "10123", name: "SHUBHRA SHARMA", marks: { english: 39, hindi: 34, maths: 36, science: 34, socialScience: 37, ai: null } },
+        { id: "t2-10124", rollNo: "10124", name: "SHRUTI RANDHIR CHOUDHARY", marks: { english: 37, hindi: 39, maths: 33, science: 37, socialScience: 40, ai: 32 } },
+        { id: "t2-10125", rollNo: "10125", name: "SOURABH RAMDAS AHER", marks: { english: 30, hindi: 33, maths: 27, science: 35, socialScience: 25, ai: 20 } },
+        { id: "t2-10126", rollNo: "10126", name: "ATHARV AVADHOOT SUPAL", marks: { english: 23, hindi: 28, maths: 17, science: 26, socialScience: 30, ai: 26 } },
+        { id: "t2-10127", rollNo: "10127", name: "SWARAJ VINOD KAGILKAR", marks: { english: 31, hindi: 39, maths: 26, science: 37, socialScience: 40, ai: 28 } },
+        { id: "t2-10128", rollNo: "10128", name: "VARSHA S G", marks: { english: 28, hindi: 38, maths: 21, science: 27, socialScience: 38, ai: 16 } },
+        { id: "t2-10129", rollNo: "10129", name: "NANDINI CHAUHAN", marks: { english: 17, hindi: 28, maths: 5, science: 8, socialScience: 16, ai: 16 } },
+        { id: "t2-10130", rollNo: "10130", name: "KARAN YADAV", marks: { english: 19, hindi: 24, maths: 7, science: 15, socialScience: 13, ai: 15 } },
+        { id: "t2-10131", rollNo: "10131", name: "ROSHAN KUMAR", marks: { english: 15, hindi: 16, maths: 4, science: 9, socialScience: 22, ai: 10 } },
+        { id: "t2-10132", rollNo: "10132", name: "FAIZ ALI", marks: { english: 13, hindi: 6, maths: 4, science: 8, socialScience: 13, ai: 13 } },
+      ],
+    },
   ],
 };
-
-function blankDefaultData(studentName: string): MonthlyTestsData {
-  return {
-    version: 1,
-    updatedAt: new Date().toISOString(),
-    tests: [
-      {
-        id: "monthly-test-1",
-        name: "Monthly Test 1",
-        date: new Date().toISOString().slice(0, 10),
-        maxMarks: defaultMaxMarks(),
-        students: [
-          { id: "target-student", rollNo: "", name: studentName, marks: {} },
-        ],
-      },
-    ],
-  };
-}
 
 const SAVIO_SCHOOL_TESTS_CONFIG: MonthlyTestsConfig = {
   title: "Savio's School Tests",
@@ -165,6 +210,25 @@ const SAVIO_SCHOOL_TESTS_CONFIG: MonthlyTestsConfig = {
   defaultData: SAVIO_DEFAULT_DATA,
 };
 
+/* Class VIII-C, July PT-1. Nine subjects, in the order they appear on the sheet.
+   Marks are entered in the UI — max marks per subject are editable there too. */
+const LETICIA_DEFAULT_DATA: MonthlyTestsData = {
+  version: 1,
+  updatedAt: "2026-07-01T00:00:00.000Z",
+  tests: [
+    {
+      id: "leticia-pt-1",
+      name: "PT-1",
+      date: "2026-07-01",
+      subjects: ["english", "hindi", "maths", "science", "socialScience", "pe", "sanskrit", "art", "ve"],
+      maxMarks: defaultMaxMarks(),
+      students: [
+        { id: "target-student-leticia-pt-1", rollNo: "17", name: "LETICIA NA SIJO", marks: { english: 35, hindi: 36, maths: 33, science: 40, socialScience: 30, pe: "AB", sanskrit: 35, art: 34, ve: 37 } },
+      ],
+    },
+  ],
+};
+
 export const LETICIA_SCHOOL_TESTS_CONFIG: MonthlyTestsConfig = {
   title: "Leticia's School Tests",
   directUrl: "/lt",
@@ -173,8 +237,8 @@ export const LETICIA_SCHOOL_TESTS_CONFIG: MonthlyTestsConfig = {
   targetDisplayName: "Leticia",
   targetMatchers: ["LETICIA", "LETTY"],
   rewardWalletId: "leticia-school-tests",
-  defaultData: blankDefaultData("LETICIA"),
-  seedTargetStudentName: "LETICIA",
+  defaultData: LETICIA_DEFAULT_DATA,
+  seedTargetStudentName: "LETICIA NA SIJO",
 };
 
 async function fetchMonthlyData(rowId: string): Promise<MonthlyTestsData | null> {
@@ -241,6 +305,28 @@ function toLocalStorage(localKey: string, data: MonthlyTestsData) {
   }
 }
 
+/* PT-1 names came off a sheet that truncated them ("SOURABH RAMDAS A..."), and a few
+   were spelled differently than on the PT-2 sheet. Cumulative scoring matches students
+   by name, so repair them on load — this also fixes rows already saved in Supabase. */
+const NAME_FIXUPS: Record<string, string> = {
+  "AARUSHKUMAR VERN...": "AARUSHKUMAR VERMA",
+  "AKASH KUMAR YADA...": "AKASH KUMAR YADAV",
+  "ANJUSHA BIJU PAND...": "ANJUSHA BIJU PANDARAN",
+  "BISWORANJAN BEHE...": "BISWORANJAN BEHERA",
+  "DRISHTI RAHUL KHA...": "DRUSHTI RAHUL KHANVILKAR",
+  "FAUSTINA JOSEPH AT...": "FAUSTINA JOSEPH ATTUKADAVIL",
+  "HIMANSHU JAYVEER T...": "HIMANSHU JAYVEER VALMIKI",
+  "ISHAAN PRASHANT K...": "ISHAAN PRASHANT KALUSHTE",
+  "KEYUR GANESH KOLI": "KEYUR GANESH KOLHE",
+  "SAPNA RAKESH RAU...": "SAPNA RAKESH RAUT",
+  "SHRUTI RANDHIR CH...": "SHRUTI RANDHIR CHOUDHARY",
+  "SOURABH RAMDAS A...": "SOURABH RAMDAS AHER",
+  "ATHARV AVADHOOT S...": "ATHARV AVADHOOT SUPAL",
+  "SWARAJ VINOD KAGI...": "SWARAJ VINOD KAGILKAR",
+  "DIVYANSHU KUMAR R...": "DIVYANSHU KUMAR RAI",
+  "JAINIL KALPESH SHA...": "JAINIL KALPESH SHAH",
+};
+
 function normalizeData(data: MonthlyTestsData): MonthlyTestsData {
   return {
     ...data,
@@ -249,10 +335,26 @@ function normalizeData(data: MonthlyTestsData): MonthlyTestsData {
       maxMarks: { ...defaultMaxMarks(), ...test.maxMarks },
       students: test.students.map(student => ({
         ...student,
+        name: NAME_FIXUPS[student.name.trim()] ?? student.name,
         marks: { ...student.marks },
       })),
     })),
   };
+}
+
+/* Supabase already holds PT-1, and remote data wins over config.defaultData on load,
+   so a test added in source would never appear. Merge in any seeded test whose id is
+   missing. ponytail: id-match only — editing a seeded test's marks in source after it
+   has been merged once won't propagate; edit it in the UI instead. */
+function mergeSeedTests(data: MonthlyTestsData, seed: MonthlyTestsData): { data: MonthlyTestsData; added: boolean } {
+  const present = new Set(data.tests.map(test => test.id));
+  const missing = seed.tests.filter(test => !present.has(test.id));
+  if (!missing.length) return { data, added: false };
+  const seeded = new Set(seed.tests.map(test => test.id));
+  // Drop placeholder tests left over from an earlier seed (Letty's row held an empty
+  // "Monthly Test 1"), but only during a migration, never during normal editing.
+  const kept = data.tests.filter(test => test.students.length > 0 || seeded.has(test.id));
+  return { data: { ...data, tests: [...kept, ...missing] }, added: true };
 }
 
 function ensureSeedTargetStudent(data: MonthlyTestsData, config: MonthlyTestsConfig): MonthlyTestsData {
@@ -276,8 +378,9 @@ function rowStats(test: MonthlyTest, student: MonthlyStudent): RowStats {
   let maxAvailable = 0;
   let numericCount = 0;
   let missingCount = 0;
+  const subjects = testSubjects(test);
 
-  SUBJECTS.forEach(subject => {
+  subjects.forEach(subject => {
     const value = student.marks[subject.key];
     if (typeof value === "number" && Number.isFinite(value)) {
       total += value;
@@ -293,7 +396,7 @@ function rowStats(test: MonthlyTest, student: MonthlyStudent): RowStats {
     maxAvailable,
     numericCount,
     missingCount,
-    complete: numericCount === SUBJECTS.length,
+    complete: numericCount === subjects.length,
     percentage: maxAvailable > 0 ? (total / maxAvailable) * 100 : null,
   };
 }
@@ -343,15 +446,19 @@ function sortStudentsByRank(test: MonthlyTest, rankMap: Record<string, RankInfo>
   });
 }
 
+/* Keyed on name, not roll number: the school reassigns roll numbers between tests
+   (10103 was ABHINAV RAJPUT in PT-1 and AKASH ABHAY YADAV in PT-2), so keying on
+   roll would add up two different students. Names are repaired by NAME_FIXUPS first. */
 function studentKey(student: MonthlyStudent) {
-  return student.rollNo.trim() || student.name.trim().toLowerCase() || student.id;
+  const name = student.name.trim().toLowerCase().replace(/\s+/g, " ");
+  return name || student.rollNo.trim() || student.id;
 }
 
 function buildCumulativeRows(data: MonthlyTestsData): CumulativeRow[] {
   const rows = new Map<string, CumulativeRow>();
 
   data.tests.forEach(test => {
-    const testMax = SUBJECTS.reduce((sum, subject) => sum + (test.maxMarks[subject.key] || 0), 0);
+    const testMax = testSubjects(test).reduce((sum, subject) => sum + (test.maxMarks[subject.key] || 0), 0);
 
     test.students.forEach(student => {
       const key = studentKey(student);
@@ -366,8 +473,9 @@ function buildCumulativeRows(data: MonthlyTestsData): CumulativeRow[] {
         percentage: null,
       };
 
-      existing.rollNo = existing.rollNo || student.rollNo;
-      existing.name = existing.name || student.name;
+      // Tests iterate oldest-first, so this ends up showing the student's current roll.
+      existing.rollNo = student.rollNo || existing.rollNo;
+      existing.name = student.name || existing.name;
 
       if (stats.complete) {
         existing.completeTests += 1;
@@ -507,6 +615,7 @@ export default function MonthlyTests({ config = SAVIO_SCHOOL_TESTS_CONFIG }: { c
   const [pinError, setPinError] = useState("");
   const [data, setData] = useState<MonthlyTestsData | null>(null);
   const [selectedTestId, setSelectedTestId] = useState("");
+  const [showCumulative, setShowCumulative] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [draftMarks, setDraftMarks] = useState<Record<string, string>>({});
   const [detailModal, setDetailModal] = useState<{ kind: "students" | "comparable" | "target" | "rank"; title: string } | null>(null);
@@ -518,14 +627,16 @@ export default function MonthlyTests({ config = SAVIO_SCHOOL_TESTS_CONFIG }: { c
     let active = true;
     (async () => {
       const remote = await fetchMonthlyData(config.rowId);
-      const next = ensureSeedTargetStudent(
-        normalizeData(remote || fromLocalStorage(config.localKey) || cloneDefaultData(config.defaultData)),
-        config
-      );
+      // Merge before seeding the target student, so an empty placeholder test is still
+      // recognisable as empty and gets dropped rather than seeded back to life.
+      const base = normalizeData(remote || fromLocalStorage(config.localKey) || cloneDefaultData(config.defaultData));
+      const merged = mergeSeedTests(base, cloneDefaultData(config.defaultData));
+      const next = ensureSeedTargetStudent(merged.added ? normalizeData(merged.data) : base, config);
       if (!active) return;
       setData(next);
       setSelectedTestId(next.tests[0]?.id || "");
       toLocalStorage(config.localKey, next);
+      if (merged.added) saveMonthlyData(config.rowId, next);
     })();
     return () => {
       active = false;
@@ -559,6 +670,7 @@ export default function MonthlyTests({ config = SAVIO_SCHOOL_TESTS_CONFIG }: { c
 
   const selectedTest = useMemo(() => data?.tests.find(test => test.id === selectedTestId) || data?.tests[0], [data, selectedTestId]);
   const rankMap = useMemo(() => selectedTest ? buildRankMap(selectedTest) : {}, [selectedTest]);
+  const activeSubjects = useMemo(() => selectedTest ? testSubjects(selectedTest) : [], [selectedTest]);
   const sortedStudents = useMemo(() => selectedTest ? sortStudentsByRank(selectedTest, rankMap) : [], [selectedTest, rankMap]);
   const cumulativeRows = useMemo(() => data ? buildCumulativeRows(data) : [], [data]);
   const isTargetStudent = useCallback((name: string) => {
@@ -665,7 +777,8 @@ export default function MonthlyTests({ config = SAVIO_SCHOOL_TESTS_CONFIG }: { c
       id: `monthly-test-${Date.now()}`,
       name: `Monthly Test ${nextNumber}`,
       date: new Date().toISOString().slice(0, 10),
-      maxMarks: defaultMaxMarks(),
+      subjects: selectedTest ? [...testSubjects(selectedTest).map(subject => subject.key)] : [...DEFAULT_SUBJECT_KEYS],
+      maxMarks: selectedTest ? { ...selectedTest.maxMarks } : defaultMaxMarks(),
       students: sourceStudents.map(student => ({
         id: `${student.id}-${Date.now()}`,
         rollNo: student.rollNo,
@@ -849,6 +962,7 @@ export default function MonthlyTests({ config = SAVIO_SCHOOL_TESTS_CONFIG }: { c
         </RewardBreakdown>
       </Modal>
 
+	      {!showCumulative && (
 	      <section className="monthly-grid" style={{ marginBottom: 14 }}>
 	        <button type="button" onClick={() => setDetailModal({ kind: "students", title: "All Students" })} style={cardStyle({ padding: 14, textAlign: "left", cursor: "pointer", font: "inherit", color: "inherit" })}>
 	          <div style={{ color: "#64748b", fontSize: 12, fontWeight: 900 }}>Students</div>
@@ -871,6 +985,7 @@ export default function MonthlyTests({ config = SAVIO_SCHOOL_TESTS_CONFIG }: { c
 	          </div>
 	        </button>
 	      </section>
+	      )}
 
       <section style={cardStyle({ padding: 14, marginBottom: 14 })}>
         <div className="monthly-toolbar" style={{ marginBottom: 12 }}>
@@ -878,20 +993,31 @@ export default function MonthlyTests({ config = SAVIO_SCHOOL_TESTS_CONFIG }: { c
             {data.tests.map(test => (
               <button
                 key={test.id}
-                onClick={() => setSelectedTestId(test.id)}
-                style={buttonStyle(test.id === selectedTest.id
+                onClick={() => { setSelectedTestId(test.id); setShowCumulative(false); }}
+                style={buttonStyle(!showCumulative && test.id === selectedTest.id
                   ? { background: "#1e40af", borderColor: "#1e40af", color: "#fff" }
                   : {})}
               >
                 {test.name}
               </button>
             ))}
+            {data.tests.length > 1 && (
+              <button
+                onClick={() => setShowCumulative(true)}
+                style={buttonStyle(showCumulative
+                  ? { background: "#0f766e", borderColor: "#0f766e", color: "#fff" }
+                  : {})}
+              >
+                📊 Cumulative
+              </button>
+            )}
           </div>
           <button onClick={addMonthlyTest} style={buttonStyle({ background: "#0f172a", color: "#fff", borderColor: "#0f172a" })}>
             Add monthly test
           </button>
         </div>
 
+        {!showCumulative && (<>
         <div style={{ display: "grid", gridTemplateColumns: "minmax(180px, 1fr) minmax(150px, 220px) auto", gap: 10, alignItems: "end", marginBottom: 12 }}>
           <label style={{ display: "grid", gap: 5, fontSize: 12, color: "#64748b", fontWeight: 900 }}>
             Test name
@@ -911,7 +1037,7 @@ export default function MonthlyTests({ config = SAVIO_SCHOOL_TESTS_CONFIG }: { c
         </div>
 
         <div className="monthly-subject-max">
-          {SUBJECTS.map(subject => (
+          {activeSubjects.map(subject => (
             <label key={subject.key} style={{ display: "grid", gap: 5, fontSize: 12, color: "#64748b", fontWeight: 900 }}>
               {subject.label} max
               <input
@@ -924,8 +1050,10 @@ export default function MonthlyTests({ config = SAVIO_SCHOOL_TESTS_CONFIG }: { c
             </label>
           ))}
         </div>
+        </>)}
       </section>
 
+      {!showCumulative && (
       <section style={cardStyle({ padding: 14, marginBottom: 14 })}>
         <div className="monthly-toolbar" style={{ marginBottom: 12 }}>
           <div>
@@ -950,7 +1078,7 @@ export default function MonthlyTests({ config = SAVIO_SCHOOL_TESTS_CONFIG }: { c
               <tr>
                 <th style={{ width: 86 }}>Roll no.</th>
                 <th>Name</th>
-                {SUBJECTS.map(subject => <th key={subject.key}>{subject.label}</th>)}
+                {activeSubjects.map(subject => <th key={subject.key}>{subject.label}</th>)}
                 <th>Total</th>
                 <th>%</th>
                 <th>Rank</th>
@@ -982,7 +1110,7 @@ export default function MonthlyTests({ config = SAVIO_SCHOOL_TESTS_CONFIG }: { c
                         aria-label={`Name for roll ${student.rollNo}`}
                       />
                     </td>
-                    {SUBJECTS.map(subject => {
+                    {activeSubjects.map(subject => {
                       const key = `${selectedTest.id}:${student.id}:${subject.key}`;
                       return (
                         <td key={subject.key}>
@@ -1038,7 +1166,9 @@ export default function MonthlyTests({ config = SAVIO_SCHOOL_TESTS_CONFIG }: { c
           </table>
         </div>
       </section>
+      )}
 
+      {showCumulative && (
       <section style={cardStyle({ padding: 14 })}>
         <div style={{ marginBottom: 12 }}>
           <h2 style={{ margin: 0, color: "#0f172a", fontSize: 20, fontWeight: 950, letterSpacing: 0 }}>Cumulative monthly score</h2>
@@ -1075,6 +1205,7 @@ export default function MonthlyTests({ config = SAVIO_SCHOOL_TESTS_CONFIG }: { c
 	          </table>
 	        </div>
 	      </section>
+	      )}
 
 	      <Modal open={!!detailModal} onClose={() => setDetailModal(null)} title={detailModal?.title || "Details"}>
 	        {detailModal && (() => {
@@ -1111,7 +1242,7 @@ export default function MonthlyTests({ config = SAVIO_SCHOOL_TESTS_CONFIG }: { c
 
 	          if (detailModal.kind === "target") return (
 	            <div>
-	              {SUBJECTS.map(subject => (
+	              {activeSubjects.map(subject => (
 	                <div key={subject.key} style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: "8px 0", borderBottom: "1px solid #edf2f7", fontSize: 13 }}>
 	                  <span style={{ color: "#475569", fontWeight: 800 }}>{subject.label}</span>
 	                  <span style={{ color: "#0f172a", fontWeight: 950 }}>{markToInput(target.marks[subject.key]) || "-"}/{selectedTest.maxMarks[subject.key]}</span>
