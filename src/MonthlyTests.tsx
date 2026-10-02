@@ -77,7 +77,7 @@ interface CumulativeRow {
   key: string;
   rollNo: string;
   name: string;
-  completeTests: number;
+  includedTests: number;
   total: number;
   max: number;
   percentage: number | null;
@@ -458,7 +458,6 @@ function buildCumulativeRows(data: MonthlyTestsData): CumulativeRow[] {
   const rows = new Map<string, CumulativeRow>();
 
   data.tests.forEach(test => {
-    const testMax = testSubjects(test).reduce((sum, subject) => sum + (test.maxMarks[subject.key] || 0), 0);
 
     test.students.forEach(student => {
       const key = studentKey(student);
@@ -467,7 +466,7 @@ function buildCumulativeRows(data: MonthlyTestsData): CumulativeRow[] {
         key,
         rollNo: student.rollNo,
         name: student.name,
-        completeTests: 0,
+        includedTests: 0,
         total: 0,
         max: 0,
         percentage: null,
@@ -477,10 +476,10 @@ function buildCumulativeRows(data: MonthlyTestsData): CumulativeRow[] {
       existing.rollNo = student.rollNo || existing.rollNo;
       existing.name = student.name || existing.name;
 
-      if (stats.complete) {
-        existing.completeTests += 1;
+      if (stats.numericCount > 0) {
+        existing.includedTests += 1;
         existing.total += stats.total;
-        existing.max += testMax;
+        existing.max += stats.maxAvailable;
       }
 
       rows.set(key, existing);
@@ -494,8 +493,8 @@ function buildCumulativeRows(data: MonthlyTestsData): CumulativeRow[] {
 
   const groups = new Map<string, CumulativeRow[]>();
   output.forEach(row => {
-    if (row.completeTests === 0) return;
-    const groupKey = `${row.completeTests}:${row.max}`;
+    if (row.includedTests === 0) return;
+    const groupKey = `${row.includedTests}:${row.max}`;
     const group = groups.get(groupKey) || [];
     group.push(row);
     groups.set(groupKey, group);
@@ -515,7 +514,7 @@ function buildCumulativeRows(data: MonthlyTestsData): CumulativeRow[] {
 
     if (rankedA && rankedB) {
       return (
-        b.completeTests - a.completeTests ||
+        b.includedTests - a.includedTests ||
         a.rank! - b.rank! ||
         b.total - a.total ||
         compareRollNo(a.rollNo, b.rollNo) ||
@@ -1173,7 +1172,7 @@ export default function MonthlyTests({ config = SAVIO_SCHOOL_TESTS_CONFIG }: { c
         <div style={{ marginBottom: 12 }}>
           <h2 style={{ margin: 0, color: "#0f172a", fontSize: 20, fontWeight: 950, letterSpacing: 0 }}>Cumulative monthly score</h2>
           <p style={{ marginTop: 4, color: "#64748b", fontSize: 13 }}>
-            Cumulative rank compares students only inside the same complete-test coverage group.
+            Totals include all recorded marks. Absent (AB) and blank subjects are excluded from both the score and maximum. Rank compares students with the same number of included tests and maximum marks.
           </p>
         </div>
         <div className="monthly-table-wrap">
@@ -1182,7 +1181,7 @@ export default function MonthlyTests({ config = SAVIO_SCHOOL_TESTS_CONFIG }: { c
               <tr>
                 <th style={{ width: 86 }}>Roll no.</th>
                 <th>Name</th>
-                <th>Complete tests</th>
+                <th>Tests included</th>
                 <th>Cumulative total</th>
                 <th>%</th>
                 <th>Rank</th>
@@ -1194,7 +1193,7 @@ export default function MonthlyTests({ config = SAVIO_SCHOOL_TESTS_CONFIG }: { c
                 <tr key={row.key} className={isTargetStudent(row.name) ? "student-row-target" : undefined}>
                   <td>{row.rollNo || "-"}</td>
                   <td style={{ fontWeight: isTargetStudent(row.name) ? 950 : 700 }}>{row.name}</td>
-                  <td>{row.completeTests}</td>
+                  <td>{row.includedTests}</td>
                   <td style={{ fontWeight: 900 }}>{row.max ? `${row.total}/${row.max}` : "-"}</td>
                   <td>{formatNumber(row.percentage)}</td>
                   <td>{row.rank ? `#${row.rank}` : "-"}</td>
